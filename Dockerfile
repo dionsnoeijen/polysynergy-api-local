@@ -1,19 +1,28 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install dependencies (minimal)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    build-essential \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy app code
-COPY . .
+ENV POETRY_VERSION=1.8.2
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
+    ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 
-# Set env for SQLite path or other config (optioneel)
-ENV PROJECT_DB=./data/project.db
+# Zorg dat je context juist is (root van je repo!)
+COPY ./nodes /nodes
+COPY ./api-local/pyproject.toml ./api-local/poetry.lock ./
 
-# Expose FastAPI port
+ENV POETRY_VIRTUALENVS_CREATE=false
+
+RUN poetry install --no-interaction --no-ansi
+
+# Voeg de API source toe
+COPY ./api-local /app
+
 EXPOSE 8090
 
-# Start server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8090"]
+CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8090", "--reload"]
