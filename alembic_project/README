@@ -1,0 +1,7 @@
+# project database configuration
+
+## Generate a new migration
+alembic -c alembic_project/alembic.ini revision --autogenerate -m "project change"
+
+## Run migrations
+alembic -c alembic_project/alembic.ini upgrade head

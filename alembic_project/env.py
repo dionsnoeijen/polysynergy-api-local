@@ -20,11 +20,18 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # add your model's MetaData object here
 # for 'autogenerate' support
-from models.base import Base
-from models.tenant import Tenant
-from models.project import Project
+from models_project.base import ProjectBase
+from models_project.blueprint import Blueprint
+from models_project.node_setup import NodeSetup
+from models_project.node_setup_version import NodeSetupVersion
+from models_project.node_setup_version_stage import NodeSetupVersionStage
+from models_project.route import Route
+from models_project.route_segment import RouteSegment
+from models_project.schedule import Schedule
+from models_project.service import Service
+from models_project.stage import Stage
 
-target_metadata = Base.metadata
+target_metadata = ProjectBase.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
