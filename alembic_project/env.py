@@ -30,6 +30,8 @@ from models_project.route_segment import RouteSegment
 from models_project.schedule import Schedule
 from models_project.service import Service
 from models_project.stage import Stage
+from models_project.secret import ProjectSecret
+from models_project.meta import ProjectMeta
 
 target_metadata = ProjectBase.metadata
 

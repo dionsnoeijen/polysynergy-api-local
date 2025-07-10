@@ -5,7 +5,7 @@ from models_local.settings import Settings
 def get_setting(key: str, db: Session):
     setting = db.query(Settings).filter(Settings.key == key).first()
     if setting:
-        return json.loads(setting.value)
+        return json.loads(setting.value).strip('"')
     return None
 
 def set_setting(key: str, value, db: Session):

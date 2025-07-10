@@ -5,7 +5,7 @@ from services.gather_nodes_service import discover_nodes
 
 router = APIRouter()
 
-@router.get("/available_nodes")
+@router.get("/")
 def list_nodes():
     try:
         nodes = discover_nodes()

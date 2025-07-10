@@ -1,3 +1,4 @@
+import models_project
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.v1.local import router as v1_local_settings_router

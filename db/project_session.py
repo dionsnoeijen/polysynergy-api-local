@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from collections.abc import Generator
-from pathlib import Path
 from services.state_service import get_state
 from fastapi import Depends
 from db.local_session import get_db
@@ -31,7 +30,6 @@ def get_project_db(file_path: str) -> Generator[Session, None, None]:
 
 def get_active_project_db(state_db: Session = Depends(get_db)) -> Generator[Session, None, None]:
     file_path = get_state("active_project", state_db)
-    file_path = file_path.strip('"')
 
     if not file_path:
         raise RuntimeError("No active project is set in state.")

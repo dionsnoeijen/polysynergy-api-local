@@ -6,7 +6,7 @@ from models_local.state import State
 def get_state(key: str, db: Session):
     state = db.query(State).filter(State.key == key).first()
     if state:
-        return json.loads(state.value)
+        return json.loads(state.value).strip('"')
     return None
 
 def set_state(key: str, value, db: Session):

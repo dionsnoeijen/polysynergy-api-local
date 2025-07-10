@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import String, Boolean, Integer, DateTime, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import ProjectBase  # local base class
 
 class Stage(ProjectBase):
@@ -17,6 +17,8 @@ class Stage(ProjectBase):
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    version_links = relationship("NodeSetupVersionStage", back_populates="stage", cascade="all, delete")
 
     def __repr__(self):
         return f"<Stage name={self.name}>"

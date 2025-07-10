@@ -33,4 +33,4 @@ class Route(ProjectBase):
     segments: Mapped[list["RouteSegment"]] = relationship("RouteSegment", back_populates="route", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<DynamicRoute(id={self.id}, method={self.method})>"
+        return f"<Route(id={self.id}, method={self.method})>"

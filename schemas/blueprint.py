@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Any
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -6,17 +6,16 @@ from schemas.node_setup import NodeSetupOut
 
 
 class BlueprintMetadata(BaseModel):
-    icon: Optional[str] = ""
-    category: Optional[str] = ""
-    description: Optional[str] = ""
+    icon: str | None = ""
+    category: str | None = ""
+    description: str | None = ""
 
 class BlueprintIn(BaseModel):
     name: str
     meta: BlueprintMetadata = Field(alias="metadata")
-    node_setup: Optional[Dict[str, Any]] = None  # ← als input mag dit vrij blijven
+    node_setup: dict[str, Any] | None = None
 
-    class Config:
-        validate_by_name = True  # ← deze regel is nodig
+    model_config = { "populate_by_name": True }
 
 class BlueprintOut(BaseModel):
     id: str
@@ -24,7 +23,6 @@ class BlueprintOut(BaseModel):
     metadata: BlueprintMetadata = Field(alias="meta")
     created_at: datetime
     updated_at: datetime
-    node_setup: Optional[NodeSetupOut] = None
+    node_setup: NodeSetupOut | None = None
 
-    class Config:
-        populate_by_name = True
+    model_config = { "populate_by_name": True }

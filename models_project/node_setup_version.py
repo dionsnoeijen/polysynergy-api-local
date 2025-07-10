@@ -26,6 +26,7 @@ class NodeSetupVersion(ProjectBase):
     )
 
     node_setup = relationship("NodeSetup", back_populates="versions")
+    stage_links = relationship("NodeSetupVersionStage", back_populates="version", cascade="all, delete")
 
     def __repr__(self):
         return f"<NodeSetupVersion v{self.version_number}>"

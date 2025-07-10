@@ -20,7 +20,7 @@ class NodeSetupVersionStage(ProjectBase):
     executable_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     published_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    version = relationship("NodeSetupVersion", backref="stage_links")
+    version = relationship("NodeSetupVersion", back_populates="stage_links")
     stage = relationship("Stage", back_populates="version_links")
     node_setup = relationship("NodeSetup")
 
