@@ -4,17 +4,17 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from db.project_session import get_active_project_db
-from models_project import NodeSetupVersion
-from models_project.service import Service
-from models_project.node_setup import NodeSetup
-from schemas.service import ServiceOut, ServiceCreateIn, ServiceMetadata  # maak ik zo
+from db.session import get_db
+from models import NodeSetupVersion
+from models.service import Service
+from models.node_setup import NodeSetup
+from schemas.service import ServiceOut, ServiceCreateIn
 
 router = APIRouter()
 
 
 @router.get("/", response_model=List[ServiceOut])
-def list_services(db: Session = Depends(get_active_project_db)):
+def list_services(db: Session = Depends(get_db)):
     services = db.query(Service).all()
 
     for s in services:
@@ -34,7 +34,7 @@ def list_services(db: Session = Depends(get_active_project_db)):
 @router.post("/", response_model=ServiceOut, status_code=status.HTTP_201_CREATED)
 def create_service(
     data: ServiceCreateIn,
-    db: Session = Depends(get_active_project_db)
+    db: Session = Depends(get_db)
 ):
     service = Service(
         id=str(uuid4()),
@@ -70,7 +70,7 @@ def create_service(
 def update_service(
     service_id: UUID,
     data: ServiceCreateIn,  # zelfde schema als voor create, tenzij je iets specifieks wilt
-    db: Session = Depends(get_active_project_db)
+    db: Session = Depends(get_db)
 ):
     service = db.query(Service).filter(Service.id == str(service_id)).first()
     if not service:
@@ -102,7 +102,7 @@ def update_service(
 @router.delete("/{service_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_service(
     service_id: UUID,
-    db: Session = Depends(get_active_project_db)
+    db: Session = Depends(get_db)
 ):
     service = db.query(Service).filter(Service.id == str(service_id)).first()
     if not service:

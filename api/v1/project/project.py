@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from db.local_session import get_db
 from db.project_session import get_active_project_db
-from models_project.meta import ProjectMeta
+from models.meta import ProjectMeta
 from services.state_service import set_state
 
 MOUNTED_PREFIX = "/Users/dionsnoeijen/polysynergy/orchestrator/api-local/tmp/projects"

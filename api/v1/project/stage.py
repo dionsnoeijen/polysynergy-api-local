@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from db.project_session import get_active_project_db
-from models_project.stage import Stage
+from models.stage import Stage
 from schemas.stage import StageOut, StageCreate, StageUpdate, ReorderStagesIn
 
 router = APIRouter()

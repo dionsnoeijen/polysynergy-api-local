@@ -1,0 +1,7 @@
+# project database configuration
+
+## Generate a new migration
+alembic revision --autogenerate
+
+## Run migrations
+alembic upgrade head

@@ -1,7 +1,0 @@
-# local database configuration
-
-## Generate a new migration
-alembic -c alembic_local/alembic.ini revision --autogenerate -m "local change"
-
-## Run migrations
-alembic -c alembic_local/alembic.ini upgrade head

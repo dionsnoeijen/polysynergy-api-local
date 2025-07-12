@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from db.project_session import get_active_project_db
-from models_project import RouteSegment, NodeSetupVersion
-from models_project.route import Route, Method
-from models_project.node_setup import NodeSetup
+from models import RouteSegment, NodeSetupVersion
+from models.route import Route, Method
+from models.node_setup import NodeSetup
 from schemas.route import RouteListOut, RouteDetailOut, RouteCreateIn
 
 router = APIRouter()

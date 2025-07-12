@@ -7,8 +7,8 @@ from typing import List
 from starlette import status
 
 from db.project_session import get_active_project_db
-from models_project import NodeSetup, NodeSetupVersion
-from models_project.schedule import Schedule
+from models import NodeSetup, NodeSetupVersion
+from models.schedule import Schedule
 from schemas.schedule import ScheduleListOut, ScheduleCreateIn, ScheduleDetailOut, ScheduleUpdateIn
 
 router = APIRouter()

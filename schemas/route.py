@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
-from models_project.route_segment import RouteSegmentType, VariableType
+from models.route_segment import RouteSegmentType, VariableType
 from schemas.node_setup import NodeSetupOut
 from schemas.node_setup_version import NodeSetupVersionSimpleOut
 

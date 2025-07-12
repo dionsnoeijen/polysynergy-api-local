@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from sqlalchemy.orm import Session
 from uuid import uuid4
 from datetime import datetime
-from models_project.secret import ProjectSecret
+from models.secret import ProjectSecret
 
 class LocalSecretsService:
     def __init__(self, encryption_key: str, db: Session):

@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from db.project_session import get_active_project_db
-from models_project.node_setup import NodeSetup
-from models_project.node_setup_version import NodeSetupVersion
+from models.node_setup import NodeSetup
+from models.node_setup_version import NodeSetupVersion
 from schemas.node_setup_version import NodeSetupVersionUpdate, NodeSetupVersionOut
 from services.codegen.build_executable import generate_code_from_json
 

@@ -8,9 +8,9 @@ from typing import List
 from db.project_session import get_active_project_db
 from sqlalchemy.orm import Session, joinedload
 
-from models_project.blueprint import Blueprint
-from models_project.node_setup import NodeSetup
-from models_project.node_setup_version import NodeSetupVersion
+from models.blueprint import Blueprint
+from models.node_setup import NodeSetup
+from models.node_setup_version import NodeSetupVersion
 from schemas.blueprint import BlueprintOut, BlueprintIn, BlueprintMetadata
 from schemas.node_setup import NodeSetupOut
 from schemas.node_setup_version import NodeSetupVersionOut

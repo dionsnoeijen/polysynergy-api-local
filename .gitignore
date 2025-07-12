@@ -40,3 +40,5 @@ reload.*.pid
 # Docker stuff
 __docker_build__/
 *.container_id
+
+.env
