@@ -4,8 +4,7 @@ from collections.abc import Generator
 from services.state_service import get_state
 from fastapi import Depends
 from db.local_session import get_db
-
-from models_project.base import ProjectBase
+from models_project.base import Base
 
 
 def get_project_engine(file_path: str):
@@ -17,7 +16,7 @@ def get_project_engine(file_path: str):
 
 def init_project_db(file_path: str):
     engine = get_project_engine(file_path)
-    ProjectBase.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 def get_project_db(file_path: str) -> Generator[Session, None, None]:
     engine = get_project_engine(file_path)

@@ -7,7 +7,7 @@ from schemas.secret import SecretCreateIn, SecretOut, SecretUpdateIn
 
 router = APIRouter()
 
-@router.get("/secrets/", response_model=list[SecretOut])
+@router.get("/", response_model=list[SecretOut])
 def list_secrets(
     service: LocalSecretsService = Depends(get_local_secrets_service)
 ):
@@ -21,7 +21,7 @@ def list_secrets(
         for secret in service.list()
     ]
 
-@router.post("/secrets/", response_model=SecretOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=SecretOut, status_code=status.HTTP_201_CREATED)
 def create_secret(
     payload: SecretCreateIn,
     service: LocalSecretsService = Depends(get_local_secrets_service)
@@ -39,7 +39,7 @@ def create_secret(
         decrypted=True
     )
 
-@router.put("/secrets/{secret_id}/", response_model=SecretOut)
+@router.put("/{secret_id}/", response_model=SecretOut)
 def update_secret(
     secret_id: UUID,
     payload: SecretUpdateIn,
@@ -56,7 +56,7 @@ def update_secret(
         decrypted=True
     )
 
-@router.delete("/secrets/{secret_id}/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{secret_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_secret(
     secret_id: UUID,
     service: LocalSecretsService = Depends(get_local_secrets_service)

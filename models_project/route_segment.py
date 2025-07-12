@@ -5,7 +5,7 @@ from enum import Enum
 from sqlalchemy.types import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models_project.base import ProjectBase
+from models_project.base import Base
 
 
 class RouteSegmentType(str, Enum):
@@ -16,7 +16,7 @@ class VariableType(str, Enum):
     STRING = "string"
     NUMBER = "number"
 
-class RouteSegment(ProjectBase):
+class RouteSegment(Base):
     __tablename__ = "route_segments"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))

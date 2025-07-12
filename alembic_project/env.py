@@ -20,7 +20,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # add your model's MetaData object here
 # for 'autogenerate' support
-from models_project.base import ProjectBase
+from models_project.base import Base
 from models_project.blueprint import Blueprint
 from models_project.node_setup import NodeSetup
 from models_project.node_setup_version import NodeSetupVersion
@@ -33,7 +33,7 @@ from models_project.stage import Stage
 from models_project.secret import ProjectSecret
 from models_project.meta import ProjectMeta
 
-target_metadata = ProjectBase.metadata
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

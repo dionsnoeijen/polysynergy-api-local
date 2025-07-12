@@ -1,4 +1,4 @@
-from polysynergy_nodes.base.execution_context.flow_state import FlowState
+from polysynergy_node_runner.execution_context.flow_state import FlowState
 
 from services.codegen.steps.get_version_suffix import get_version_suffix
 

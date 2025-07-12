@@ -4,9 +4,9 @@ from datetime import datetime, timezone
 from sqlalchemy import String, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import ProjectBase
+from .base import Base
 
-class Schedule(ProjectBase):
+class Schedule(Base):
     __tablename__ = "schedules"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))

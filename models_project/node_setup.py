@@ -4,9 +4,9 @@ import uuid
 
 from sqlalchemy.orm import relationship
 
-from .base import ProjectBase
+from .base import Base
 
-class NodeSetup(ProjectBase):
+class NodeSetup(Base):
     __tablename__ = "node_setups"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))

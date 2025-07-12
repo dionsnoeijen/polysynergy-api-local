@@ -4,8 +4,8 @@ def filter_and_collect_imports(lines, collected_imports):
     out = []
     import_pat = re.compile(r'^(from|import)\s+')
     skip_starts = (
-        "from polysynergy_nodes.base.node_variable_settings",
-        "import polysynergy_nodes.base.node_variable_settings"
+        "from polysynergy_node_runner.node_variable_settings",
+        "import polysynergy_node_runner.node_variable_settings"
     )
     for line in lines:
         st = line.strip()

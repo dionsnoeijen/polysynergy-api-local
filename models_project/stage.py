@@ -2,9 +2,9 @@ import uuid
 from datetime import datetime, timezone
 from sqlalchemy import String, Boolean, Integer, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from .base import ProjectBase  # local base class
+from .base import Base  # local base class
 
-class Stage(ProjectBase):
+class Stage(Base):
     __tablename__ = "stages"
     __table_args__ = (
         UniqueConstraint("name", name="uq_stage_name"),

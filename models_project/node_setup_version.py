@@ -3,10 +3,10 @@ from datetime import datetime, timezone
 from sqlalchemy import String, DateTime, Integer, Boolean, Text, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models_project.base import ProjectBase
+from models_project.base import Base
 
 
-class NodeSetupVersion(ProjectBase):
+class NodeSetupVersion(Base):
     __tablename__ = "node_setup_versions"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))

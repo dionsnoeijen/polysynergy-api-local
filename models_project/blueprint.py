@@ -3,9 +3,9 @@ from sqlalchemy import String, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
 
-from .base import ProjectBase
+from .base import Base
 
-class Blueprint(ProjectBase):
+class Blueprint(Base):
     __tablename__ = "blueprints"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))

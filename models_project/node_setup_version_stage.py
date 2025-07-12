@@ -4,10 +4,10 @@ from sqlalchemy import Text, ForeignKey
 from sqlalchemy import String, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models_project.base import ProjectBase
+from models_project.base import Base
 
 
-class NodeSetupVersionStage(ProjectBase):
+class NodeSetupVersionStage(Base):
     __tablename__ = "node_setup_version_stages"
     __table_args__ = (
         UniqueConstraint("stage_id", "node_setup_id", name="uq_stage_node_setup"),

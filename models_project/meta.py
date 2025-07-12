@@ -3,9 +3,9 @@ from uuid import uuid4
 
 from sqlalchemy import String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
-from .base import ProjectBase
+from .base import Base
 
-class ProjectMeta(ProjectBase):
+class ProjectMeta(Base):
     __tablename__ = "project_meta"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))

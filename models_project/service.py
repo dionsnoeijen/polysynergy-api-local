@@ -3,9 +3,9 @@ from sqlalchemy import String, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, timezone
 
-from .base import ProjectBase
+from .base import Base
 
-class Service(ProjectBase):
+class Service(Base):
     __tablename__ = "services"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))

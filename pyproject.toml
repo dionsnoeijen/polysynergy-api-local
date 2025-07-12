@@ -10,6 +10,7 @@ python = "^3.12"
 fastapi = "^0.111.0"
 sqlalchemy = "^2.0.30"
 polysynergy_nodes = { path = "../nodes", develop = true }
+polysynergy_node_runner = { path = "../node_runner", develop = true }
 alembic = "^1.16.2"
 
 [tool.poetry.group.dev.dependencies]

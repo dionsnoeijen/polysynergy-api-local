@@ -6,7 +6,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum as PyEnum
 
-from .base import ProjectBase
+from .base import Base
 from .route_segment import RouteSegment
 
 
@@ -18,7 +18,7 @@ class Method(PyEnum):
     DELETE = "DELETE"
 
 
-class Route(ProjectBase):
+class Route(Base):
     __tablename__ = "routes"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))

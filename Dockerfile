@@ -14,11 +14,13 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 
 # Zorg dat je context juist is (root van je repo!)
 COPY ./nodes /nodes
+COPY ./node_runner /node_runner
 COPY ./api-local/pyproject.toml ./api-local/poetry.lock ./
 
 ENV POETRY_VIRTUALENVS_CREATE=false
 
-RUN poetry install --no-interaction --no-ansi
+RUN rm -rf /root/.cache/pypoetry/*
+RUN poetry lock && poetry install --no-interaction --no-ansi
 
 # Voeg de API source toe
 COPY ./api-local /app
