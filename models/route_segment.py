@@ -4,8 +4,8 @@ from sqlalchemy import (String, ForeignKey, Integer)
 from enum import Enum
 from sqlalchemy.types import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
 from models.base import Base
+from sqlalchemy.dialects.postgresql import UUID
 
 
 class RouteSegmentType(str, Enum):
@@ -19,7 +19,7 @@ class VariableType(str, Enum):
 class RouteSegment(Base):
     __tablename__ = "route_segments"
 
-    route_id: Mapped[str] = mapped_column(ForeignKey("routes.id"), nullable=True)
+    route_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("routes.id"), nullable=True)
     segment_order: Mapped[int] = mapped_column(Integer)
     type: Mapped[RouteSegmentType] = mapped_column(
         SQLEnum(RouteSegmentType),
@@ -37,3 +37,6 @@ class RouteSegment(Base):
 
     def __repr__(self):
         return f"<RouteSegment(name={self.name}, type={self.type})>"
+
+    def __str__(self):
+        return f"{self.name}"

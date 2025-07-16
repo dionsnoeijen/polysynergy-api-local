@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from models import Account, Role, Membership, Tenant
+from models import Account, Membership, Tenant
 from core.settings import settings
 import boto3
 
@@ -15,13 +15,6 @@ class AccountService:
         tenant = Tenant(name=data["tenant_name"])
         session.add(tenant)
 
-        role = session.execute(
-            select(Role).where(Role.name == data.get("role", "Admin"))
-        ).scalar_one_or_none()
-        if not role:
-            role = Role(name=data.get("role", "Admin"))
-            session.add(role)
-
         account = Account(
             cognito_id=data["cognito_id"],
             first_name=data["first_name"],
@@ -31,9 +24,8 @@ class AccountService:
         )
         session.add(account)
 
-        membership = Membership(account=account, tenant=tenant, role=role)
+        membership = Membership(account=account, tenant=tenant)
         session.add(membership)
-
         session.commit()
 
         AccountService._update_cognito_user(
@@ -50,13 +42,6 @@ class AccountService:
     @staticmethod
     def invite_to_tenant(session: Session, inviter: Account, email: str, role_name: str = "Viewer") -> Account:
         tenant = inviter.memberships[0].tenant  # eventueel expliciet opvragen
-
-        role = session.execute(
-            select(Role).where(Role.name == role_name.capitalize())
-        ).scalar_one_or_none()
-        if not role:
-            role = Role(name=role_name.capitalize())
-            session.add(role)
 
         temp_password = generate_temporary_password()
 
@@ -76,7 +61,7 @@ class AccountService:
         session.add(account)
         session.flush()
 
-        membership = Membership(account=account, tenant=tenant, role=role)
+        membership = Membership(account=account, tenant=tenant)
         session.add(membership)
 
         EmailService.send_invitation_email(email, settings.PORTAL_URL, temp_password)

@@ -1,67 +1,121 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from uuid import UUID
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 
-from services.factories import get_local_secrets_service
-from services.local_secrets_service import LocalSecretsService
-from schemas.secret import SecretCreateIn, SecretOut, SecretUpdateIn
+from models import Project
+from schemas.secret import SecretCreateIn, SecretOut, SecretUpdateIn, SecretDeleteResult, SecretDeleteOut, \
+    SecretDeleteIn
+from services.secrets_manager import get_secrets_manager
+from utils.get_current_account import get_project_or_403
+from polysynergy_node_runner.services.secrets_manager import SecretsManager
 
 router = APIRouter()
 
 @router.get("/", response_model=list[SecretOut])
 def list_secrets(
-    service: LocalSecretsService = Depends(get_local_secrets_service)
+    project: Project = Depends(get_project_or_403),
+    secrets_manager: SecretsManager = Depends(get_secrets_manager),
 ):
-    return [
-        SecretOut(
-            id=secret.id,
-            key=secret.key,
-            stage=secret.stage,
-            decrypted=service.decrypt(secret.value) is not None
+    try:
+        secret_list = secrets_manager.list_secrets(str(project.id))
+        result: dict[str, SecretOut] = {}
+
+        for secret in secret_list:
+            try:
+                _, stage, key = secret['Name'].rsplit('@', 2)
+            except ValueError:
+                continue
+
+            if key not in result:
+                result[key] = SecretOut(
+                    key=key,
+                    project_id=str(project.id),
+                    stages=[]
+                )
+
+            result[key].stages.append(stage)
+
+        print(f"Found {len(result)} secrets for project {project.id}")
+
+        return list(result.values())
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving secrets: {str(e)}"
         )
-        for secret in service.list()
-    ]
 
 @router.post("/", response_model=SecretOut, status_code=status.HTTP_201_CREATED)
 def create_secret(
-    payload: SecretCreateIn,
-    service: LocalSecretsService = Depends(get_local_secrets_service)
+    data: SecretCreateIn,
+    project: Project = Depends(get_project_or_403),
+    secrets_manager: SecretsManager = Depends(get_secrets_manager),
 ):
-    secret = service.create(
-        key=payload.key,
-        value=payload.secret_value,
-        stage=payload.stage
-    )
+    if not data.key or not data.secret_value or not data.stage:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing 'key', 'secret_value' or 'stage'"
+        )
 
-    return SecretOut(
-        id=secret.id,
-        key=secret.key,
-        stage=secret.stage,
-        decrypted=True
-    )
+    try:
+        secrets_manager.create_secret(data.key, data.secret_value, str(project.id), data.stage)
+        return SecretOut(
+            key=data.key,
+            project_id=str(project.id),
+            stages=[data.stage]
+        )
 
-@router.put("/{secret_id}/", response_model=SecretOut)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating secret: {e}"
+        )
+
+@router.put("/", response_model=SecretOut)
 def update_secret(
-    secret_id: UUID,
-    payload: SecretUpdateIn,
-    service: LocalSecretsService = Depends(get_local_secrets_service)
+    data: SecretUpdateIn,
+    project: Project = Depends(get_project_or_403),
+    secrets_manager: SecretsManager = Depends(get_secrets_manager),
 ):
-    secret = service.update(str(secret_id), payload.secret_value)
-    if not secret:
-        raise HTTPException(status_code=404, detail="Secret not found")
+    if not data.secret_value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing 'secret_value'"
+        )
 
-    return SecretOut(
-        id=secret.id,
-        key=secret.key,
-        stage=secret.stage,
-        decrypted=True
-    )
+    try:
+        secrets_manager.update_secret_by_key(data.key, data.secret_value, str(project.id), data.stage)
 
-@router.delete("/{secret_id}/", status_code=status.HTTP_204_NO_CONTENT)
+        return SecretOut(
+            key=data.key,
+            project_id=str(project.id),
+            stages=[data.stage]
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating secret: {e}"
+        )
+
+@router.delete("/", response_model=SecretDeleteOut)
 def delete_secret(
-    secret_id: UUID,
-    service: LocalSecretsService = Depends(get_local_secrets_service)
+    data: SecretDeleteIn = Body(...),
+    project: Project = Depends(get_project_or_403),
+    secrets_manager: SecretsManager = Depends(get_secrets_manager),
 ):
-    deleted = service.delete(str(secret_id))
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Secret not found")
-    return None
+    key = data.key
+    project_id = str(project.id)
+    stage_names = {stage.name for stage in project.stages}
+    stage_names.add("mock")
+
+    results = []
+
+    for stage_name in stage_names:
+        try:
+            secrets_manager.delete_secret_by_key(key, project_id, stage_name)
+            results.append(SecretDeleteResult(stage=stage_name, deleted=True))
+        except secrets_manager.client.exceptions.ResourceNotFoundException:
+            results.append(SecretDeleteResult(stage=stage_name, deleted=False))
+        except Exception as e:
+            results.append(SecretDeleteResult(stage=stage_name, deleted=False, error=str(e)))
+
+    return SecretDeleteOut(results=results)

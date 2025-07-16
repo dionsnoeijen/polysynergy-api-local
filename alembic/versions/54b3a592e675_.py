@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 0ad6c85dc6b4
+Revision ID: 54b3a592e675
 Revises: 
-Create Date: 2025-07-12 12:17:14.018638
+Create Date: 2025-07-14 09:53:35.084896
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '0ad6c85dc6b4'
+revision: str = '54b3a592e675'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -43,15 +43,6 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('role',
-    sa.Column('name', sa.String(length=100), nullable=False),
-    sa.Column('description', sa.Text(), nullable=False),
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
-    )
     op.create_table('tenants',
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('id', sa.UUID(), nullable=False),
@@ -73,18 +64,16 @@ def upgrade() -> None:
     op.create_table('membership',
     sa.Column('account_id', sa.UUID(), nullable=False),
     sa.Column('tenant_id', sa.UUID(), nullable=False),
-    sa.Column('role_id', sa.UUID(), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['account_id'], ['accounts.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['role_id'], ['role.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('account_id', 'tenant_id', name='uix_account_tenant')
     )
     op.create_table('node_setup_versions',
-    sa.Column('node_setup_id', sa.String(), nullable=False),
+    sa.Column('node_setup_id', sa.UUID(), nullable=False),
     sa.Column('version_number', sa.Integer(), nullable=False),
     sa.Column('content', sa.JSON(), nullable=False),
     sa.Column('executable', sa.Text(), nullable=False),
@@ -103,8 +92,7 @@ def upgrade() -> None:
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('tenant_id', sa.UUID(), nullable=False),
     sa.Column('rest_api_gateway_id', sa.String(), nullable=True),
-    sa.Column('api_key', sa.String(), nullable=True),
-    sa.Column('domain_name', sa.String(), nullable=True),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -122,16 +110,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('blueprint_project_link',
-    sa.Column('blueprint_id', sa.UUID(), nullable=False),
-    sa.Column('project_id', sa.UUID(), nullable=False),
-    sa.ForeignKeyConstraint(['blueprint_id'], ['blueprints.id'], ),
-    sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
-    sa.PrimaryKeyConstraint('blueprint_id', 'project_id')
-    )
     op.create_table('routes',
     sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('require_api_key', sa.Boolean(), nullable=False),
     sa.Column('method', sa.Enum('GET', 'POST', 'PUT', 'PATCH', 'DELETE', name='http_method_enum'), nullable=False),
     sa.Column('project_id', sa.UUID(), nullable=False),
     sa.Column('id', sa.UUID(), nullable=False),
@@ -153,13 +133,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('service_project_link',
-    sa.Column('service_id', sa.UUID(), nullable=False),
-    sa.Column('project_id', sa.UUID(), nullable=False),
-    sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
-    sa.ForeignKeyConstraint(['service_id'], ['services.id'], ),
-    sa.PrimaryKeyConstraint('service_id', 'project_id')
-    )
     op.create_table('stages',
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('is_production', sa.Boolean(), nullable=False),
@@ -173,9 +146,9 @@ def upgrade() -> None:
     sa.UniqueConstraint('name', name='uq_stage_name')
     )
     op.create_table('node_setup_version_stages',
-    sa.Column('version_id', sa.String(), nullable=False),
-    sa.Column('stage_id', sa.String(), nullable=False),
-    sa.Column('node_setup_id', sa.String(), nullable=False),
+    sa.Column('version_id', sa.UUID(), nullable=False),
+    sa.Column('stage_id', sa.UUID(), nullable=False),
+    sa.Column('node_setup_id', sa.UUID(), nullable=False),
     sa.Column('executable_hash', sa.Text(), nullable=True),
     sa.Column('published_at', sa.DateTime(), nullable=False),
     sa.Column('id', sa.UUID(), nullable=False),
@@ -209,17 +182,14 @@ def downgrade() -> None:
     op.drop_table('route_segments')
     op.drop_table('node_setup_version_stages')
     op.drop_table('stages')
-    op.drop_table('service_project_link')
     op.drop_table('schedules')
     op.drop_table('routes')
-    op.drop_table('blueprint_project_link')
     op.drop_table('services')
     op.drop_table('projects')
     op.drop_table('node_setup_versions')
     op.drop_table('membership')
     op.drop_table('blueprints')
     op.drop_table('tenants')
-    op.drop_table('role')
     op.drop_table('node_setups')
     op.drop_table('accounts')
     # ### end Alembic commands ###

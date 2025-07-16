@@ -1,4 +1,6 @@
 from typing import Any
+from uuid import UUID
+
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -12,15 +14,15 @@ class BlueprintMetadata(BaseModel):
 
 class BlueprintIn(BaseModel):
     name: str
-    meta: BlueprintMetadata = Field(alias="metadata")
+    meta: BlueprintMetadata
     node_setup: dict[str, Any] | None = None
 
     model_config = { "populate_by_name": True }
 
 class BlueprintOut(BaseModel):
-    id: str
+    id: UUID
     name: str
-    metadata: BlueprintMetadata = Field(alias="meta")
+    meta: BlueprintMetadata
     created_at: datetime
     updated_at: datetime
     node_setup: NodeSetupOut | None = None

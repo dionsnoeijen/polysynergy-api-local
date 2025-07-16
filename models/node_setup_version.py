@@ -1,4 +1,6 @@
-from sqlalchemy import String, Integer, Boolean, Text, ForeignKey, JSON
+import uuid
+
+from sqlalchemy import String, Integer, Boolean, Text, ForeignKey, JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -7,7 +9,7 @@ from models.base import Base
 class NodeSetupVersion(Base):
     __tablename__ = "node_setup_versions"
 
-    node_setup_id: Mapped[str] = mapped_column(String, ForeignKey("node_setups.id"), nullable=False)
+    node_setup_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("node_setups.id"), nullable=False)
     version_number: Mapped[int] = mapped_column(Integer, default=1)
     content: Mapped[dict] = mapped_column(JSON)
     executable: Mapped[str] = mapped_column(Text, default="")

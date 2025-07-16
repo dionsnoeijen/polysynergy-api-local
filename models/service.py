@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import String, JSON, ForeignKey
+from sqlalchemy import String, JSON, ForeignKey, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -11,7 +11,7 @@ class Service(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     meta: Mapped[dict] = mapped_column(JSON, nullable=True)
 
-    tenant_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("tenants.id"), nullable=True)
+    tenant_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="services")
 
     projects: Mapped[list["Project"]] = relationship(

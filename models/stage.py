@@ -1,9 +1,8 @@
 import uuid
 
-from sqlalchemy import String, Boolean, Integer, UniqueConstraint, ForeignKey
+from sqlalchemy import String, Boolean, Integer, UniqueConstraint, ForeignKey, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .associative_tables import blueprint_project_link
 from .base import Base
 
 class Stage(Base):
@@ -16,7 +15,7 @@ class Stage(Base):
     is_production: Mapped[bool] = mapped_column(Boolean, default=False)
     order: Mapped[int] = mapped_column(Integer, default=0)
 
-    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), nullable=False)
+    project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
     project: Mapped["Project"] = relationship("Project", back_populates="stages")
 
     version_links = relationship("NodeSetupVersionStage", back_populates="stage", cascade="all, delete")

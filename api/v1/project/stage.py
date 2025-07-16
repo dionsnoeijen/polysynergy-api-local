@@ -5,20 +5,20 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette import status
 
-from db.project_session import get_active_project_db
+from db.session import get_db
 from models.stage import Stage
 from schemas.stage import StageOut, StageCreate, StageUpdate, ReorderStagesIn
 
 router = APIRouter()
 
 @router.get("/", response_model=list[StageOut])
-def list_stages(db: Session = Depends(get_active_project_db)):
+def list_stages(db: Session = Depends(get_db)):
     return db.query(Stage).all()
 
 @router.post("/", response_model=StageOut, status_code=status.HTTP_201_CREATED)
 def create_stage(
     data: StageCreate,
-    db: Session = Depends(get_active_project_db)
+    db: Session = Depends(get_db)
 ):
     name = data.name.lower().strip()
 
@@ -51,7 +51,7 @@ def create_stage(
 def update_stage(
     stage_id: str,
     update: StageUpdate,
-    db: Session = Depends(get_active_project_db)
+    db: Session = Depends(get_db)
 ):
     stage = db.query(Stage).filter_by(id=stage_id).first()
     if not stage:
@@ -84,7 +84,7 @@ def update_stage(
     )
 
 @router.delete("/{stage_id}/")
-def delete_stage(stage_id: str, db: Session = Depends(get_active_project_db)):
+def delete_stage(stage_id: str, db: Session = Depends(get_db)):
     stage = db.query(Stage).filter(Stage.id == stage_id).first()
 
     if not stage:
@@ -105,7 +105,7 @@ def delete_stage(stage_id: str, db: Session = Depends(get_active_project_db)):
 @router.post("/reorder")
 def reorder_stages(
     data: ReorderStagesIn,
-    db: Session = Depends(get_active_project_db)
+    db: Session = Depends(get_db)
 ):
     stages = db.query(Stage).all()
     stage_map = {str(stage.id): stage for stage in stages}

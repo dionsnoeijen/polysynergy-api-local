@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from uuid import UUID
+
 
 class SecretCreateIn(BaseModel):
     key: str
@@ -7,10 +7,22 @@ class SecretCreateIn(BaseModel):
     stage: str
 
 class SecretUpdateIn(BaseModel):
+    key: str
     secret_value: str
+    stage: str
 
 class SecretOut(BaseModel):
-    id: UUID
     key: str
+    project_id: str
+    stages: list[str]
+
+class SecretDeleteResult(BaseModel):
     stage: str
-    decrypted: bool
+    deleted: bool
+    error: str | None = None
+
+class SecretDeleteIn(BaseModel):
+    key: str
+
+class SecretDeleteOut(BaseModel):
+    results: list[SecretDeleteResult]

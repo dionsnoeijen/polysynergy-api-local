@@ -1,74 +1,153 @@
-import uuid
-import shutil
+from datetime import datetime, timezone
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Depends
-from cryptography.fernet import Fernet
-from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
-from db.local_session import get_db
-from db.project_session import get_active_project_db
-from models.meta import ProjectMeta
-from services.state_service import set_state
-
-MOUNTED_PREFIX = "/Users/dionsnoeijen/polysynergy/orchestrator/api-local/tmp/projects"
-DOCKER_PROJECTS_DIR = "/app/tmp/projects"
+from db.session import get_db
+from models import Account, Membership, Project, Stage
+from schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
+from utils.get_current_account import get_current_account
 
 router = APIRouter()
 
-BASE_DIR = Path(__file__).resolve().parents[3]
-TEMPLATE_DB = BASE_DIR / "project_db" / "project.psy"
-TMP_DIR = BASE_DIR / "tmp" / "projects"
-TMP_DIR.mkdir(parents=True, exist_ok=True)
-
-@router.post("/")
-def create_project(db: Session = Depends(get_db)):
-    project_id = str(uuid.uuid4())
-    db_path = TMP_DIR / f"{project_id}.psy"
-
-    try:
-        shutil.copy(TEMPLATE_DB, db_path)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Copying template DB failed: {str(e)}")
-
-    set_state('active_project', f"sqlite:///{str(db_path)}", db)
-
-    encryption_key = Fernet.generate_key().decode()
-    set_state('encryption_key', encryption_key, db)
-
-    project_db = next(get_active_project_db(db))
-    meta = ProjectMeta(id=project_id)
-
-    project_db.add(meta)
-    project_db.commit()
-
-    return { "project_id": project_id }
-
-@router.post("/load/")
-def load_project(
-    data: dict,
-    db: Session = Depends(get_db)
+@router.post("/", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
+def create_project(
+    project_data: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_account: Account = Depends(get_current_account)
 ):
-    filename = data.get("psy")
+    memberships = db.query(Membership).filter_by(account_id=current_account.id).all()
 
-    if not filename:
-        raise HTTPException(status_code=400, detail="Missing file path")
+    if not memberships:
+        raise HTTPException(
+            status_code=400,
+            detail="No tenants available for this user"
+        )
 
-    path = Path(filename)
+    tenant_id = memberships[0].tenant_id
+    project = Project(name=project_data.name, tenant_id=tenant_id)
 
-    if not str(path).startswith(MOUNTED_PREFIX):
-        raise HTTPException(status_code=400, detail="Invalid path")
+    db.add(project)
+    db.flush()
 
-    relative = path.relative_to(MOUNTED_PREFIX)
-    internal_path = Path(DOCKER_PROJECTS_DIR) / relative
+    stage = Stage(
+        project_id=project.id,
+        name="mock",
+        is_production=False
+    )
+    db.add(stage)
+    db.commit()
+    db.refresh(project)
 
-    if not internal_path.exists():
-        raise HTTPException(status_code=404, detail="File not found in container")
+    return project
 
-    set_state('active_project', f"sqlite:///{str(internal_path)}", db)
+@router.get("/", response_model=list[ProjectRead])
+def get_projects(
+    trashed: bool = Query(False),
+    db: Session = Depends(get_db),
+    account: Account = Depends(get_current_account),
+):
+    stmt = (
+        select(Project)
+        .join(Membership, Membership.tenant_id == Project.tenant_id)
+        .where(Membership.account_id == account.id)
+    )
 
-    project_db = next(get_active_project_db(db))
+    if trashed:
+        stmt = stmt.where(Project.deleted_at.is_not(None))
+    else:
+        stmt = stmt.where(Project.deleted_at.is_(None))
 
-    meta = project_db.query(ProjectMeta).first()
+    projects = db.scalars(stmt).all()
+    return projects
 
-    return { "project_id": str(meta.id) }
+@router.get("/{project_id}/", response_model=ProjectRead)
+def get_project(
+    project_id: UUID,
+    session: Session = Depends(get_db),
+    account: Account = Depends(get_current_account),
+):
+    stmt = (
+        select(Project)
+        .join(Membership, Membership.tenant_id == Project.tenant_id)
+        .where(Project.id == project_id)
+        .where(Membership.account_id == account.id)
+        .where(Project.deleted_at.is_(None))
+    )
+    project = session.scalar(stmt)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found or access denied")
+    return project
+
+@router.patch("/{project_id}/", response_model=ProjectRead)
+def update_project(
+    project_id: UUID,
+    data: ProjectUpdate,
+    db: Session = Depends(get_db),
+    account: Account = Depends(get_current_account),
+):
+    stmt = (
+        select(Project)
+        .join(Membership, Membership.tenant_id == Project.tenant_id)
+        .where(Project.id == project_id)
+        .where(Membership.account_id == account.id)
+    )
+    project = db.scalar(stmt)
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found or access denied")
+
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(project, key, value)
+
+    db.commit()
+    db.refresh(project)
+    return project
+
+@router.delete("/{project_id}/", status_code=204)
+def delete_project(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    account: Account = Depends(get_current_account),
+):
+    stmt = (
+        select(Project)
+        .join(Membership, Membership.tenant_id == Project.tenant_id)
+        .where(Project.id == project_id)
+        .where(Membership.account_id == account.id)
+    )
+    project = db.scalar(stmt)
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found or access denied")
+
+    project.deleted_at = datetime.now(timezone.utc)
+    db.commit()
+
+@router.patch("/{project_id}/restore/", response_model=ProjectRead)
+def restore_project(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    account: Account = Depends(get_current_account),
+):
+    stmt = (
+        select(Project)
+        .join(Membership, Membership.tenant_id == Project.tenant_id)
+        .where(Project.id == project_id)
+        .where(Membership.account_id == account.id)
+    )
+    project = db.scalar(stmt)
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found or access denied")
+
+    if project.deleted_at is None:
+        raise HTTPException(status_code=400, detail="Project is not deleted")
+
+    project.deleted_at = None
+    db.commit()
+    db.refresh(project)
+
+    return project

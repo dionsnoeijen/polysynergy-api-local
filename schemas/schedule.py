@@ -13,7 +13,6 @@ class ScheduleBase(BaseModel):
     end_time: datetime | None = None
     is_active: bool
 
-
 class ScheduleListOut(ScheduleBase):
     id: UUID
     versions: list[NodeSetupVersionSimpleOut] = []

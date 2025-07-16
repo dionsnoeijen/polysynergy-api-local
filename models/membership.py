@@ -1,6 +1,4 @@
 import uuid
-from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import UniqueConstraint, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -17,8 +15,6 @@ class Membership(Base):
 
     account_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("accounts.id", ondelete="CASCADE"))
     tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"))
-    role_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("role.id", ondelete="SET NULL"), nullable=True)
 
     account: Mapped["Account"] = relationship(back_populates="memberships")
     tenant: Mapped["Tenant"] = relationship(back_populates="memberships")
-    role: Mapped[Optional["Role"]] = relationship(back_populates="memberships")

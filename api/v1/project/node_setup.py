@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from db.project_session import get_active_project_db
+from db.session import get_db
 from models.node_setup import NodeSetup
 from models.node_setup_version import NodeSetupVersion
 from schemas.node_setup_version import NodeSetupVersionUpdate, NodeSetupVersionOut
@@ -17,7 +17,7 @@ def update_node_setup_version(
     setup_id: str,
     version_id: str,
     data: NodeSetupVersionUpdate,
-    db: Session = Depends(get_active_project_db)
+    db: Session = Depends(get_db)
 ):
     node_setup = db.query(NodeSetup).filter_by(content_type=type, object_id=setup_id).first()
     if not node_setup:

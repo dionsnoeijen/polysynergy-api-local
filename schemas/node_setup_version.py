@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Any
 
 class NodeSetupVersionOut(BaseModel):
-    id: str
+    id: UUID
     version_number: int
     content: dict
     draft: bool

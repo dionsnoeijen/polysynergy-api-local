@@ -9,7 +9,6 @@ class AccountCreate(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
-    role: str = "Admin"
 
 
 class AccountActivate(BaseModel):
@@ -19,7 +18,6 @@ class AccountActivate(BaseModel):
 
 class AccountInvite(BaseModel):
     email: EmailStr
-    role: str = "Viewer"
 
 
 class AccountOut(BaseModel):

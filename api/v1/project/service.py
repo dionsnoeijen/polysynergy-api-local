@@ -1,112 +1,51 @@
-from uuid import uuid4, UUID
-
-from fastapi import APIRouter, Depends, status, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, status
 from typing import List
 
-from db.session import get_db
-from models import NodeSetupVersion
-from models.service import Service
-from models.node_setup import NodeSetup
+from models import Project
+from repositories.service_repository import ServiceRepository, get_service_repository
 from schemas.service import ServiceOut, ServiceCreateIn
+from utils.get_current_account import get_project_or_403
 
 router = APIRouter()
 
 
 @router.get("/", response_model=List[ServiceOut])
-def list_services(db: Session = Depends(get_db)):
-    services = db.query(Service).all()
+def list_services(
+    project: Project = Depends(get_project_or_403),
+    service_repository: ServiceRepository = Depends(get_service_repository),
+):
+    return service_repository.get_all_by_project(project)
 
-    for s in services:
-        try:
-            node_setup = (
-                db.query(NodeSetup)
-                .filter_by(content_type="service", object_id=s.id)
-                .first()
-            )
-            s.node_setup = node_setup
-        except Exception:
-            s.node_setup = None
-
-    return services
-
+@router.get("/{service_id}/", response_model=ServiceOut)
+def get_service(
+    service_id: str,
+    project: Project = Depends(get_project_or_403),
+    service_repository: ServiceRepository = Depends(get_service_repository),
+):
+    return service_repository.get_one_with_versions_by_id(service_id, project)
 
 @router.post("/", response_model=ServiceOut, status_code=status.HTTP_201_CREATED)
 def create_service(
     data: ServiceCreateIn,
-    db: Session = Depends(get_db)
+    project: Project = Depends(get_project_or_403),
+    blueprint_repository: ServiceRepository = Depends(get_service_repository),
 ):
-    service = Service(
-        id=str(uuid4()),
-        name=data.name,
-        meta=data.meta.dict() if data.meta else {},
-    )
-    db.add(service)
-    db.flush()
-
-    node_setup = NodeSetup(
-        id=str(uuid4()),
-        content_type="service",
-        object_id=service.id,
-    )
-    db.add(node_setup)
-    db.flush()
-
-    version = NodeSetupVersion(
-        id=str(uuid4()),
-        node_setup_id=node_setup.id,
-        version_number=1,
-        content=data.node_setup_content or {},
-    )
-    db.add(version)
-
-    db.commit()
-    db.refresh(service)
-    service.node_setup = node_setup
-
-    return service
+    return blueprint_repository.create(data, project)
 
 @router.put("/{service_id}/", response_model=ServiceOut)
 def update_service(
-    service_id: UUID,
-    data: ServiceCreateIn,  # zelfde schema als voor create, tenzij je iets specifieks wilt
-    db: Session = Depends(get_db)
+    service_id: str,
+    data: ServiceCreateIn,
+    project: Project = Depends(get_project_or_403),
+    service_repository: ServiceRepository = Depends(get_service_repository)
 ):
-    service = db.query(Service).filter(Service.id == str(service_id)).first()
-    if not service:
-        raise HTTPException(status_code=404, detail="Service not found")
+    return service_repository.update(service_id, data, project)
 
-    service.name = data.name
-    service.meta = data.meta.dict() if data.meta else {}
-
-    # Optional: update node_setup content
-    if data.node_setup_content:
-        try:
-            node_setup = db.query(NodeSetup).filter_by(
-                content_type="service",
-                object_id=str(service_id)
-            ).first()
-            version_1 = db.query(NodeSetupVersion).filter_by(
-                node_setup_id=node_setup.id,
-                version_number=1
-            ).first()
-            version_1.content = data.node_setup_content
-        except Exception:
-            pass
-
-    db.commit()
-    db.refresh(service)
-
-    return service
 
 @router.delete("/{service_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_service(
-    service_id: UUID,
-    db: Session = Depends(get_db)
+    service_id: str,
+    project: Project = Depends(get_project_or_403),
+    blueprint_repository: ServiceRepository = Depends(get_service_repository)
 ):
-    service = db.query(Service).filter(Service.id == str(service_id)).first()
-    if not service:
-        raise HTTPException(status_code=404, detail="Service not found")
-
-    db.delete(service)
-    db.commit()
+    blueprint_repository.delete(service_id, project)

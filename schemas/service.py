@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Any
 from datetime import datetime
 from uuid import UUID
@@ -13,7 +13,7 @@ class ServiceMetadata(BaseModel):
 class ServiceOut(BaseModel):
     id: UUID
     name: str
-    metadata: ServiceMetadata = Field(alias="meta")
+    meta: ServiceMetadata
     created_at: datetime
     updated_at: datetime
     node_setup: NodeSetupOut | None = None
@@ -22,5 +22,7 @@ class ServiceOut(BaseModel):
 
 class ServiceCreateIn(BaseModel):
     name: str
-    meta: ServiceMetadata = Field(alias="metadata")
+    meta: ServiceMetadata
     node_setup_content: dict[str, Any] | None = None
+
+    model_config = {"populate_by_name": True}

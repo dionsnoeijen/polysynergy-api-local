@@ -1,7 +1,8 @@
 import uuid
+from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -15,8 +16,6 @@ class Project(Base):
     tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"))
 
     rest_api_gateway_id: Mapped[Optional[str]] = mapped_column(nullable=True)
-    api_key: Mapped[Optional[str]] = mapped_column(nullable=True)
-    domain_name: Mapped[Optional[str]] = mapped_column(nullable=True)
 
     tenant: Mapped["Tenant"] = relationship(back_populates="projects")
 
@@ -35,3 +34,5 @@ class Project(Base):
     routes: Mapped[list["Route"]] = relationship("Route", back_populates="project", cascade="all, delete-orphan")
     schedules: Mapped[list["Schedule"]] = relationship("Schedule", back_populates="project", cascade="all, delete-orphan")
     stages: Mapped[list["Stage"]] = relationship("Stage", back_populates="project", cascade="all, delete-orphan")
+
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

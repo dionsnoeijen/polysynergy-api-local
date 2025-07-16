@@ -5,7 +5,8 @@ from datetime import datetime
 
 from models.route_segment import RouteSegmentType, VariableType
 from schemas.node_setup import NodeSetupOut
-from schemas.node_setup_version import NodeSetupVersionSimpleOut
+from schemas.node_setup_version import NodeSetupVersionSimpleOut, NodeSetupVersionOut
+
 
 # --- SEGMENTS ---
 

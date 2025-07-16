@@ -267,6 +267,17 @@ urllib3 = {version = ">=1.25.4,<2.2.0 || >2.2.0,<3", markers = "python_version >
 crt = ["awscrt (==0.23.8)"]
 
 [[package]]
+name = "cachetools"
+version = "6.1.0"
+description = "Extensible memoizing collections and decorators"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "cachetools-6.1.0-py3-none-any.whl", hash = "sha256:1c7bb3cf9193deaf3508b7c5f2a79986c13ea38965c5adcff1f84519cf39163e"},
+    {file = "cachetools-6.1.0.tar.gz", hash = "sha256:b4c4f404392848db3ce7aac34950d17be4d864da4b8b66911008e430bc544587"},
+]
+
+[[package]]
 name = "cbor2"
 version = "5.6.5"
 description = "CBOR (de)serializer with extensive tag support"
@@ -3907,4 +3918,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "ffe24194eb0e199b6dbf382d823d0081305ba7925daee8fa54c57e603b9e856f"
+content-hash = "5289117319962bfd283a14a3175a47d49330ec39e03c10e375a3f223c3ee9a6a"
