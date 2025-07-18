@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from starlette.background import BackgroundTasks
 
 from models import Account, Membership, Tenant
 from core.settings import settings
@@ -10,6 +11,29 @@ from services.email.email_service import EmailService
 
 
 class AccountService:
+
+    @staticmethod
+    def get_by_cognito_id(session: Session, cognito_id: str) -> Account | None:
+        return session.execute(
+            select(Account).where(Account.cognito_id == cognito_id)
+        ).scalar_one_or_none()
+
+    @staticmethod
+    def get_users_for_tenant(session: Session, current_account: Account) -> list[Account]:
+        # Assumes the current_account has exactly one membership (single-tenant context)
+        # Later we will enhance this, so a user can have multiple memberships
+        membership = session.scalar(
+            select(Membership).where(Membership.account_id == current_account.id)
+        )
+
+        if not membership:
+            raise ValueError("Access denied: account has no tenant membership.")
+
+        return session.execute(
+            select(Account).join(Membership)
+            .where(Membership.tenant_id == membership.tenant_id)
+        ).scalars().all()
+
     @staticmethod
     def create_account_with_tenant(session: Session, data: dict) -> Account:
         tenant = Tenant(name=data["tenant_name"])
@@ -40,8 +64,8 @@ class AccountService:
         return account
 
     @staticmethod
-    def invite_to_tenant(session: Session, inviter: Account, email: str, role_name: str = "Viewer") -> Account:
-        tenant = inviter.memberships[0].tenant  # eventueel expliciet opvragen
+    def invite_to_tenant(session: Session, inviter: Account, email: str) -> Account:
+        tenant = inviter.memberships[0].tenant
 
         temp_password = generate_temporary_password()
 
@@ -97,7 +121,7 @@ class AccountService:
         return account
 
     @staticmethod
-    def resend_invite(session: Session, account_id: str):
+    def resend_invite(session: Session, account_id: str, background_tasks: BackgroundTasks):
         account = session.execute(
             select(Account).where(Account.id == account_id)
         ).scalar_one_or_none()
@@ -114,7 +138,7 @@ class AccountService:
             Permanent=False,
         )
 
-        EmailService.send_invitation_email(account.email, settings.PORTAL_URL, temp_password)
+        EmailService.send_invitation_email(account.email, settings.PORTAL_URL, temp_password, background_tasks)
 
     @staticmethod
     def delete_account(session: Session, account_id: str):

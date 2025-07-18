@@ -14,7 +14,7 @@ template_env = Environment(
 
 class EmailService:
     @staticmethod
-    def send_invitation_email(to: EmailStr, invite_url: str, temp_password: str, background_tasks: BackgroundTasks):
+    def send_invitation_email(to: str, invite_url: str, temp_password: str, background_tasks: BackgroundTasks):
         subject = "You're invited to PolySynergy"
         template = template_env.get_template("invitation_email.html")
         html_body = template.render(invite_url=invite_url, temp_password=temp_password)

@@ -107,5 +107,5 @@ class BlueprintRepository:
         self.db.delete(blueprint)
         self.db.commit()
 
-def get_blueprint_repository(db=Depends(get_db)):
+def get_blueprint_repository(db: Session=Depends(get_db)):
     return BlueprintRepository(db)

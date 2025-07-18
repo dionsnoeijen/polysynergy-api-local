@@ -41,3 +41,9 @@ class ScheduleUpdateIn(BaseModel):
     start_time: datetime | None = None
     end_time: datetime | None = None
     is_active: bool | None = None
+
+class ScheduleUnpublishIn(BaseModel):
+    stage: str
+
+class SchedulePublishIn(BaseModel):
+    stage: str

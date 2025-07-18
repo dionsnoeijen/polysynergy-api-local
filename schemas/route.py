@@ -69,3 +69,8 @@ class RouteDetailOut(BaseModel):
 
     model_config = {"from_attributes": True}
 
+class RouteUnpublishIn(BaseModel):
+    stage: str
+
+class RoutePublishIn(BaseModel):
+    stage: str

@@ -1,5 +1,19 @@
 from fastapi import APIRouter
-from . import project, blueprint, node_setup, stage, route, schedule, service, secret, env_var, publish_matrix
+from . import (
+    project,
+    blueprint,
+    node_setup,
+    stage,
+    route,
+    schedule,
+    service,
+    secret,
+    env_var,
+    publish_matrix,
+    api_key,
+    avatar,
+    listener
+)
 
 router = APIRouter()
 
@@ -13,3 +27,6 @@ router.include_router(service.router, prefix="/services", tags=["Services"])
 router.include_router(secret.router, prefix="/secrets", tags=["Secrets"])
 router.include_router(env_var.router, prefix="/env-vars", tags=["Environment Variables"])
 router.include_router(publish_matrix.router, prefix="/publish-matrix", tags=["Publish Matrix"])
+router.include_router(api_key.router, prefix="/api-keys", tags=["API Keys"])
+router.include_router(avatar.router, prefix="/avatars", tags=["Avatars"])
+router.include_router(listener.router, prefix="/listeners", tags=["Active Listeners"])

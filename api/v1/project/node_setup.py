@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from db.session import get_db
+from models import Project
 from models.node_setup import NodeSetup
 from models.node_setup_version import NodeSetupVersion
 from schemas.node_setup_version import NodeSetupVersionUpdate, NodeSetupVersionOut
 from services.codegen.build_executable import generate_code_from_json
-
-# from services.mock_sync import MockSyncService
+from services.mock_sync_service import MockSyncService, get_mock_sync_service
+from utils.get_current_account import get_project_or_403
 
 router = APIRouter()
 
@@ -17,7 +18,9 @@ def update_node_setup_version(
     setup_id: str,
     version_id: str,
     data: NodeSetupVersionUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    project: Project = Depends(get_project_or_403),
+    mock_sync_service: MockSyncService = Depends(get_mock_sync_service)
 ):
     node_setup = db.query(NodeSetup).filter_by(content_type=type, object_id=setup_id).first()
     if not node_setup:
@@ -38,15 +41,18 @@ def update_node_setup_version(
             }
         )
 
-    version.content = data.content
-    version.executable = generate_code_from_json(data.content, version.id)
-    db.commit()
-    db.refresh(version)
+    try:
+        version.content = data.content
+        version.executable = generate_code_from_json(data.content, version.id)
+        db.commit()
+        db.refresh(version)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=200, detail={"message": "Did not update version", "details": str(e)})
 
-    # Mock sync (eventueel in background task)
-    # try:
-    #     MockSyncService.sync_if_needed(version)
-    # except Exception as e:
-    #     print(f"MockSyncService failed: {e}")
+    try:
+        mock_sync_service.sync_if_needed(version, project)
+    except Exception as e:
+        print(f"MockSyncService failed: {e}")
 
     return version

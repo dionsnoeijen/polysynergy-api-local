@@ -10,6 +10,8 @@ class NodeSetupVersionOut(BaseModel):
     draft: bool
     published: bool
 
+    model_config = {"from_attributes": True}
+
 class NodeSetupVersionUpdate(BaseModel):
     content: dict[str, Any]
 
@@ -20,4 +22,3 @@ class NodeSetupVersionSimpleOut(BaseModel):
     draft: bool
 
     model_config = {"from_attributes": True}
-

@@ -1,4 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from sqlalchemy.orm import Session
+
+from db.session import get_db
+from models import Account
 from services.account_service import AccountService
 from schemas.account import (
     AccountCreate,
@@ -7,68 +11,85 @@ from schemas.account import (
     AccountOut,
 )
 from schemas.tenant import TenantUserOut
-from app.auth.dependencies import get_current_account
 from uuid import UUID
 from typing import List
 
-router = APIRouter(prefix="/accounts", tags=["Accounts"])
+from utils.get_current_account import get_current_account
 
+router = APIRouter()
 
-@router.get("/me/{cognito_id}", response_model=AccountOut)
-def get_account(cognito_id: str):
-    account = AccountService.get_by_cognito_id(cognito_id)
-    if not account:
-        raise HTTPException(status_code=404, detail="Account not found")
+@router.post("/", response_model=AccountOut, status_code=status.HTTP_201_CREATED)
+def create_account(
+    data: AccountCreate,
+    session: Session = Depends(get_db)
+):
+    account = AccountService.create_account_with_tenant(session, data.model_dump())
     return account
 
 
-@router.post("/create", response_model=AccountOut, status_code=status.HTTP_201_CREATED)
-def create_account(data: AccountCreate):
-    account = AccountService.create_account_with_tenant(data.model_dump())
-    return account
-
-
-@router.post("/activate/{cognito_id}", response_model=AccountOut)
-def activate_account(cognito_id: str, data: AccountActivate):
+@router.post("/activate/{cognito_id}/", response_model=AccountOut)
+def activate_account(
+    cognito_id: str,
+    data: AccountActivate,
+    session: Session = Depends(get_db),
+):
     try:
-        account = AccountService.activate_account(cognito_id, data.first_name, data.last_name)
-        return account
+        return AccountService.activate_account(session, cognito_id, data.first_name, data.last_name)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/invite", response_model=AccountOut)
+@router.post("/invite/", response_model=AccountOut)
 def invite_account(
     data: AccountInvite,
-    current_account=Depends(get_current_account),
+    current_account: Account = Depends(get_current_account),
+    session: Session = Depends(get_db),
 ):
     account = AccountService.invite_to_tenant(
+        session,
         inviter=current_account,
-        email=data.email,
-        role_name=data.role,
+        email=str(data.email),
     )
     return account
 
 
-@router.get("/tenant-users", response_model=List[TenantUserOut])
-def list_tenant_users(current_account=Depends(get_current_account)):
-    return AccountService.get_users_for_tenant(current_account)
+@router.get("/tenant/", response_model=List[TenantUserOut])
+def list_tenant_users(
+    current_account: Account = Depends(get_current_account),
+    session: Session = Depends(get_db)
+):
+    return AccountService.get_users_for_tenant(session, current_account)
 
 
-@router.post("/resend-invitation/{account_id}")
+@router.post("/resend-invitation/{account_id}/")
 def resend_invite(
     account_id: UUID,
     background_tasks: BackgroundTasks,
-    current_account=Depends(get_current_account),
+    _: None = Depends(get_current_account),
+    session: Session = Depends(get_db)
 ):
-    AccountService.resend_invite(account_id, current_account, background_tasks)
+    AccountService.resend_invite(
+        session,
+        str(account_id),
+        background_tasks
+    )
     return {"message": "Invitation email successfully resent"}
 
+@router.get("/{cognito_id}/", response_model=AccountOut)
+def get_account(
+    cognito_id: str,
+    session: Session = Depends(get_db)
+):
+    account = AccountService.get_by_cognito_id(session, cognito_id)
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    return account
 
-@router.delete("/{account_id}")
+@router.delete("/{account_id}/")
 def delete_account(
     account_id: UUID,
-    current_account=Depends(get_current_account),
+    _: None = Depends(get_current_account),
+    session: Session = Depends(get_db)
 ):
-    AccountService.delete_account(account_id, current_account)
+    AccountService.delete_account(session, str(account_id))
     return {"message": "Account successfully deleted"}
