@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from models import Project
 from repositories.blueprint_repository import BlueprintRepository, get_blueprint_repository
 from schemas.blueprint import BlueprintOut, BlueprintIn
-from services.blueprint_publish_service import BlueprintPublishService, get_blueprint_publish_service
 from utils.get_current_account import get_project_or_403
 
 

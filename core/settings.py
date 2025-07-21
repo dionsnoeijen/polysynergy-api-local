@@ -30,8 +30,9 @@ class Settings(BaseSettings):
     AWS_LAMBDA_EXECUTION_ROLE: str
     AWS_LAMBDA_LAYER_ARN: str
 
-    AWS_S3_PUBLIC_BUCKET_NAME: str
-    AWS_S3_PRIVATE_BUCKET_NAME: str
+    AWS_S3_PUBLIC_BUCKET_NAME: str = "polysynergy-public-dev"
+    AWS_S3_PRIVATE_BUCKET_NAME: str = "polysynergy-private-dev"
+    AWS_S3_LAMBDA_BUCKET_NAME: str = "polysynergy-lambdas"
 
     EMAIL_HOST_USER: str
     EMAIL_HOST_PASSWORD: str

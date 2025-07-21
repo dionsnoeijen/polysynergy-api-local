@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
-from services.execution_storage_service import DynamoDbExecutionStorageService, get_execution_storage_service
+from services.execution_storage_service import get_execution_storage_service
+from polysynergy_node_runner.services.execution_storage_service import (
+    DynamoDbExecutionStorageService
+)
 
 router = APIRouter()
 
-@router.get("/{flow_id}/{run_id}/nodes/{node_id}/{order}")
+@router.get("/{flow_id}/{run_id}/{node_id}/{order}")
 def get_node_result(
     flow_id: str,
     run_id: str,
@@ -22,7 +25,7 @@ def get_node_result(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/{flow_id}/{run_id}/connections")
+@router.get("/{flow_id}/{run_id}/connections/")
 def get_connection_result(
     flow_id: str,
     run_id: str,

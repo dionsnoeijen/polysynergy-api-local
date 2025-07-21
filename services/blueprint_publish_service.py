@@ -69,13 +69,7 @@ class BlueprintPublishService:
 
         logger.debug(f"Blueprint Lambda created/updated with ARN: {lambda_arn}")
 
-        (self.db.query(NodeSetupVersion)
-         .filter(NodeSetupVersion.node_setup_id == node_setup_version.node_setup.id)
-         .filter(NodeSetupVersion.published == True)
-         .update({NodeSetupVersion.published: False}))
-
         node_setup_version.lambda_arn = lambda_arn
-        node_setup_version.published = True
         self.db.commit()
 
         logger.debug(f"NodeSetupVersion {node_setup_version.id} published")
@@ -85,11 +79,11 @@ class BlueprintPublishService:
             raise HTTPException(status_code=400, detail="Only Blueprint publishing is supported")
 
         node_setup = self.db.query(NodeSetup).filter_by(
-            content_type="schedule",
+            content_type="blueprint",
             object_id=blueprint.id
         ).first()
 
-        node_setup_version = node_setup.versions.filter_by(published=True).first()
+        node_setup_version = node_setup.versions[-1]
         if not node_setup_version:
             raise HTTPException(status_code=404, detail="No published version found for this Blueprint")
 

@@ -14,7 +14,6 @@ class NodeSetupVersion(Base):
     content: Mapped[dict] = mapped_column(JSON)
     executable: Mapped[str] = mapped_column(Text, default="")
     executable_hash: Mapped[str] = mapped_column(Text, default="")
-    published: Mapped[bool] = mapped_column(Boolean, default=False)
     draft: Mapped[bool] = mapped_column(Boolean, default=True)
     created_by_id: Mapped[str | None] = mapped_column(String, nullable=True)
     lambda_arn: Mapped[str | None] = mapped_column(Text, nullable=True)

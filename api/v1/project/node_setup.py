@@ -1,3 +1,5 @@
+import traceback
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -53,6 +55,7 @@ def update_node_setup_version(
     try:
         mock_sync_service.sync_if_needed(version, project)
     except Exception as e:
-        print(f"MockSyncService failed: {e}")
+        print("MockSyncService failed:")
+        traceback.print_exc()
 
     return version

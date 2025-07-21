@@ -21,13 +21,13 @@ from polysynergy_node_runner.execution_context.executable_node import Executable
 from polysynergy_node_runner.execution_context.execution_state import ExecutionState
 from polysynergy_node_runner.execution_context.flow import Flow
 from polysynergy_node_runner.execution_context.flow_state import FlowState
-from polysynergy_node_runner.execution_context.execution_storage import DynamoDbExecutionStorageService
+from polysynergy_node_runner.services.execution_storage_service import DynamoDbExecutionStorageService, get_execution_storage_service
 from polysynergy_node_runner.execution_context.send_flow_event import send_flow_event
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-storage = DynamoDbExecutionStorageService()
+storage: DynamoDbExecutionStorageService = get_execution_storage_service()
 """
 
 CONNECTIONS = """

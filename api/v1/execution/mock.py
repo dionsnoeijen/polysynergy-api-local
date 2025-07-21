@@ -79,6 +79,15 @@ async def execute_local(
     os.environ['PROJECT_ID'] = str(project.id)
     os.environ['TENANT_ID'] = str(project.tenant_id)
 
+    os.environ.setdefault("AWS_REGION", settings.AWS_REGION)
+    os.environ.setdefault("AWS_ACCESS_KEY_ID", settings.AWS_ACCESS_KEY_ID)
+    os.environ.setdefault("AWS_SECRET_ACCESS_KEY", settings.AWS_SECRET_ACCESS_KEY)
+
+    os.environ.setdefault("PUBNUB_PUBLISH_KEY", settings.PUBNUB_PUBLISH_KEY)
+    os.environ.setdefault("PUBNUB_SUBSCRIBE_KEY", settings.PUBNUB_SUBSCRIBE_KEY)
+    os.environ.setdefault("PUBNUB_SECRET_KEY", settings.PUBNUB_SECRET_KEY)
+    os.environ.setdefault("USER_ID", "poly_synergy_flow")
+
     code = version.executable
     namespace = {}
 

@@ -1,9 +1,8 @@
 from uuid import uuid4
-from typing import List
 from datetime import datetime, timezone
 
 from fastapi import Depends
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException
 
 from db.session import get_db
@@ -72,7 +71,6 @@ class BlueprintRepository:
             content={},
             created_at=now,
             updated_at=now,
-            published=False,
             draft=True,
         )
         self.db.add(version)
