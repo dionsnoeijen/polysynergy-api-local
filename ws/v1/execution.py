@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import WebSocket, APIRouter, WebSocketDisconnect
 import redis.asyncio as redis
 
@@ -11,12 +13,22 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
     pubsub = redis_client.pubsub()
     await pubsub.subscribe(channel)
 
+    async def forward_messages():
+        try:
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    await websocket.send_text(message["data"])
+        except asyncio.CancelledError:
+            pass  # expected on shutdown
+
+    task = asyncio.create_task(forward_messages())
+
     try:
-        async for message in pubsub.listen():
-            if message["type"] == "message":
-                await websocket.send_text(message["data"])
+        while True:
+            await websocket.receive_text()  # of .receive() als je ook pings/pongs wilt
     except WebSocketDisconnect:
         print(f"🔌 WebSocket disconnected: flow_id={flow_id}")
     finally:
+        task.cancel()
         await pubsub.unsubscribe(channel)
         await pubsub.close()

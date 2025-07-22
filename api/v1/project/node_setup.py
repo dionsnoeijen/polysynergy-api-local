@@ -8,9 +8,9 @@ from models import Project
 from models.node_setup import NodeSetup
 from models.node_setup_version import NodeSetupVersion
 from schemas.node_setup_version import NodeSetupVersionUpdate, NodeSetupVersionOut
-from services.codegen.build_executable import generate_code_from_json
 from services.mock_sync_service import MockSyncService, get_mock_sync_service
 from utils.get_current_account import get_project_or_403
+from polysynergy_node_runner.services.codegen.build_executable import generate_code_from_json
 
 router = APIRouter()
 

@@ -75,18 +75,12 @@ async def execute_local(
     mock_node_id: uuid.UUID,
     sub_stage: str,
     active_listener_service: ActiveListenersService
-) -> dict | JSONResponse:
+) -> JSONResponse:
     os.environ['PROJECT_ID'] = str(project.id)
     os.environ['TENANT_ID'] = str(project.tenant_id)
-
     os.environ.setdefault("AWS_REGION", settings.AWS_REGION)
     os.environ.setdefault("AWS_ACCESS_KEY_ID", settings.AWS_ACCESS_KEY_ID)
     os.environ.setdefault("AWS_SECRET_ACCESS_KEY", settings.AWS_SECRET_ACCESS_KEY)
-
-    os.environ.setdefault("PUBNUB_PUBLISH_KEY", settings.PUBNUB_PUBLISH_KEY)
-    os.environ.setdefault("PUBNUB_SUBSCRIBE_KEY", settings.PUBNUB_SUBSCRIBE_KEY)
-    os.environ.setdefault("PUBNUB_SECRET_KEY", settings.PUBNUB_SECRET_KEY)
-    os.environ.setdefault("USER_ID", "poly_synergy_flow")
 
     code = version.executable
     namespace = {}
@@ -116,7 +110,7 @@ async def execute_local(
         if active_listener_service.has_listener(str(version.id)):
             send_flow_event(str(version.id), run_id, None, "run_end")
 
-        return {"status": "mock executed", "result": result}
+        return JSONResponse({"status": "mock executed", "result": result})
     except Exception:
         return JSONResponse({
             "error": "Function execution failed",
