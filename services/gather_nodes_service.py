@@ -6,9 +6,9 @@ import polysynergy_nodes
 _DISCOVERED_NODES = None
 
 def discover_nodes():
-    # global _DISCOVERED_NODES
-    # if _DISCOVERED_NODES is not None:
-    #     return _DISCOVERED_NODES
+    global _DISCOVERED_NODES
+    if _DISCOVERED_NODES is not None:
+        return _DISCOVERED_NODES
 
     base_path = Path(polysynergy_nodes.__file__).parent
     base_import = "polysynergy_nodes"
