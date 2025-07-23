@@ -1,7 +1,7 @@
-import os
 import base64
 import random
 from openai import OpenAI
+from core.settings import settings
 from polysynergy_node_runner.services.s3_service import S3Service
 
 from models import Account
@@ -20,11 +20,7 @@ class AvatarService:
             raise ValueError("No tenants available for this user")
 
         prompt = AvatarService.build_prompt(name or "Alex", instructions or "No specific instructions")
-        api_key = os.getenv('OPENAI_API_KEY', "")
-        if not api_key:
-            raise ValueError("Missing OpenAI API key")
-
-        image_bytes = AvatarService.generate_image(prompt, api_key)
+        image_bytes = AvatarService.generate_image(prompt, settings.OPENAI_API_KEY)
 
         s3_key = f"avatars/{node_id}.png"
         s3_url = s3_service.upload_file(image_bytes, s3_key)
