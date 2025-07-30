@@ -50,7 +50,6 @@ async def mock_play(
         "mock": True,
         "sub_stage": sub_stage,
     }
-
     delay = INITIAL_DELAY
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -101,12 +100,10 @@ async def execute_local(
         run_id = str(uuid.uuid4())
         if active_listener_service.has_listener(str(version.id)):
             send_flow_event(str(version.id), run_id, None, "run_start")
-
         if inspect.iscoroutinefunction(fn):
             result = await fn(mock_node_id, run_id, sub_stage)
         else:
             result = fn(mock_node_id, run_id, sub_stage)
-
         if active_listener_service.has_listener(str(version.id)):
             send_flow_event(str(version.id), run_id, None, "run_end")
 
