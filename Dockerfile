@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
 
 ENV POETRY_VERSION=1.8.2
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
-    ln -s /root/.local/bin/poetry /usr/lo cal/bin/poetry
+    ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 
 COPY ./nodes /nodes
 COPY ./node_runner /node_runner
