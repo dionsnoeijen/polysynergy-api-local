@@ -1,10 +1,15 @@
 import asyncio
+import os
 
 from fastapi import WebSocket, APIRouter, WebSocketDisconnect
 import redis.asyncio as redis
 
 router = APIRouter()
-redis_client = redis.Redis(host="redis", port=6379, decode_responses=True)
+redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
+redis_client = redis.from_url(
+    redis_url,
+    decode_responses=True
+)
 
 @router.websocket("/execution/{flow_id}")
 async def execution_ws(websocket: WebSocket, flow_id: str):
