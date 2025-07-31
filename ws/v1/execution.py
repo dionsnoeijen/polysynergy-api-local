@@ -5,10 +5,11 @@ from fastapi import WebSocket, APIRouter, WebSocketDisconnect
 import redis.asyncio as redis
 
 router = APIRouter()
-redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
+redis_url = os.getenv('REDIS_URL', 'redis://redis:6379')
 redis_client = redis.from_url(
     redis_url,
-    decode_responses=True
+    decode_responses=True,
+    db=0
 )
 
 @router.websocket("/execution/{flow_id}")
@@ -28,7 +29,11 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
                 if message["type"] == "message":
                     await websocket.send_text(message["data"])
         except asyncio.CancelledError:
-            pass
+            print(f"🛑 Forward task cancelled for flow_id={flow_id}")
+            # Force close pubsub to break the `async for`
+            await pubsub.unsubscribe(exec_channel, chat_channel)
+            await pubsub.close()
+            raise  # ← nodig om de shutdown door te zetten
 
     task = asyncio.create_task(forward_messages())
     try:
@@ -36,6 +41,9 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
     except WebSocketDisconnect:
         print(f"🔌 WebSocket disconnected: flow_id={flow_id}")
     finally:
-        task.cancel()
-        await pubsub.unsubscribe(exec_channel, chat_channel)
-        await pubsub.close()
+        if not task.done():
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
