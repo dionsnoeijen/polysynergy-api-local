@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     DATABASE_HOST: str
     DATABASE_PORT: int = 5432
 
+    REDIS_URL: str | None = None
+
     @property
     def DATABASE_URL(self) -> str:
         return (
