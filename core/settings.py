@@ -43,7 +43,6 @@ class Settings(BaseSettings):
     PORTAL_URL: str
     ROUTER_URL: str
 
-    SECRET_KEY: str
     DEBUG: bool = False
 
     EXECUTE_NODE_SETUP_LOCAL: bool = False
