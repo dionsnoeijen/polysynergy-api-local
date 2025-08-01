@@ -30,10 +30,9 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
                     await websocket.send_text(message["data"])
         except asyncio.CancelledError:
             print(f"🛑 Forward task cancelled for flow_id={flow_id}")
-            # Force close pubsub to break the `async for`
             await pubsub.unsubscribe(exec_channel, chat_channel)
             await pubsub.close()
-            raise  # ← nodig om de shutdown door te zetten
+            raise
 
     task = asyncio.create_task(forward_messages())
     try:

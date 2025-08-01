@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import logging
 import os
@@ -39,6 +40,7 @@ async def mock_play(
 ):
     active_listener_service.set_listener(str(version_id))
     version = node_setup_repository.get_or_404(version_id)
+
     if settings.EXECUTE_NODE_SETUP_LOCAL:
         return await execute_local(project, version, mock_node_id, sub_stage, active_listener_service)
 
@@ -53,7 +55,8 @@ async def mock_play(
     delay = INITIAL_DELAY
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            response = lambda_service.invoke_lambda(function_name, payload)
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(None, lambda_service.invoke_lambda, function_name, payload)
             return {"status": "mock executed", "result": response}
         except Exception as e:
             msg = str(e)

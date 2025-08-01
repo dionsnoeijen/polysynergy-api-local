@@ -3,9 +3,9 @@ import boto3
 import logging
 from core.settings import settings
 from botocore.exceptions import ClientError
+from botocore.config import Config
 
 logger = logging.getLogger(__name__)
-
 
 class LambdaService:
     def __init__(self):
@@ -13,7 +13,15 @@ class LambdaService:
             'lambda',
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_REGION
+            region_name=settings.AWS_REGION,
+            config=Config(
+                read_timeout=910,
+                connect_timeout=5,
+                retries={
+                    'max_attempts': 1,
+                    'mode': 'standard'
+                }
+            )
         )
         self._ecr_client = boto3.client(
             'ecr',
@@ -74,9 +82,7 @@ class LambdaService:
                     'TENANT_ID': str(tenant_id),
                     'AWS_S3_PUBLIC_BUCKET_NAME': settings.AWS_S3_PUBLIC_BUCKET_NAME,
                     'AWS_S3_PRIVATE_BUCKET_NAME': settings.AWS_S3_PRIVATE_BUCKET_NAME,
-                    'PUBNUB_PUBLISH_KEY': settings.PUBNUB_PUBLISH_KEY,
-                    'PUBNUB_SUBSCRIBE_KEY': settings.PUBNUB_SUBSCRIBE_KEY,
-                    'PUBNUB_SECRET_KEY': settings.PUBNUB_SECRET_KEY,
+                    'REDIS_URL': settings.REDIS_URL,
                 }
             }
         )
@@ -136,9 +142,7 @@ class LambdaService:
                             'TENANT_ID': str(tenant_id),
                             'AWS_S3_PUBLIC_BUCKET_NAME': settings.AWS_S3_PUBLIC_BUCKET_NAME,
                             'AWS_S3_PRIVATE_BUCKET_NAME': settings.AWS_S3_PRIVATE_BUCKET_NAME,
-                            'PUBNUB_PUBLISH_KEY': settings.PUBNUB_PUBLISH_KEY,
-                            'PUBNUB_SUBSCRIBE_KEY': settings.PUBNUB_SUBSCRIBE_KEY,
-                            'PUBNUB_SECRET_KEY': settings.PUBNUB_SECRET_KEY,
+                            "REDIS_URL": settings.REDIS_URL,
                         }
                     }
                 )
