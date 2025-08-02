@@ -12,6 +12,7 @@
 - 🎯 Complete local Docker setup without cloud dependencies
 - 📦 One-command setup from the orchestrator repository
 - 🔧 Optional AWS integration for advanced features
+- 🔓 Optional AWS Cognito authentication (can be disabled for local development)
 
 **For Contributors**: The API codebase is ready for contributions and feedback. The orchestrator integration improvements are ongoing.
 
@@ -121,9 +122,11 @@ EMAIL_SERVICE_API_KEY=your_email_key
 
 ### AWS Dependencies
 
-⚠️ **Note**: Currently requires AWS services (Lambda, S3, EventBridge) for full functionality. 
+⚠️ **Note**: Currently requires AWS services (Lambda, S3, EventBridge, Cognito) for full functionality. 
 
 🎯 **Coming Soon**: AWS dependencies will be made optional for local development, allowing you to run the complete system locally without cloud dependencies.
+
+**Authentication**: AWS Cognito authentication can be disabled for local development. Alternative authentication implementations can be provided by the community if needed.
 
 ## 🏃‍♂️ Usage
 
