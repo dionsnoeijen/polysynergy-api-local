@@ -247,7 +247,7 @@ See the [LICENSE](LICENSE) file for full details.
 
 ## 📞 Support
 
-- 📧 **Email**: [your-email@example.com]
+- 📧 **Email**: dion@polysynergy.com
 - 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/polysynergy-api/issues)
 - 📖 **Documentation**: [docs.polysynergy.dev](https://docs.polysynergy.dev)
 - 💬 **Community**: [Discord/Slack](https://discord.gg/polysynergy)
