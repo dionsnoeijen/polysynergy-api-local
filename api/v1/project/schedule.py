@@ -53,7 +53,8 @@ def delete_schedule(
     project: Project = Depends(get_project_or_403),
     schedule_repository: ScheduleRepository = Depends(get_schedule_repository),
 ):
-    return schedule_repository.delete(schedule_id, project)
+    schedule_repository.delete(schedule_id, project)
+    return None
 
 
 @router.post("/{schedule_id}/publish/", status_code=status.HTTP_202_ACCEPTED)
