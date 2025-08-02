@@ -1,9 +1,9 @@
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
-from starlette.exceptions import HTTPException
+from fastapi import HTTPException
 
 from db.session import get_db
 from models import Service, Project, NodeSetup, NodeSetupVersion
@@ -61,8 +61,8 @@ class ServiceRepository:
             node_setup_id=node_setup.id,
             version_number=1,
             content=data.node_setup_content or {},
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
             published=False,
             draft=True,
         )

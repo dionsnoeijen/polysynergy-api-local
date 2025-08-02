@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
-from starlette.exceptions import HTTPException
+from fastapi import HTTPException
 
 from db.session import get_db
 from models import Schedule, NodeSetup, NodeSetupVersion, Project

@@ -2,7 +2,7 @@ from uuid import UUID, uuid4
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
-from starlette.exceptions import HTTPException
+from fastapi import HTTPException
 
 from db.session import get_db
 from models import Route, RouteSegment, NodeSetup, NodeSetupVersion, Project
