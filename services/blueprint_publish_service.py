@@ -83,6 +83,12 @@ class BlueprintPublishService:
             object_id=blueprint.id
         ).first()
 
+        if not node_setup:
+            raise HTTPException(status_code=404, detail="No published version found for this Blueprint")
+
+        if not node_setup.versions:
+            raise HTTPException(status_code=404, detail="No published version found for this Blueprint")
+
         node_setup_version = node_setup.versions[-1]
         if not node_setup_version:
             raise HTTPException(status_code=404, detail="No published version found for this Blueprint")
