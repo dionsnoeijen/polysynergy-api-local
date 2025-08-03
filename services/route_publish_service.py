@@ -70,7 +70,7 @@ class RoutePublishService:
 
         logger.info(f"Publishing route {route.id} to stage '{stage}'")
         self.sync_lambda(route, stage)
-        self.update_route(route, node_setup_version, stage)
+        response = self.update_route(route, node_setup_version, stage)
 
         stage_obj = self.db.query(Stage).filter_by(
             project=route.project, name=stage
@@ -83,6 +83,8 @@ class RoutePublishService:
             executable_hash=node_setup_version.executable_hash
         ))
         self.db.commit()
+
+        return response
 
     def _validate(self, route: Route) -> NodeSetupVersion:
         if not isinstance(route, Route):

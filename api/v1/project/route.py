@@ -66,7 +66,7 @@ def publish_route(
     route = route_repository.get_one_with_versions_by_id(route_id, project)
 
     try:
-        publish_service.sync_lambda(route, body.stage.strip())
+        return publish_service.publish(route, body.stage.strip())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

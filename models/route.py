@@ -30,6 +30,11 @@ class Route(Base):
     project: Mapped["Project"] = relationship("Project", back_populates="routes")
     segments: Mapped[list["RouteSegment"]] = relationship("RouteSegment", back_populates="route", cascade="all, delete-orphan")
 
+    require_api_key: Mapped[bool] = mapped_column(
+        default=False,
+        server_default="false"
+    )
+
     def __repr__(self):
         return f"<Route(id={self.id}, method={self.method})>"
 

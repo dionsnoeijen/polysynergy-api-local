@@ -33,8 +33,8 @@ class RouterService:
             "stage": stage,
             "route": {
                 "id": str(route.id),
-                "method": route.method,
-                # "require_api_key": route.require_api_key,
+                "method": route.method.value,
+                "require_api_key": route.require_api_key,
                 "segments": segments,
                 "node_setup_version_id": str(node_setup_version.id),
                 "tenant_id": str(route.project.tenant.id),
@@ -100,8 +100,8 @@ class RouterService:
 
         return (
             not existing or
-            existing.get("method") != route.method or
-            # existing.get("require_api_key") != route.require_api_key or
+            existing.get("method") != route.method.value or
+            existing.get("require_api_key") != getattr(route, 'require_api_key', False) or
             existing.get("node_setup_version_id") != str(node_setup_version.id) or
             existing.get("segments") != segment_payload
         )
