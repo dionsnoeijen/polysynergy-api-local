@@ -1,5 +1,10 @@
 # PolySynergy API
 
+![Coverage Badge](./coverage-badge.svg)
+[![Tests](https://github.com/dionsnoeijen/polysynergy-api/workflows/Test%20and%20Coverage/badge.svg)](https://github.com/dionsnoeijen/polysynergy-api/actions)
+[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/license-BSL--1.1-blue.svg)](LICENSE)
+
 > FastAPI backend for the PolySynergy orchestrator system - A powerful automation and workflow management platform.
 
 ## 🚧 Development Status
@@ -175,9 +180,9 @@ poetry run pytest tests/unit/services/test_account_service.py::TestAccountServic
 
 ### Test Categories
 
-- **Unit Tests**: Test individual components in isolation
+- **Unit Tests**: Test individual components in isolation (338 tests)
 - **Integration Tests**: Test API endpoints and database interactions
-- **Coverage**: Maintains high test coverage across all services
+- **Coverage**: Maintains 90%+ test coverage across all services
 
 ## 🗄️ Database
 
