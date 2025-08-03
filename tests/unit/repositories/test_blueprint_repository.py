@@ -109,9 +109,12 @@ class TestBlueprintRepository:
         assert result == self.mock_blueprint
         assert result.node_setup is None
     
+    @patch('repositories.blueprint_repository.NodeSetupVersion')
+    @patch('repositories.blueprint_repository.NodeSetup')
+    @patch('repositories.blueprint_repository.Blueprint')
     @patch('repositories.blueprint_repository.uuid4')
     @patch('repositories.blueprint_repository.datetime')
-    def test_create_success(self, mock_datetime, mock_uuid4):
+    def test_create_success(self, mock_datetime, mock_uuid4, MockBlueprint, MockNodeSetup, MockNodeSetupVersion):
         """Test successful blueprint creation."""
         # Setup mocks
         fixed_time = datetime.now(timezone.utc)
@@ -121,6 +124,15 @@ class TestBlueprintRepository:
         node_setup_uuid = uuid4()
         version_uuid = uuid4()
         mock_uuid4.side_effect = [blueprint_uuid, node_setup_uuid, version_uuid]
+        
+        # Create mock instances
+        mock_blueprint = Mock()
+        mock_node_setup = Mock()
+        mock_version = Mock()
+        
+        MockBlueprint.return_value = mock_blueprint
+        MockNodeSetup.return_value = mock_node_setup
+        MockNodeSetupVersion.return_value = mock_version
         
         # Create test data
         blueprint_data = BlueprintIn(
@@ -137,28 +149,47 @@ class TestBlueprintRepository:
         # Verify database operations
         assert self.mock_db.add.call_count == 3  # Blueprint, NodeSetup, NodeSetupVersion
         self.mock_db.commit.assert_called_once()
-        self.mock_db.refresh.assert_called_once()
+        self.mock_db.refresh.assert_called_once_with(mock_blueprint)
         
         # Verify Blueprint creation
-        blueprint_add_call = self.mock_db.add.call_args_list[0]
-        blueprint_obj = blueprint_add_call[0][0]
-        assert blueprint_obj.name == "New Blueprint"
-        assert blueprint_obj.tenant_id == self.mock_project.tenant_id
-        assert self.mock_project in blueprint_obj.projects
+        MockBlueprint.assert_called_once_with(
+            id=blueprint_uuid,
+            name="New Blueprint",
+            meta={"icon": "new-icon", "category": "automation", "description": "New blueprint description"},
+            created_at=fixed_time,
+            updated_at=fixed_time,
+            tenant_id=self.mock_project.tenant_id,
+            projects=[self.mock_project]
+        )
         
         # Verify NodeSetup creation
-        node_setup_add_call = self.mock_db.add.call_args_list[1]
-        node_setup_obj = node_setup_add_call[0][0]
-        assert node_setup_obj.content_type == "blueprint"
-        assert node_setup_obj.object_id == blueprint_uuid
+        MockNodeSetup.assert_called_once_with(
+            id=node_setup_uuid,
+            content_type="blueprint",
+            object_id=blueprint_uuid,
+            created_at=fixed_time,
+            updated_at=fixed_time
+        )
         
         # Verify NodeSetupVersion creation
-        version_add_call = self.mock_db.add.call_args_list[2]
-        version_obj = version_add_call[0][0]
-        assert version_obj.node_setup_id == node_setup_uuid
-        assert version_obj.version_number == 1
-        assert version_obj.content == {}
-        assert version_obj.draft is True
+        MockNodeSetupVersion.assert_called_once_with(
+            id=version_uuid,
+            node_setup_id=node_setup_uuid,
+            version_number=1,
+            content={},
+            created_at=fixed_time,
+            updated_at=fixed_time,
+            draft=True
+        )
+        
+        # Verify database calls
+        assert self.mock_db.add.call_args_list[0][0][0] == mock_blueprint
+        assert self.mock_db.add.call_args_list[1][0][0] == mock_node_setup
+        assert self.mock_db.add.call_args_list[2][0][0] == mock_version
+        
+        # Verify the returned blueprint has the node_setup attached
+        assert result == mock_blueprint
+        assert result.node_setup == mock_node_setup
     
     @patch('repositories.blueprint_repository.datetime')
     def test_update_success(self, mock_datetime):
@@ -262,38 +293,57 @@ class TestBlueprintRepository:
     
     def test_create_with_metadata_variations(self):
         """Test blueprint creation with various metadata configurations."""
-        with patch('repositories.blueprint_repository.uuid4') as mock_uuid4:
-            with patch('repositories.blueprint_repository.datetime') as mock_datetime:
-                mock_datetime.now.return_value = datetime.now(timezone.utc)
-                mock_uuid4.side_effect = [uuid4(), uuid4(), uuid4()]
-                
-                # Test with minimal metadata
-                minimal_data = BlueprintIn(
-                    name="Minimal Blueprint",
-                    meta=BlueprintMetadata()  # All defaults
-                )
-                
-                self.repository.create(minimal_data, self.mock_project)
-                
-                # Verify blueprint creation
-                blueprint_add_call = self.mock_db.add.call_args_list[0]
-                blueprint_obj = blueprint_add_call[0][0]
-                assert blueprint_obj.name == "Minimal Blueprint"
-                assert blueprint_obj.meta == {"icon": "", "category": "", "description": ""}
+        with patch('repositories.blueprint_repository.Blueprint') as MockBlueprint:
+            with patch('repositories.blueprint_repository.NodeSetup') as MockNodeSetup:
+                with patch('repositories.blueprint_repository.NodeSetupVersion') as MockNodeSetupVersion:
+                    with patch('repositories.blueprint_repository.uuid4') as mock_uuid4:
+                        with patch('repositories.blueprint_repository.datetime') as mock_datetime:
+                            fixed_time = datetime.now(timezone.utc)
+                            mock_datetime.now.return_value = fixed_time
+                            mock_uuid4.side_effect = [uuid4(), uuid4(), uuid4()]
+                            
+                            # Create mock instances
+                            mock_blueprint = Mock()
+                            MockBlueprint.return_value = mock_blueprint
+                            MockNodeSetup.return_value = Mock()
+                            MockNodeSetupVersion.return_value = Mock()
+                            
+                            # Test with minimal metadata
+                            minimal_data = BlueprintIn(
+                                name="Minimal Blueprint",
+                                meta=BlueprintMetadata()  # All defaults
+                            )
+                            
+                            self.repository.create(minimal_data, self.mock_project)
+                            
+                            # Verify Blueprint was created with correct metadata
+                            MockBlueprint.assert_called_once()
+                            call_args = MockBlueprint.call_args[1]
+                            assert call_args['name'] == "Minimal Blueprint"
+                            assert call_args['meta'] == {"icon": "", "category": "", "description": ""}
     
+    @patch('repositories.blueprint_repository.NodeSetupVersion')
+    @patch('repositories.blueprint_repository.NodeSetup')
+    @patch('repositories.blueprint_repository.Blueprint')
     @patch('repositories.blueprint_repository.uuid4')
     @patch('repositories.blueprint_repository.datetime')
-    def test_create_database_error_handling(self, mock_datetime, mock_uuid4):
+    def test_create_database_error_handling(self, mock_datetime, mock_uuid4, MockBlueprint, MockNodeSetup, MockNodeSetupVersion):
         """Test blueprint creation when database operations fail."""
-        mock_datetime.now.return_value = datetime.now(timezone.utc)
+        fixed_time = datetime.now(timezone.utc)
+        mock_datetime.now.return_value = fixed_time
         mock_uuid4.side_effect = [uuid4(), uuid4(), uuid4()]
+        
+        # Create mock instances
+        MockBlueprint.return_value = Mock()
+        MockNodeSetup.return_value = Mock()
+        MockNodeSetupVersion.return_value = Mock()
         
         # Mock database commit to raise an exception
         self.mock_db.commit.side_effect = Exception("Database error")
         
         blueprint_data = BlueprintIn(
             name="Test Blueprint",
-            meta=BlueprintMetadata(icon="test-icon")
+            meta=BlueprintMetadata(icon="test-icon", category="", description="")
         )
         
         with pytest.raises(Exception, match="Database error"):

@@ -1,3 +1,4 @@
+import uuid as uuid_module
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.background import BackgroundTasks
@@ -81,7 +82,7 @@ class AccountService:
             MessageAction="SUPPRESS",
         )
 
-        account = Account(cognito_id=user["User"]["Username"], email=email)
+        account = Account(cognito_id=user["User"]["Username"], email=email, first_name="", last_name="")
         session.add(account)
         session.flush()
 
@@ -123,7 +124,7 @@ class AccountService:
     @staticmethod
     def resend_invite(session: Session, account_id: str, background_tasks: BackgroundTasks):
         account = session.execute(
-            select(Account).where(Account.id == account_id)
+            select(Account).where(Account.id == uuid_module.UUID(account_id))
         ).scalar_one_or_none()
 
         if not account:
@@ -143,7 +144,7 @@ class AccountService:
     @staticmethod
     def delete_account(session: Session, account_id: str):
         account = session.execute(
-            select(Account).where(Account.id == account_id)
+            select(Account).where(Account.id == uuid_module.UUID(account_id))
         ).scalar_one_or_none()
 
         if not account:

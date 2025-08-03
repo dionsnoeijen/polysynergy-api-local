@@ -34,11 +34,10 @@ class TestAccountService:
         # Create another account in the same tenant
         other_account = Account(
             id=uuid.uuid4(),
-            cognito_user_id="other-cognito-id",
+            cognito_id="other-cognito-id",
             email="other@example.com",
             first_name="Other",
-            last_name="User",
-            tenant_id=sample_tenant.id
+            last_name="User"
         )
         db_session.add(other_account)
         other_membership = Membership(account_id=other_account.id, tenant_id=sample_tenant.id)
@@ -84,12 +83,17 @@ class TestAccountService:
         # Verify Cognito update was called
         mock_update_cognito.assert_called_once()
     
+    @patch('services.account_service.settings')
     @patch('services.account_service.EmailService.send_invitation_email')
     @patch('services.account_service.AccountService._cognito_client')
     @patch('services.account_service.generate_temporary_password')
-    def test_invite_to_tenant(self, mock_gen_password, mock_cognito_client, mock_email_service, 
+    def test_invite_to_tenant(self, mock_gen_password, mock_cognito_client, mock_email_service, mock_settings,
                              db_session: Session, sample_account: Account, sample_tenant: Tenant):
         """Test inviting user to tenant."""
+        # Setup settings
+        mock_settings.COGNITO_USER_POOL_ID = "test_pool"
+        mock_settings.PORTAL_URL = "http://test.com"
+        
         # Setup existing membership for inviter
         membership = Membership(account_id=sample_account.id, tenant_id=sample_tenant.id)
         db_session.add(membership)
@@ -147,12 +151,17 @@ class TestAccountService:
         with pytest.raises(ValueError, match="Account already active"):
             AccountService.activate_account(db_session, sample_account.cognito_id, "John", "Doe")
     
+    @patch('services.account_service.settings')
     @patch('services.account_service.EmailService.send_invitation_email')
     @patch('services.account_service.AccountService._cognito_client')
     @patch('services.account_service.generate_temporary_password')
-    def test_resend_invite(self, mock_gen_password, mock_cognito_client, mock_email_service,
+    def test_resend_invite(self, mock_gen_password, mock_cognito_client, mock_email_service, mock_settings,
                           db_session: Session, sample_account: Account):
         """Test resending invitation to user."""
+        # Setup settings
+        mock_settings.COGNITO_USER_POOL_ID = "test_pool"
+        mock_settings.PORTAL_URL = "http://test.com"
+        
         mock_gen_password.return_value = "newtemp123"
         mock_cognito = Mock()
         mock_cognito_client.return_value = mock_cognito
@@ -168,16 +177,21 @@ class TestAccountService:
         )
         mock_email_service.assert_called_once()
     
-    def test_resend_invite_account_not_found(self, db_session: Session):
+    @patch('services.account_service.settings')
+    def test_resend_invite_account_not_found(self, mock_settings, db_session: Session):
         """Test resending invite for nonexistent account."""
         background_tasks = Mock()
         
         with pytest.raises(ValueError, match="Account not found"):
             AccountService.resend_invite(db_session, str(uuid.uuid4()), background_tasks)
     
+    @patch('services.account_service.settings')
     @patch('services.account_service.AccountService._cognito_client')
-    def test_delete_account(self, mock_cognito_client, db_session: Session, sample_account: Account):
+    def test_delete_account(self, mock_cognito_client, mock_settings, db_session: Session, sample_account: Account):
         """Test deleting account."""
+        # Setup settings
+        mock_settings.COGNITO_USER_POOL_ID = "test_pool"
+        
         mock_cognito = Mock()
         mock_cognito_client.return_value = mock_cognito
         account_id = str(sample_account.id)
@@ -194,7 +208,8 @@ class TestAccountService:
             Username=sample_account.email
         )
     
-    def test_delete_account_not_found(self, db_session: Session):
+    @patch('services.account_service.settings')
+    def test_delete_account_not_found(self, mock_settings, db_session: Session):
         """Test deleting nonexistent account."""
         with pytest.raises(ValueError, match="Account not found"):
             AccountService.delete_account(db_session, str(uuid.uuid4()))

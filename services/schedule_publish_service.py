@@ -64,8 +64,8 @@ class SchedulePublishService:
         if stage != "mock":
             existing_versions = (
                 self.db.query(NodeSetupVersion)
-                .filter(NodeSetupVersion.node_setup == node_setup_version.node_setup)
-                .filter(NodeSetupVersion.published == True)
+                .filter(NodeSetupVersion.node_setup_id == node_setup_version.node_setup_id)
+                .filter(NodeSetupVersion.draft.is_(False))
                 .filter(NodeSetupVersion.id != node_setup_version.id)
                 .all()
             )
