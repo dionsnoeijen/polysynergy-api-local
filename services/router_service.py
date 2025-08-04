@@ -67,7 +67,10 @@ class RouterService:
     ):
         """Update route for all active stages in a single call"""
         payload = self._route_payload(route, node_setup_version, active_stages)
-        return requests.post(f"{self.router_url}/update-route", json=payload)
+        logger.debug(f"Sending multi-stage update payload: {payload}")
+        response = requests.post(f"{self.router_url}/update-route", json=payload)
+        logger.debug(f"Router response: {response.status_code} - {response.text}")
+        return response
 
     def deactivate_route_stage(
         self,
