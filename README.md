@@ -5,6 +5,8 @@
 [![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-BSL--1.1-blue.svg)](LICENSE)
 
+> 🚀 **Get Started**: This is part of the [PolySynergy Orchestrator](https://github.com/dionsnoeijen/polysynergy-orchestrator) - a visual workflow automation platform. Start there to set up the complete system and begin building AI agent workflows.
+
 > FastAPI backend for the PolySynergy orchestrator system - A powerful automation and workflow management platform.
 
 ## 🚧 Development Status
