@@ -88,3 +88,39 @@ Settings in `core/settings.py` require:
 - **Service Layer**: Business logic separation
 - **Database Context**: `db_context()` for transaction management
 - **UUID Primary Keys**: All entities use UUID4 for distributed system compatibility
+
+### Architecture Principles
+
+#### Separation of Concerns
+Follow strict layered architecture with clear responsibilities:
+
+- **Controllers** (`api/v1/`): Handle HTTP requests and orchestrate calls to services/repositories
+- **Services** (`services/`): Business logic and external system communication (AWS, router, email, etc.)
+- **Repositories** (`repositories/`): Pure database operations only - no business logic or external calls
+- **Models** (`models/`): Data structures and database entities
+
+#### Communication Patterns
+- **Controller → Service**: For business logic and external system interactions
+- **Controller → Repository**: For direct database operations
+- **Service → Repository**: When services need data access
+- **Service → Service**: For composed operations
+
+**Anti-patterns to avoid:**
+- Repositories calling services or external systems
+- Controllers containing business logic
+- Direct database access from controllers (bypass repositories)
+
+#### Microservice Integration
+When integrating with other microservices (like the router service):
+
+1. **Create dedicated service classes** for external communication
+2. **Keep payloads DRY** - use private methods for payload construction
+3. **Handle both single and batch operations** efficiently
+4. **Maintain backwards compatibility** when extending service methods
+5. **Use proper error handling** - don't fail operations if external updates fail
+
+#### Data Consistency
+- **Database updates first** - ensure local state is correct
+- **External system updates second** - sync with microservices after local updates
+- **Graceful degradation** - log warnings but don't fail operations if external syncs fail
+- **Consider eventual consistency** - some operations may succeed locally but fail externally

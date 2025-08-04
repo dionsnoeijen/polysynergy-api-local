@@ -137,25 +137,6 @@ class RouteRepository:
         if not version:
             raise HTTPException(status_code=404, detail="NodeSetupVersion not found")
 
-        # Update router for all published stages
-        from services.router_service import get_router_service
-        from models import NodeSetupVersionStage, Stage
-        
-        router_service = get_router_service()
-        
-        # Find all stages where this version is published
-        published_stages = self.db.query(Stage).join(
-            NodeSetupVersionStage, Stage.id == NodeSetupVersionStage.stage_id
-        ).filter(NodeSetupVersionStage.version_id == version.id).all()
-        
-        # Update router for each published stage
-        for stage in published_stages:
-            try:
-                response = router_service.update_route(route, version, stage.name)
-                if response.status_code != 200:
-                    logger.warning(f"Failed to update router for route {route_id} in stage {stage.name}: {response.status_code}")
-            except Exception as e:
-                logger.warning(f"Error updating router for route {route_id} in stage {stage.name}: {str(e)}")
 
         self.db.commit()
         self.db.refresh(route)

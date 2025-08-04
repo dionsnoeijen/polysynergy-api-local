@@ -16,7 +16,7 @@ class RouterService:
         self,
         route: Route,
         node_setup_version: NodeSetupVersion,
-        stage: str
+        stage: str | list[str]
     ) -> dict:
         segments = [
             {
@@ -27,10 +27,12 @@ class RouterService:
             for s in sorted(route.segments, key=lambda s: s.segment_order)
         ]
 
-        return {
+        # Handle both single stage and multiple stages
+        active_stages = stage if isinstance(stage, list) else [stage]
+        
+        payload = {
             "project_id": str(route.project.id),
             "tenant_id": str(route.project.tenant.id),
-            "stage": stage,
             "route": {
                 "id": str(route.id),
                 "method": route.method.value,
@@ -38,9 +40,15 @@ class RouterService:
                 "segments": segments,
                 "node_setup_version_id": str(node_setup_version.id),
                 "tenant_id": str(route.project.tenant.id),
-                "active_stages": [stage]
+                "active_stages": active_stages
             }
         }
+        
+        # Add stage field for backwards compatibility with single stage calls
+        if not isinstance(stage, list):
+            payload["stage"] = stage
+            
+        return payload
 
     def update_route(
         self,
@@ -49,6 +57,16 @@ class RouterService:
         stage: str
     ):
         payload = self._route_payload(route, node_setup_version, stage)
+        return requests.post(f"{self.router_url}/update-route", json=payload)
+
+    def update_route_all_stages(
+        self,
+        route: Route,
+        node_setup_version: NodeSetupVersion,
+        active_stages: list[str]
+    ):
+        """Update route for all active stages in a single call"""
+        payload = self._route_payload(route, node_setup_version, active_stages)
         return requests.post(f"{self.router_url}/update-route", json=payload)
 
     def deactivate_route_stage(
