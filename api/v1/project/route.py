@@ -43,7 +43,7 @@ def update_route(
     data: RouteCreateIn,
     route_id: UUID = Path(),
     version_id: UUID = Path(),
-    project: Project = Depends(get_project_or_403),
+    _: Project = Depends(get_project_or_403),
     route_repo: RouteRepository = Depends(get_route_repository),
     router_service: RouterService = Depends(get_router_service),
 ):
