@@ -65,7 +65,7 @@ class AccountService:
         return account
 
     @staticmethod
-    def invite_to_tenant(session: Session, inviter: Account, email: str) -> Account:
+    def invite_to_tenant(session: Session, inviter: Account, email: str, background_tasks: BackgroundTasks) -> Account:
         tenant = inviter.memberships[0].tenant
 
         temp_password = generate_temporary_password()
@@ -89,7 +89,7 @@ class AccountService:
         membership = Membership(account=account, tenant=tenant)
         session.add(membership)
 
-        EmailService.send_invitation_email(email, settings.PORTAL_URL, temp_password)
+        EmailService.send_invitation_email(email, settings.PORTAL_URL, temp_password, background_tasks)
 
         session.commit()
         return account

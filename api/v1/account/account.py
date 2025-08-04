@@ -42,6 +42,7 @@ def activate_account(
 @router.post("/invite/", response_model=AccountOut)
 def invite_account(
     data: AccountInvite,
+    background_tasks: BackgroundTasks,
     current_account: Account = Depends(get_current_account),
     session: Session = Depends(get_db),
 ):
@@ -49,6 +50,7 @@ def invite_account(
         session,
         inviter=current_account,
         email=str(data.email),
+        background_tasks=background_tasks,
     )
     return account
 

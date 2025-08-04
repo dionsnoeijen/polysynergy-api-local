@@ -2,6 +2,7 @@ import uuid
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from sqlalchemy.orm import Session
+from fastapi import BackgroundTasks
 
 from services.account_service import AccountService
 from models import Account, Membership, Tenant
@@ -107,7 +108,8 @@ class TestAccountService:
         }
         mock_cognito_client.return_value = mock_cognito
         
-        result = AccountService.invite_to_tenant(db_session, sample_account, "newuser@example.com")
+        background_tasks = BackgroundTasks()
+        result = AccountService.invite_to_tenant(db_session, sample_account, "newuser@example.com", background_tasks)
         
         assert result.cognito_id == "invited-user-id"
         assert result.email == "newuser@example.com"

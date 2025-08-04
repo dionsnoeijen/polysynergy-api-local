@@ -8,7 +8,7 @@ from .base import Base
 class Stage(Base):
     __tablename__ = "stages"
     __table_args__ = (
-        UniqueConstraint("name", name="uq_stage_name"),
+        UniqueConstraint("name", "project_id", name="uq_stage_name_per_project"),
     )
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
