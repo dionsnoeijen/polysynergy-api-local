@@ -47,10 +47,6 @@ class Settings(BaseSettings):
 
     EXECUTE_NODE_SETUP_LOCAL: bool = False
 
-    PUBNUB_PUBLISH_KEY: str
-    PUBNUB_SUBSCRIBE_KEY: str
-    PUBNUB_SECRET_KEY: str
-
     DYNAMODB_ENV_VARS_TABLE: str
 
     OPENAI_API_KEY: str
