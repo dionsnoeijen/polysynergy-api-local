@@ -87,8 +87,7 @@ class SchedulePublishService:
                 logger.warning(f"Failed to disable scheduled lambda {fn}: {e}")
 
     def _unpublish_existing(self, versions: list[NodeSetupVersion]):
-        for v in versions:
-            v.published = False
+        # Note: published field has been removed, this method may no longer be needed
         self.db.commit()
         logger.debug(f"Unpublished {len(versions)} old versions")
 
@@ -109,8 +108,6 @@ class SchedulePublishService:
 
         if not node_setup_version:
             raise HTTPException(status_code=400, detail="No version found for this schedule.")
-        if node_setup_version.published:
-            raise HTTPException(status_code=400, detail="Version is already published")
         if not node_setup_version.executable:
             raise HTTPException(status_code=400, detail="No executable defined")
         if not schedule.cron_expression:
@@ -128,7 +125,6 @@ class SchedulePublishService:
         logger.debug(f"Schedule created with cron expression: {schedule.cron_expression}")
 
         version.lambda_arn = lambda_arn
-        version.published = True
         self.db.commit()
         logger.debug(f"Published NodeSetupVersion {version.id}")
 

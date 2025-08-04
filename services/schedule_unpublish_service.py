@@ -45,7 +45,6 @@ class ScheduleUnpublishService:
                 self.lambda_service.delete_lambda(function_name)
                 logger.debug(f"Deleted lambda function {function_name}")
 
-                node_setup_version.published = False
                 self.db.add(node_setup_version)
                 self.db.commit()
 

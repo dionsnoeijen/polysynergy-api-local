@@ -47,7 +47,6 @@ class TestSchedulePublishService:
         self.mock_version.executable = "print('Scheduled task')"
         self.mock_version.executable_hash = "hash456"
         self.mock_version.created_at = datetime.now()
-        self.mock_version.published = False
         self.mock_version.node_setup = self.mock_node_setup
         self.mock_version.node_setup_id = self.node_setup_id
         
@@ -122,24 +121,6 @@ class TestSchedulePublishService:
         assert exc_info.value.status_code == 400
         assert "No version found for this schedule" in exc_info.value.detail
 
-    def test_validate_version_already_published(self):
-        """Test validation failure when version is already published."""
-        # Mock node setup query
-        self.mock_db.query.return_value.filter_by.return_value.first.return_value = self.mock_node_setup
-        
-        # Mock published version
-        published_version = Mock(spec=NodeSetupVersion)
-        published_version.published = True
-        published_version.executable = "code"
-        published_version.created_at = datetime.now()
-        self.mock_node_setup.versions = [published_version]
-        
-        with pytest.raises(HTTPException) as exc_info:
-            self.service._validate(self.mock_schedule)
-        
-        assert exc_info.value.status_code == 400
-        assert "Version is already published" in exc_info.value.detail
-
     def test_validate_no_executable(self):
         """Test validation failure when version has no executable."""
         # Mock node setup query
@@ -148,7 +129,6 @@ class TestSchedulePublishService:
         # Mock version without executable
         version_without_executable = Mock(spec=NodeSetupVersion)
         version_without_executable.executable = None
-        version_without_executable.published = False
         version_without_executable.created_at = datetime.now()
         self.mock_node_setup.versions = [version_without_executable]
         
@@ -185,12 +165,10 @@ class TestSchedulePublishService:
         older_version = Mock(spec=NodeSetupVersion)
         older_version.created_at = datetime(2023, 1, 1)
         older_version.executable = "old code"
-        older_version.published = False
         
         newer_version = Mock(spec=NodeSetupVersion)
         newer_version.created_at = datetime(2023, 12, 1)
         newer_version.executable = "new code"
-        newer_version.published = False
         
         self.mock_node_setup.versions = [older_version, newer_version]
         
@@ -206,7 +184,6 @@ class TestSchedulePublishService:
         # Mock version with empty executable
         version_with_empty_executable = Mock(spec=NodeSetupVersion)
         version_with_empty_executable.executable = ""
-        version_with_empty_executable.published = False
         version_with_empty_executable.created_at = datetime.now()
         self.mock_node_setup.versions = [version_with_empty_executable]
         
@@ -448,11 +425,9 @@ class TestSchedulePublishService:
         # Mock existing versions
         existing_version1 = Mock(spec=NodeSetupVersion)
         existing_version1.id = uuid4()
-        existing_version1.published = True
         
         existing_version2 = Mock(spec=NodeSetupVersion)
         existing_version2.id = uuid4()
-        existing_version2.published = True
         
         existing_versions = [existing_version1, existing_version2]
         
@@ -467,12 +442,6 @@ class TestSchedulePublishService:
         # Verify existing versions were disabled
         assert self.mock_scheduled_lambda_service.remove_scheduled_lambda.call_count == 2
         
-        # Verify existing versions were unpublished
-        assert existing_version1.published == False
-        assert existing_version2.published == False
-        
-        # Verify current version was published
-        assert self.mock_version.published == True
         assert self.mock_version.lambda_arn == expected_arn
         
         # Verify scheduled lambda was created
@@ -564,24 +533,6 @@ class TestSchedulePublishService:
         # Verify both calls were attempted
         assert self.mock_scheduled_lambda_service.remove_scheduled_lambda.call_count == 2
 
-    def test_unpublish_existing(self):
-        """Test unpublishing existing versions."""
-        version1 = Mock(spec=NodeSetupVersion)
-        version1.published = True
-        version2 = Mock(spec=NodeSetupVersion)
-        version2.published = True
-        
-        versions = [version1, version2]
-        
-        self.service._unpublish_existing(versions)
-        
-        # Verify versions were unpublished
-        assert version1.published == False
-        assert version2.published == False
-        
-        # Verify database commit was called
-        self.mock_db.commit.assert_called_once()
-
     def test_publish_this(self):
         """Test publishing current version."""
         lambda_arn = "arn:aws:lambda:us-east-1:123456789012:function:test-function"
@@ -599,7 +550,6 @@ class TestSchedulePublishService:
         
         # Verify version was updated
         assert self.mock_version.lambda_arn == lambda_arn
-        assert self.mock_version.published == True
         
         # Verify database commit was called
         self.mock_db.commit.assert_called_once()
@@ -731,7 +681,6 @@ class TestSchedulePublishService:
         for i in range(3):
             version = Mock(spec=NodeSetupVersion)
             version.id = uuid4()
-            version.published = True
             existing_versions.append(version)
         
         # Mock the database query chain with complex workflow
@@ -752,13 +701,8 @@ class TestSchedulePublishService:
             self.mock_version.executable
         )
         
-        # Verify all existing versions were disabled and unpublished
+        # Verify all existing versions were disabled
         assert self.mock_scheduled_lambda_service.remove_scheduled_lambda.call_count == 3
-        for version in existing_versions:
-            assert version.published == False
-        
-        # Verify current version was published
-        assert self.mock_version.published == True
         assert self.mock_version.lambda_arn == expected_arn
         
         # Verify scheduled lambda was created

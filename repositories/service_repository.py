@@ -63,7 +63,6 @@ class ServiceRepository:
             content=data.node_setup_content or {},
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
-            published=False,
             draft=True,
         )
         self.db.add(version)

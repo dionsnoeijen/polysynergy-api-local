@@ -50,7 +50,6 @@ class TestServiceRepository:
         self.mock_version.node_setup_id = self.node_setup_id
         self.mock_version.version_number = 1
         self.mock_version.content = {}
-        self.mock_version.published = False
         self.mock_version.draft = True
 
     def test_get_all_by_project(self):

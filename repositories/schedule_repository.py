@@ -64,8 +64,7 @@ class ScheduleRepository:
         version = NodeSetupVersion(
             id=uuid4(),
             node_setup_id=node_setup.id,
-            content={},
-            published=False
+            content={}
         )
         self.db.add(version)
 

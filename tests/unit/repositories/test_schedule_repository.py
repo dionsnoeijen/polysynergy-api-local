@@ -48,7 +48,6 @@ class TestScheduleRepository:
         self.mock_version.node_setup_id = self.node_setup_id
         self.mock_version.version_number = 1
         self.mock_version.content = {}
-        self.mock_version.published = False
 
     def test_get_all_by_project(self):
         """Test retrieval of all schedules by project."""
