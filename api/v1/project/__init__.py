@@ -12,7 +12,8 @@ from . import (
     publish_matrix,
     api_key,
     avatar,
-    listener
+    listener,
+    export_import
 )
 
 router = APIRouter()
@@ -30,3 +31,4 @@ router.include_router(publish_matrix.router, prefix="/publish-matrix", tags=["Pu
 router.include_router(api_key.router, prefix="/api-keys", tags=["API Keys"])
 router.include_router(avatar.router, prefix="/avatars", tags=["Avatars"])
 router.include_router(listener.router, prefix="/listeners", tags=["Active Listeners"])
+router.include_router(export_import.router, tags=["Export/Import"])

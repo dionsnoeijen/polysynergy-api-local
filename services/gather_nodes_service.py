@@ -6,9 +6,9 @@ _DISCOVERED_NODES = None
 DEFAULT_PACKAGES = ["polysynergy_nodes"]
 
 def discover_nodes(packages: list[str] = None):
-    global _DISCOVERED_NODES
-    if _DISCOVERED_NODES is not None:
-        return _DISCOVERED_NODES
+    # global _DISCOVERED_NODES
+    # if _DISCOVERED_NODES is not None:
+    #     return _DISCOVERED_NODES
 
     packages = packages or DEFAULT_PACKAGES
     nodes = []
