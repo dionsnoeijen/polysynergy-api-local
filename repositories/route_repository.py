@@ -143,7 +143,18 @@ class RouteRepository:
         return route
 
     def delete(self, route_id: UUID, project: Project) -> None:
-        route = self.get_by_id_or_404(route_id)
+        route = self.get_by_id(route_id, project)
+        if not route:
+            raise HTTPException(status_code=404, detail="Route not found")
+        
+        # Also delete the associated NodeSetup record
+        node_setup = self.db.query(NodeSetup).filter_by(
+            content_type="route", 
+            object_id=str(route_id)
+        ).first()
+        if node_setup:
+            self.db.delete(node_setup)
+        
         self.db.delete(route)
         self.db.commit()
 

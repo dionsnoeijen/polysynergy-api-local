@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from uuid import uuid4
 
 from models import Project, Account
-from schemas.env_var import EnvVarOut, EnvVarStageValue
+from schemas.env_var import EnvVarOut, EnvVarStageValue, EnvVarCreatedOut
 
 
 @pytest.mark.integration
@@ -131,7 +131,12 @@ class TestEnvVarEndpoints:
         app.dependency_overrides[get_project_or_403] = lambda: self.mock_project
         
         mock_manager = Mock()
-        created_env_var = EnvVarOut(**self.mock_env_var_data)
+        created_env_var = {
+            "id": "envvar#project-123#development#NEW_VAR",
+            "key": "NEW_VAR",
+            "stage": "development",
+            "value": "new-value-123"
+        }
         mock_manager.set_var.return_value = created_env_var
         app.dependency_overrides[get_env_var_manager] = lambda: mock_manager
         
@@ -145,7 +150,10 @@ class TestEnvVarEndpoints:
         
         assert response.status_code == 201
         data = response.json()
-        assert data["key"] == "DATABASE_URL"  # From mock data
+        assert data["key"] == "NEW_VAR"
+        assert data["stage"] == "development"
+        assert data["value"] == "new-value-123"
+        assert data["id"] == "envvar#project-123#development#NEW_VAR"
         
         mock_manager.set_var.assert_called_once_with(
             self.project_id, "development", "NEW_VAR", "new-value-123"
@@ -253,7 +261,12 @@ class TestEnvVarEndpoints:
         app.dependency_overrides[get_project_or_403] = lambda: self.mock_project
         
         mock_manager = Mock()
-        created_env_var = EnvVarOut(**self.mock_env_var_data)
+        created_env_var = {
+            "id": f"envvar#{self.project_id}#testing#COMPLEX_VAR",
+            "key": "COMPLEX_VAR",
+            "stage": "testing",
+            "value": "value-with-@special#chars$and%symbols&123"
+        }
         mock_manager.set_var.return_value = created_env_var
         app.dependency_overrides[get_env_var_manager] = lambda: mock_manager
         
@@ -303,7 +316,12 @@ class TestEnvVarEndpoints:
         app.dependency_overrides[get_project_or_403] = lambda: self.mock_project
         
         mock_manager = Mock()
-        created_env_var = EnvVarOut(**self.mock_env_var_data)
+        created_env_var = {
+            "id": f"envvar#{self.project_id}#development#EMPTY_VAR",
+            "key": "EMPTY_VAR",
+            "stage": "development",
+            "value": ""
+        }
         mock_manager.set_var.return_value = created_env_var
         app.dependency_overrides[get_env_var_manager] = lambda: mock_manager
         
@@ -331,11 +349,16 @@ class TestEnvVarEndpoints:
         app.dependency_overrides[get_project_or_403] = lambda: self.mock_project
         
         mock_manager = Mock()
-        created_env_var = EnvVarOut(**self.mock_env_var_data)
+        long_value = "x" * 1000  # Very long value
+        created_env_var = {
+            "id": f"envvar#{self.project_id}#development#LONG_VAR",
+            "key": "LONG_VAR",
+            "stage": "development",
+            "value": long_value
+        }
         mock_manager.set_var.return_value = created_env_var
         app.dependency_overrides[get_env_var_manager] = lambda: mock_manager
         
-        long_value = "x" * 1000  # Very long value
         payload = {
             "key": "LONG_VAR",
             "value": long_value,

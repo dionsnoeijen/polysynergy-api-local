@@ -292,9 +292,28 @@ class TestRouteRepository:
 
     def test_delete_success(self):
         """Test successful route deletion."""
-        with patch.object(self.repository, 'get_by_id_or_404', return_value=self.mock_route):
+        # Mock NodeSetup query to return a node setup to delete
+        mock_node_setup = Mock()
+        self.mock_db.query.return_value.filter_by.return_value.first.return_value = mock_node_setup
+        
+        with patch.object(self.repository, 'get_by_id', return_value=self.mock_route):
             self.repository.delete(self.route_id, self.mock_project)
             
+            # Should delete both NodeSetup and Route
+            assert self.mock_db.delete.call_count == 2
+            self.mock_db.delete.assert_any_call(mock_node_setup)
+            self.mock_db.delete.assert_any_call(self.mock_route)
+            self.mock_db.commit.assert_called_once()
+    
+    def test_delete_success_no_node_setup(self):
+        """Test successful route deletion when no NodeSetup exists."""
+        # Mock NodeSetup query to return None (no node setup found)
+        self.mock_db.query.return_value.filter_by.return_value.first.return_value = None
+        
+        with patch.object(self.repository, 'get_by_id', return_value=self.mock_route):
+            self.repository.delete(self.route_id, self.mock_project)
+            
+            # Should delete only the Route (not NodeSetup since it doesn't exist)
             self.mock_db.delete.assert_called_once_with(self.mock_route)
             self.mock_db.commit.assert_called_once()
 

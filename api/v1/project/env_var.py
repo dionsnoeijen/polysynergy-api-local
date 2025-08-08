@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body, Path
 
 from models import Project
-from schemas.env_var import EnvVarOut, EnvVarCreateIn
+from schemas.env_var import EnvVarOut, EnvVarCreateIn, EnvVarCreatedOut
 from polysynergy_node_runner.services.env_var_manager import EnvVarManager
 from services.env_var_manager import get_env_var_manager
 from utils.get_current_account import get_project_or_403
@@ -19,7 +19,7 @@ def list_env_vars(
         raise HTTPException(status_code=500, detail=f"Error retrieving env vars: {str(e)}")
 
 
-@router.post("/", response_model=EnvVarOut, status_code=201)
+@router.post("/", response_model=EnvVarCreatedOut, status_code=201)
 def create_env_var(
     data: EnvVarCreateIn,
     project: Project = Depends(get_project_or_403),

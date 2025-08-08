@@ -139,7 +139,12 @@ class AccountService:
             Permanent=False,
         )
 
-        EmailService.send_invitation_email(account.email, settings.PORTAL_URL, temp_password, background_tasks)
+        EmailService.send_invitation_email(
+            account.email,
+            settings.PORTAL_URL,
+            temp_password,
+            background_tasks
+        )
 
     @staticmethod
     def delete_account(session: Session, account_id: str):

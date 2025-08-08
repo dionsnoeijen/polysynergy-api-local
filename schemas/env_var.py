@@ -15,3 +15,10 @@ class EnvVarCreateIn(BaseModel):
     key: str
     value: str
     stage: str
+
+
+class EnvVarCreatedOut(BaseModel):
+    id: str
+    key: str
+    stage: str
+    value: str

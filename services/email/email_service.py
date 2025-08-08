@@ -4,9 +4,8 @@ import boto3
 from fastapi import BackgroundTasks
 from botocore.exceptions import ClientError
 import logging
-from pydantic import EmailStr
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 template_env = Environment(
     loader=FileSystemLoader(str(BASE_DIR / "templates")),
     autoescape=select_autoescape(["html", "xml"])
@@ -14,10 +13,14 @@ template_env = Environment(
 
 class EmailService:
     @staticmethod
-    def send_invitation_email(to: str, invite_url: str, temp_password: str, background_tasks: BackgroundTasks):
-        subject = "You're invited to PolySynergy"
+    def send_invitation_email(to: str, portal_url: str, temporary_password: str, background_tasks: BackgroundTasks):
+        subject = "Welcome to PolySynergy - Your Account is Ready"
         template = template_env.get_template("invitation_email.html")
-        html_body = template.render(invite_url=invite_url, temp_password=temp_password)
+        html_body = template.render(
+            email=to,
+            portal_url=portal_url, 
+            temporary_password=temporary_password
+        )
 
         background_tasks.add_task(EmailService._send_via_ses, to, subject, html_body)
 
