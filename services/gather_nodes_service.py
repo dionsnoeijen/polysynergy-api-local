@@ -1,16 +1,18 @@
 import inspect
 from importlib import import_module
 from pathlib import Path
+from core.settings import settings
 
 _DISCOVERED_NODES = None
-DEFAULT_PACKAGES = ["polysynergy_nodes"]
 
 def discover_nodes(packages: list[str] = None):
     global _DISCOVERED_NODES
     if _DISCOVERED_NODES is not None:
         return _DISCOVERED_NODES
 
-    packages = packages or DEFAULT_PACKAGES
+    if packages is None:
+        # Get packages from settings, split by comma and strip whitespace
+        packages = [pkg.strip() for pkg in settings.NODE_PACKAGES.split(",") if pkg.strip()]
     nodes = []
 
     for package in packages:

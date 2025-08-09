@@ -50,6 +50,8 @@ class Settings(BaseSettings):
     DYNAMODB_ENV_VARS_TABLE: str
 
     OPENAI_API_KEY: str
+    
+    NODE_PACKAGES: str = "polysynergy_nodes,polysynergy_nodes_agno"
 
     model_config = {
         "env_file": ".env",

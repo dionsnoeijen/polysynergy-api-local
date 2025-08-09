@@ -13,7 +13,8 @@ from . import (
     api_key,
     avatar,
     listener,
-    export_import
+    export_import,
+    file_manager
 )
 
 router = APIRouter()
@@ -32,3 +33,4 @@ router.include_router(api_key.router, prefix="/api-keys", tags=["API Keys"])
 router.include_router(avatar.router, prefix="/avatars", tags=["Avatars"])
 router.include_router(listener.router, prefix="/listeners", tags=["Active Listeners"])
 router.include_router(export_import.router, tags=["Export/Import"])
+router.include_router(file_manager.router, prefix="/projects", tags=["File Manager"])
