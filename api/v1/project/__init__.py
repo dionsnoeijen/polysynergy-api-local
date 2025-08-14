@@ -14,7 +14,8 @@ from . import (
     avatar,
     listener,
     export_import,
-    file_manager
+    file_manager,
+    agno_chat_history
 )
 
 router = APIRouter()
@@ -34,3 +35,4 @@ router.include_router(avatar.router, prefix="/avatars", tags=["Avatars"])
 router.include_router(listener.router, prefix="/listeners", tags=["Active Listeners"])
 router.include_router(export_import.router, tags=["Export/Import"])
 router.include_router(file_manager.router, prefix="/projects", tags=["File Manager"])
+router.include_router(agno_chat_history.router, prefix="/agno-chat", tags=["Agno Chat History"])

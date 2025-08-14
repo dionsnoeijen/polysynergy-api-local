@@ -110,11 +110,15 @@ class RouterService:
 
         try:
             router_response = requests.get(
-                f"{self.router_url}/routes/{route.project.id}/{stage}"
+                f"{self.router_url}/routes/{route.project.id}"
             )
             router_response.raise_for_status()
-            existing_routes = router_response.json()
-            existing = next((r for r in existing_routes if r["SK"].endswith(str(route.id))), None)
+            all_routes = router_response.json()
+            # Filter routes by stage and find our specific route
+            existing = next((
+                r for r in all_routes 
+                if r["SK"].endswith(str(route.id)) and stage in r.get("active_stages", [])
+            ), None)
         except Exception as e:
             logger.warning(f"Router query failed: {e}")
             existing = None
