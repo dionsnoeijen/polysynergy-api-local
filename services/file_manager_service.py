@@ -219,9 +219,34 @@ class FileManagerService:
                 if obj["Key"] == full_prefix:
                     continue
                     
-                # Only include direct children, not nested files
+                # Get the relative key
                 relative_key = obj["Key"][len(full_prefix):]
-                if "/" not in relative_key:
+                
+                # Skip .keep files (used to create empty directories)
+                if relative_key.endswith("/.keep") or relative_key == ".keep":
+                    continue
+                
+                # Debug logging
+                logger.debug(f"Processing object: {obj['Key']}, Size: {obj.get('Size', 0)}, Relative: {relative_key}")
+                
+                # Check if this is a directory marker (ends with / and is direct child)
+                if relative_key.endswith("/") and relative_key.count("/") == 1:
+                    # This is a directory marker - add to directories list
+                    dir_name = relative_key.rstrip("/")
+                    if dir_name:  # Don't add empty names
+                        # Calculate the correct path without trailing slash
+                        dir_path = obj["Key"].rstrip("/")
+                        logger.info(f"Found directory marker: {dir_name} at path: {dir_path}")
+                        directories.append(DirectoryInfo(
+                            name=dir_name,
+                            path=dir_path,
+                            last_modified=obj["LastModified"],
+                            is_directory=True
+                        ))
+                # Only include direct children files (no slashes except maybe at the end)
+                elif "/" not in relative_key.rstrip("/"):
+                    # This is a regular file
+                    logger.debug(f"Adding file: {relative_key}")
                     files.append(self._extract_file_info_from_s3_object(obj))
             
             # Process directories (common prefixes)
@@ -489,22 +514,26 @@ class FileManagerService:
     def create_directory(self, directory_path: str) -> FileOperationResponse:
         """Create a directory (folder marker in S3)"""
         try:
-            # Normalize path and ensure it ends with /
+            # Normalize path (without trailing slash for the .keep file)
             normalized_path = self._normalize_path(directory_path)
-            if not normalized_path.endswith("/"):
-                normalized_path += "/"
             
-            s3_key = self._get_full_s3_key(normalized_path)
+            # Create a .keep file in the directory to make it visible
+            # This is a common pattern for creating "directories" in S3
+            keep_file_path = f"{normalized_path}/.keep" if normalized_path else ".keep"
+            s3_key = self._get_full_s3_key(keep_file_path)
             
-            # Create an empty object to act as directory marker
+            logger.info(f"Creating directory with .keep file at S3 key: {s3_key}")
+            logger.info(f"Normalized path: {normalized_path}")
+            
+            # Create a .keep file to establish the directory
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
                 Key=s3_key,
                 Body=b"",
-                ContentType="application/x-directory"
+                ContentType="text/plain"
             )
             
-            logger.info(f"Created directory: {s3_key}")
+            logger.info(f"Successfully created directory with .keep file: {s3_key}")
             return FileOperationResponse(
                 success=True,
                 message=f"Directory '{directory_path}' created successfully"
