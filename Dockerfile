@@ -15,6 +15,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 COPY ./nodes /nodes
 COPY ./node_runner /node_runner
 COPY ./nodes_agno /nodes_agno
+COPY ./nodes_dev /nodes_dev
 COPY ./api-local/pyproject.toml ./api-local/poetry.lock ./
 
 ENV POETRY_VIRTUALENVS_CREATE=false

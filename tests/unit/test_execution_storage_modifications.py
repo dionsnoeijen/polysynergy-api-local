@@ -73,37 +73,27 @@ class TestExecutionStorageServiceRetention:
         mock_boto3.resource.return_value.Table.return_value = mock_table
         
         # Mock existing runs - old runs should be deleted, recent ones kept
-        mock_table.query.side_effect = [
-            # First call - get all run_ids
-            {
-                "Items": [
-                    {"SK": "run1#node1#1#mock#mock"},
-                    {"SK": "run2#node1#1#mock#mock"},
-                    {"SK": "run3#node1#1#mock#mock"},
-                    {"SK": "run4#node1#1#mock#mock"},
-                    {"SK": "run5#node1#1#mock#mock"},
-                    {"SK": "run6#node1#1#mock#mock"},
-                    {"SK": "run7#node1#1#mock#mock"},  # This should be deleted (oldest)
-                    {"SK": "run1#connections"},
-                    {"SK": "run2#connections"},
-                ]
-            },
-            # Second call - get items for run7 (oldest) to delete
-            {
-                "Items": [
-                    {"PK": "flow123", "SK": "run7#node1#1#mock#mock"},
-                    {"PK": "flow123", "SK": "run7#connections"}
-                ]
-            }
-        ]
+        mock_table.scan.return_value = {
+            "Items": [
+                {"PK": "flow123", "SK": "run1#node1#1#mock#mock"},
+                {"PK": "flow123", "SK": "run2#node1#1#mock#mock"},
+                {"PK": "flow123", "SK": "run3#node1#1#mock#mock"},
+                {"PK": "flow123", "SK": "run4#node1#1#mock#mock"},
+                {"PK": "flow123", "SK": "run5#node1#1#mock#mock"},
+                {"PK": "flow123", "SK": "run6#node1#1#mock#mock"},
+                {"PK": "flow123", "SK": "run7#node1#1#mock#mock"},  # This should be deleted (oldest)
+                {"PK": "flow123", "SK": "run1#connections"},
+                {"PK": "flow123", "SK": "run2#connections"},
+            ]
+        }
         
         service = DynamoDbExecutionStorageService()
         
         # Test with max_runs_to_keep=5 and current_run_id="current_run"
-        service.clear_previous_execution("flow123", "current_run", max_runs_to_keep=5)
+        service.clear_previous_execution("flow123", current_run_id="current_run", max_runs_to_keep=5)
         
-        # Verify that the query was called to get runs
-        assert mock_table.query.call_count >= 1
+        # Verify that the scan was called to get runs
+        assert mock_table.scan.call_count >= 1
         
         # Verify that batch_writer was used for deletion
         mock_table.batch_writer.assert_called()
