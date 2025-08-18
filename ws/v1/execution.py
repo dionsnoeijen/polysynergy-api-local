@@ -36,9 +36,20 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
 
     task = asyncio.create_task(forward_messages())
     try:
-        await task
-    except WebSocketDisconnect:
-        print(f"🔌 WebSocket disconnected: flow_id={flow_id}")
+        while True:
+            try:
+                # Wait for client messages or task completion
+                await asyncio.wait_for(websocket.receive_text(), timeout=1.0)
+            except asyncio.TimeoutError:
+                # Check if the task is still running
+                if task.done():
+                    break
+                continue
+            except WebSocketDisconnect:
+                print(f"🔌 WebSocket disconnected: flow_id={flow_id}")
+                break
+    except Exception as e:
+        print(f"❌ WebSocket error for flow_id={flow_id}: {e}")
     finally:
         if not task.done():
             task.cancel()
