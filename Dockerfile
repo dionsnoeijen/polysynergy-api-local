@@ -25,6 +25,10 @@ RUN poetry lock && poetry install --no-interaction --no-ansi
 
 COPY ./api-local /app
 
+# Set default reload directories (can be overridden by docker-compose)
+ENV RELOAD_DIRS="--reload-dir /app"
+
 EXPOSE 8090
 
-CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8090", "--reload"]
+# Use environment variable for reload directories
+CMD sh -c "poetry run uvicorn main:app --host 0.0.0.0 --port 8090 --reload ${RELOAD_DIRS}"

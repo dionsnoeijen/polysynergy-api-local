@@ -73,22 +73,6 @@ def get_all_nodes_for_run(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/{flow_id}/{run_id}/mock-nodes/")
-def store_mock_nodes(
-    flow_id: str,
-    run_id: str,
-    request: dict,
-    _: Project = Depends(get_project_or_403),
-    storage: DynamoDbExecutionStorageService = Depends(get_execution_storage_service),
-):
-    try:
-        mock_nodes = request.get('mock_nodes', [])
-        storage.store_mock_nodes_result(flow_id, run_id, mock_nodes)
-        return {"message": "Mock nodes stored successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @router.get("/{flow_id}/{run_id}/mock-nodes/")
 def get_mock_nodes(
     flow_id: str,
@@ -97,8 +81,29 @@ def get_mock_nodes(
     storage: DynamoDbExecutionStorageService = Depends(get_execution_storage_service),
 ):
     try:
-        mock_nodes = storage.get_mock_nodes_result(flow_id, run_id)
-        return {"mock_nodes": mock_nodes or []}
+        # Use the existing get_all_nodes_for_run method to get the execution data
+        nodes = storage.get_all_nodes_for_run(flow_id, run_id, "mock", "mock")
+        
+        # Convert to mock node format expected by frontend
+        mock_nodes = []
+        for node in nodes:
+            node_data = node.get('data', {})
+            
+            mock_node = {
+                "id": f"{node_data.get('node_id', node['node_id'])}-{node_data.get('order', node['order'])}",
+                "handle": node_data.get('handle', ''),
+                "order": node_data.get('order', node['order']),
+                "type": node_data.get('type', 'Unknown'),
+                "killed": node_data.get('killed', False),
+                "runId": node_data.get('run_id', run_id),
+                "started": True,
+                "variables": node_data.get('variables', {}),
+                "status": "killed" if node_data.get('killed') else ("error" if node_data.get('error') else "success")
+            }
+            mock_nodes.append(mock_node)
+        
+        return {"mock_nodes": mock_nodes}
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

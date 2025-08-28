@@ -1,6 +1,8 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
+from core.settings import settings
+
 try:
     from agno.storage.sqlite import SqliteStorage
     from agno.storage.dynamodb import DynamoDbStorage
@@ -36,14 +38,13 @@ class AgnoChatHistoryService:
             
             if storage_type == 'LocalAgentStorage':
                 storage = self._get_sqlite_storage(storage_config)
+                session = storage.read(session_id, user_id)
             elif storage_type == 'DynamoDBAgentStorage':
                 storage = self._get_dynamodb_storage(storage_config)
+                session = storage.read(session_id)
             else:
                 raise ValueError(f"Unsupported storage type: {storage_type}")
-            
-            # Use Agno's native read method to retrieve session data
-            session = storage.read(session_id, user_id)
-            
+
             if not session:
                 return {
                     "session_id": session_id,
@@ -94,9 +95,10 @@ class AgnoChatHistoryService:
         region_name = config.get('region_name', 'eu-central-1')
         
         # Use provided credentials or fall back to environment/default
-        aws_access_key_id = config.get('aws_access_key_id') or os.environ.get("AWS_ACCESS_KEY_ID")
-        aws_secret_access_key = config.get('aws_secret_access_key') or os.environ.get("AWS_SECRET_ACCESS_KEY")
-        endpoint_url = config.get('endpoint_url')  # For LocalStack/custom endpoints
+        aws_access_key_id = settings.AWS_ACCESS_KEY_ID or os.environ.get("AWS_ACCESS_KEY_ID")
+        aws_secret_access_key = settings.AWS_SECRET_ACCESS_KEY or os.environ.get("AWS_SECRET_ACCESS_KEY")
+
+        endpoint_url = config.get('endpoint_url') # For LocalStack/custom endpoints
         
         return DynamoDbStorage(
             table_name=table_name,

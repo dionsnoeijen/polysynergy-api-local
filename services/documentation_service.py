@@ -1,4 +1,6 @@
 import json
+import os
+import hashlib
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import re
@@ -67,6 +69,49 @@ class DocumentationService:
                 return metadata, content_without_frontmatter
         
         return metadata, content
+    
+    def _discover_node_documentation(self, node_type: str) -> Optional[str]:
+        """
+        Discover node documentation using path-based discovery.
+        Uses NODE_PACKAGES env var to determine which packages are available.
+        """
+        # Get available node packages from environment
+        node_packages = os.getenv("NODE_PACKAGES", "").split(",")
+        node_packages = [pkg.strip() for pkg in node_packages if pkg.strip()]
+        
+        if not node_packages:
+            return None
+            
+        # Search for documentation file in each package
+        for package in node_packages:
+            try:
+                # Convert package to path and search for documentation
+                package_path = package.replace(".", "/")
+                
+                # Search in common locations relative to api-local
+                search_paths = [
+                    Path.cwd().parent / "nodes_agno",     # ../nodes_agno/
+                    Path.cwd().parent / "nodes",          # ../nodes/
+                    Path.cwd().parent,                    # Parent directory
+                    Path.cwd(),                          # Current directory
+                    Path("/app")                         # Docker location
+                ]
+                
+                for base_path in search_paths:
+                    # Look for {NodeType}_README.md files throughout the package
+                    package_dir = base_path / package_path
+                    if package_dir.exists():
+                        for readme_file in package_dir.rglob(f"{node_type}_README.md"):
+                            try:
+                                with open(readme_file, 'r', encoding='utf-8') as f:
+                                    return f.read()
+                            except Exception:
+                                continue
+                                
+            except Exception:
+                continue
+                
+        return None
     
     def _load_document(self, category: str, filename: str) -> Optional[Dict[str, Any]]:
         """Load a single documentation file."""
@@ -137,7 +182,31 @@ class DocumentationService:
     
     def get_document(self, category: str, doc_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific document."""
-        # Find the filename from manifest
+        # Handle node documentation specially
+        if category == "nodes":
+            node_content = self._discover_node_documentation(doc_id)
+            if node_content:
+                # Parse frontmatter if present
+                metadata, body_content = self._parse_frontmatter(node_content)
+                
+                return {
+                    "id": doc_id,
+                    "filename": f"{doc_id}_README.md",
+                    "category": "nodes",
+                    "title": metadata.get("title", f"{doc_id} Documentation"),
+                    "description": metadata.get("description", f"Documentation for {doc_id} node"),
+                    "tags": metadata.get("tags", []),
+                    "order": metadata.get("order", 999),
+                    "last_updated": metadata.get("last_updated", datetime.now().isoformat()[:10]),
+                    "content": node_content,
+                    "body": body_content,
+                    "metadata": metadata,
+                    "file_size": len(node_content),
+                    "modified_time": datetime.now().isoformat()
+                }
+            return None
+        
+        # Find the filename from manifest for regular documentation
         manifest = self._load_manifest()
         for nav_category in manifest.get("navigation", []):
             if nav_category["category"] == category:

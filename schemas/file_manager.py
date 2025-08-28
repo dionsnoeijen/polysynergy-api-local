@@ -28,6 +28,11 @@ class FileBatchDeleteRequest(BaseModel):
     file_paths: List[str] = Field(..., description="List of file paths to delete")
 
 
+class FileMetadataUpdateRequest(BaseModel):
+    """Request model for file metadata update"""
+    metadata: dict[str, str] = Field(..., description="Key-value metadata pairs")
+
+
 # Response Models
 class FileInfo(BaseModel):
     """File information model"""
@@ -38,6 +43,8 @@ class FileInfo(BaseModel):
     last_modified: datetime = Field(..., description="Last modification date")
     url: Optional[str] = Field(None, description="Public URL if available")
     is_directory: bool = Field(False, description="Whether this is a directory")
+    # NEW: Custom metadata storage
+    custom_metadata: dict[str, str] | None = Field(default_factory=dict, description="Custom key-value metadata")
 
 
 class DirectoryInfo(BaseModel):

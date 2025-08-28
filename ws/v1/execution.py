@@ -26,6 +26,11 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
     async def forward_messages():
         try:
             async for message in pubsub.listen():
+                # Skip subscription confirmation messages
+                if message["type"] == "subscribe":
+                    print(f"✅ Subscribed to channel: {message['channel']}")
+                    continue
+                # Only forward actual messages
                 if message["type"] == "message":
                     await websocket.send_text(message["data"])
         except asyncio.CancelledError:
@@ -39,7 +44,11 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
         while True:
             try:
                 # Wait for client messages or task completion
-                await asyncio.wait_for(websocket.receive_text(), timeout=1.0)
+                message = await asyncio.wait_for(websocket.receive_text(), timeout=1.0)
+                # Handle ping/pong for connection health
+                if message == "ping":
+                    await websocket.send_text("pong")
+                    print(f"💓 Responded to ping for flow_id={flow_id}")
             except asyncio.TimeoutError:
                 # Check if the task is still running
                 if task.done():

@@ -18,6 +18,7 @@ from services.mock_sync_service import MockSyncService, get_mock_sync_service
 from repositories.node_setup_repository import get_node_setup_repository, NodeSetupRepository
 from services.active_listeners_service import get_active_listeners_service
 from services.lambda_service import get_lambda_service, LambdaService
+from services.local_log_service import LogCapture
 from utils.get_current_account import get_project_or_403
 from core.settings import settings
 
@@ -86,33 +87,57 @@ async def execute_local(
 
     code = version.executable
     namespace = {}
+    
+    # Use LogCapture to capture all stdout/stderr during local execution
+    with LogCapture(str(version.id), "mock") as log_capture:
+        log_capture.add_custom_log(f"START RequestId: local-{uuid.uuid4()} Version: {version.id}")
+        
+        try:
+            log_capture.add_custom_log("Loading and executing node setup code...")
+            exec(code, namespace)
+        except Exception:
+            error_details = traceback.format_exc()
+            log_capture.add_custom_log(f"[ERROR] Failed to execute code: {error_details}")
+            return JSONResponse({
+                "error": "Failed to execute code",
+                "details": error_details
+            }, status_code=400)
 
-    try:
-        exec(code, namespace)
-    except Exception:
-        return JSONResponse({
-            "error": "Failed to execute code",
-            "details": traceback.format_exc()
-        }, status_code=400)
+        fn = namespace.get("execute_with_mock_start_node")
+        if not callable(fn):
+            error_msg = "Function 'execute_with_mock_start_node' not found"
+            log_capture.add_custom_log(f"[ERROR] {error_msg}")
+            return JSONResponse({"error": error_msg}, status_code=400)
 
-    fn = namespace.get("execute_with_mock_start_node")
-    if not callable(fn):
-        return JSONResponse({"error": "Function 'execute_with_mock_start_node' not found"}, status_code=400)
+        try:
+            run_id = str(uuid.uuid4())
+            log_capture.add_custom_log(f"Starting execution with run_id: {run_id}, mock_node_id: {mock_node_id}, sub_stage: {sub_stage}")
+            
+            if active_listener_service.has_listener(str(version.id)):
+                send_flow_event(str(version.id), run_id, None, "run_start")
+                log_capture.add_custom_log("Sent run_start event via WebSocket")
+            
+            # Execute the function and capture all output
+            if inspect.iscoroutinefunction(fn):
+                log_capture.add_custom_log("Executing async function...")
+                result = await fn(mock_node_id, run_id, sub_stage)
+            else:
+                log_capture.add_custom_log("Executing sync function...")
+                result = fn(mock_node_id, run_id, sub_stage)
+                
+            log_capture.add_custom_log(f"Function execution completed successfully. Result keys: {list(result.keys()) if isinstance(result, dict) else 'non-dict result'}")
+            
+            if active_listener_service.has_listener(str(version.id)):
+                send_flow_event(str(version.id), run_id, None, "run_end")
+                log_capture.add_custom_log("Sent run_end event via WebSocket")
 
-    try:
-        run_id = str(uuid.uuid4())
-        if active_listener_service.has_listener(str(version.id)):
-            send_flow_event(str(version.id), run_id, None, "run_start")
-        if inspect.iscoroutinefunction(fn):
-            result = await fn(mock_node_id, run_id, sub_stage)
-        else:
-            result = fn(mock_node_id, run_id, sub_stage)
-        if active_listener_service.has_listener(str(version.id)):
-            send_flow_event(str(version.id), run_id, None, "run_end")
-
-        return JSONResponse({"status": "mock executed", "result": result})
-    except Exception:
-        return JSONResponse({
-            "error": "Function execution failed",
-            "details": traceback.format_exc()
-        }, status_code=500)
+            log_capture.add_custom_log(f"END RequestId: local-{run_id}")
+            return JSONResponse({"status": "mock executed", "result": result})
+            
+        except Exception:
+            error_details = traceback.format_exc()
+            log_capture.add_custom_log(f"[ERROR] Function execution failed: {error_details}")
+            return JSONResponse({
+                "error": "Function execution failed", 
+                "details": error_details
+            }, status_code=500)
