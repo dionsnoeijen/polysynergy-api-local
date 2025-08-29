@@ -11,7 +11,7 @@ from schemas.file_manager import (
     DirectoryContents, FileUploadResponse, FileOperationResponse,
     FileBatchOperationResponse, FileSearchResponse, FileInfo,
     DirectoryCreateRequest, FileOperationRequest, FileBatchDeleteRequest,
-    FileListParams
+    FileListParams, FileMetadataUpdateRequest
 )
 from services.file_manager_service import FileManagerService
 from services.s3_service import get_s3_service
@@ -410,6 +410,46 @@ async def get_file_metadata(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get file metadata"
+        )
+
+
+@router.put(
+    "/{project_id}/files/metadata/{file_path:path}",
+    response_model=FileOperationResponse,
+    summary="Update file metadata",
+    description="Update custom metadata for a specific file"
+)
+async def update_file_metadata(
+    project_id: str = Path(..., description="Project ID"),
+    file_path: str = Path(..., description="File path"),
+    request: FileMetadataUpdateRequest = ...,
+    current_account: Account = Depends(get_current_account)
+):
+    """Update custom metadata for a specific file"""
+    try:
+        file_manager = get_file_manager_service(project_id, current_account)
+        
+        # Update the file metadata
+        success = file_manager.update_file_metadata(file_path, request.metadata)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found or metadata update failed"
+            )
+        
+        return FileOperationResponse(
+            success=True,
+            message="File metadata updated successfully"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating file metadata for {file_path} in project {project_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update file metadata"
         )
 
 

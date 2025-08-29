@@ -187,6 +187,13 @@ class FileManagerService:
             # Fallback to direct URL if signing fails
             url = f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com/{key}"
         
+        # Extract custom metadata from S3 object metadata (x-amz-meta-* headers)
+        custom_metadata = {}
+        metadata = s3_object.get("Metadata", {})
+        if metadata:
+            for key, value in metadata.items():
+                custom_metadata[key] = value
+
         return FileInfo(
             name=name,
             path=relative_path,
@@ -194,7 +201,8 @@ class FileManagerService:
             content_type=content_type,
             last_modified=last_modified,
             url=url,
-            is_directory=False
+            is_directory=False,
+            custom_metadata=custom_metadata if custom_metadata else None
         )
     
     def _get_directory_structure(self, prefix: str) -> Tuple[List[FileInfo], List[DirectoryInfo]]:
@@ -606,7 +614,8 @@ class FileManagerService:
             s3_object = {
                 "Key": s3_key,
                 "Size": response.get("ContentLength", 0),
-                "LastModified": response.get("LastModified", datetime.now())
+                "LastModified": response.get("LastModified", datetime.now()),
+                "Metadata": response.get("Metadata", {})
             }
             
             return self._extract_file_info_from_s3_object(s3_object)
@@ -621,6 +630,50 @@ class FileManagerService:
         except Exception as e:
             logger.error(f"Error getting file metadata for {file_path}: {e}")
             return None
+    
+    def update_file_metadata(self, file_path: str, metadata: Dict[str, str]) -> bool:
+        """Update custom metadata for a specific file"""
+        try:
+            s3_key = self._get_full_s3_key(file_path)
+            
+            # First, get the current object to preserve all other attributes
+            response = self.s3_client.head_object(
+                Bucket=self.bucket_name,
+                Key=s3_key
+            )
+            
+            # Get current metadata and update it
+            current_metadata = response.get("Metadata", {})
+            current_metadata.update(metadata)
+            
+            # Copy the object to itself with updated metadata
+            copy_source = {
+                'Bucket': self.bucket_name,
+                'Key': s3_key
+            }
+            
+            self.s3_client.copy_object(
+                CopySource=copy_source,
+                Bucket=self.bucket_name,
+                Key=s3_key,
+                Metadata=current_metadata,
+                MetadataDirective='REPLACE',
+                ContentType=response.get("ContentType", "application/octet-stream")
+            )
+            
+            return True
+            
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            if error_code in ['NoSuchKey', '404']:
+                logger.warning(f"File not found for metadata update: {file_path}")
+                return False
+            else:
+                logger.error(f"Error updating file metadata for {file_path}: {e}")
+                return False
+        except Exception as e:
+            logger.error(f"Error updating file metadata for {file_path}: {e}")
+            return False
     
     def batch_delete_files(self, file_paths: List[str]) -> FileBatchOperationResponse:
         """Delete multiple files in batch"""
