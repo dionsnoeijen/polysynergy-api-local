@@ -32,3 +32,7 @@ app.include_router(v1_execution_router, prefix="/api/v1")
 app.include_router(v1_documentation_router, prefix="/api/v1/documentation", tags=["documentation"])
 app.include_router(websocket_execution_router, prefix="/ws/v1")
 
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "polysynergy-api"}
+
