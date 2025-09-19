@@ -113,7 +113,7 @@ async def execute_local(
             run_id = str(uuid.uuid4())
             log_capture.add_custom_log(f"Starting execution with run_id: {run_id}, mock_node_id: {mock_node_id}, sub_stage: {sub_stage}")
             
-            if active_listener_service.has_listener(str(version.id)):
+            if active_listener_service.has_listener(str(version.id), first_run=True):
                 send_flow_event(str(version.id), run_id, None, "run_start")
                 log_capture.add_custom_log("Sent run_start event via WebSocket")
             
@@ -141,3 +141,169 @@ async def execute_local(
                 "error": "Function execution failed", 
                 "details": error_details
             }, status_code=500)
+
+
+@router.post("/{version_id}/start/", response_model=None)
+async def start_execution(
+    version_id: uuid.UUID,
+    request_data: dict,
+    project: Project = Depends(get_project_or_403),
+    active_listener_service: ActiveListenersService = Depends(get_active_listeners_service),
+    lambda_service: LambdaService = Depends(get_lambda_service),
+    node_setup_repository: NodeSetupRepository = Depends(get_node_setup_repository),
+    mock_sync_service: MockSyncService = Depends(get_mock_sync_service)
+):
+    """
+    Fire-and-forget execution endpoint.
+    Starts execution immediately and returns run_id without waiting for completion.
+    Real-time updates come via WebSocket.
+    """
+    # Extract parameters from request body
+    mock_node_id = uuid.UUID(request_data.get("node_id"))
+    sub_stage = request_data.get("sub_stage", "mock")
+    # Note: project_id is handled by get_project_or_403 dependency from query params
+    
+    # Set up the listener
+    active_listener_service.set_listener(str(version_id))
+    version = node_setup_repository.get_or_404(version_id)
+    
+    # Generate run_id immediately
+    run_id = str(uuid.uuid4())
+    
+    # Start execution in background - don't await!
+    if settings.EXECUTE_NODE_SETUP_LOCAL:
+        # Schedule the execution as a background task
+        asyncio.create_task(
+            execute_local_background(
+                project, version, mock_node_id, sub_stage, 
+                active_listener_service, run_id
+            )
+        )
+    else:
+        # Schedule Lambda execution as background task
+        asyncio.create_task(
+            execute_lambda_background(
+                project, version, mock_node_id, sub_stage,
+                active_listener_service, lambda_service, mock_sync_service, run_id
+            )
+        )
+    
+    # Return immediately with run_id
+    return JSONResponse({
+        "run_id": run_id,
+        "status": "started",
+        "started_at": time.time()
+    })
+
+
+async def execute_local_background(
+    project: Project,
+    version: NodeSetupVersion,
+    mock_node_id: uuid.UUID,
+    sub_stage: str,
+    active_listener_service: ActiveListenersService,
+    run_id: str
+):
+    """Background execution that doesn't block the API response"""
+    try:
+        # Same setup as execute_local but runs in background
+        os.environ['PROJECT_ID'] = str(project.id)
+        os.environ['TENANT_ID'] = str(project.tenant_id)
+        os.environ.setdefault("AWS_REGION", settings.AWS_REGION)
+        os.environ.setdefault("AWS_ACCESS_KEY_ID", settings.AWS_ACCESS_KEY_ID)
+        os.environ.setdefault("AWS_SECRET_ACCESS_KEY", settings.AWS_SECRET_ACCESS_KEY)
+
+        code = version.executable
+        namespace = {}
+        
+        with LogCapture(str(version.id), "mock") as log_capture:
+            log_capture.add_custom_log(f"BACKGROUND START RequestId: {run_id} Version: {version.id}")
+            
+            try:
+                log_capture.add_custom_log("Loading and executing node setup code (background)...")
+                exec(code, namespace)
+            except Exception:
+                error_details = traceback.format_exc()
+                log_capture.add_custom_log(f"[ERROR] Failed to execute code: {error_details}")
+                return
+
+            fn = namespace.get("execute_with_mock_start_node")
+            if not callable(fn):
+                error_msg = "Function 'execute_with_mock_start_node' not found"
+                log_capture.add_custom_log(f"[ERROR] {error_msg}")
+                return
+
+            try:
+                log_capture.add_custom_log(f"Starting background execution with run_id: {run_id}, mock_node_id: {mock_node_id}, sub_stage: {sub_stage}")
+                
+                if active_listener_service.has_listener(str(version.id), first_run=True):
+                    send_flow_event(str(version.id), run_id, None, "run_start")
+                    log_capture.add_custom_log("Sent run_start event via WebSocket")
+                
+                # Execute the function - this can take a long time but doesn't block API
+                if inspect.iscoroutinefunction(fn):
+                    log_capture.add_custom_log("Executing async function (background)...")
+                    result = await fn(mock_node_id, run_id, sub_stage)
+                else:
+                    log_capture.add_custom_log("Executing sync function (background)...")
+                    result = fn(mock_node_id, run_id, sub_stage)
+                    
+                log_capture.add_custom_log(f"Background execution completed successfully. Result keys: {list(result.keys()) if isinstance(result, dict) else 'non-dict result'}")
+                
+                if active_listener_service.has_listener(str(version.id)):
+                    send_flow_event(str(version.id), run_id, None, "run_end")
+                    log_capture.add_custom_log("Sent run_end event via WebSocket")
+
+                log_capture.add_custom_log(f"BACKGROUND END RequestId: {run_id}")
+                
+            except Exception:
+                error_details = traceback.format_exc()
+                log_capture.add_custom_log(f"[ERROR] Background execution failed: {error_details}")
+                
+    except Exception as e:
+        logger.error(f"Background execution error: {str(e)}")
+
+
+async def execute_lambda_background(
+    project: Project,
+    version: NodeSetupVersion,
+    mock_node_id: uuid.UUID,
+    sub_stage: str,
+    active_listener_service: ActiveListenersService,
+    lambda_service: LambdaService,
+    mock_sync_service: MockSyncService,
+    run_id: str
+):
+    """Background Lambda execution"""
+    try:
+        function_name = f"node_setup_{version.id}_mock"
+        mock_sync_service.sync_if_needed(version, project)
+        payload = {
+            "node_id": str(mock_node_id),
+            "s3_key": f"{project.tenant_id}/{project.id}/{function_name}.py",
+            "mock": True,
+            "sub_stage": sub_stage,
+            "run_id": run_id  # Pass run_id to Lambda
+        }
+        
+        delay = INITIAL_DELAY
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                loop = asyncio.get_event_loop()
+                response = await loop.run_in_executor(None, lambda_service.invoke_lambda, function_name, payload)
+                logger.info(f"Background Lambda execution completed for run_id: {run_id}")
+                return response
+            except Exception as e:
+                msg = str(e)
+                if "ResourceConflictException" in msg and "Pending" in msg:
+                    logger.warning(f"Lambda pending, retry {attempt}/{MAX_RETRIES} in {delay}s")
+                    await asyncio.sleep(delay)  # Use async sleep in background
+                    delay *= 2
+                else:
+                    logger.error(f"Background Lambda exec error: {msg}")
+                    return
+        
+        logger.error(f"Background Lambda remained in pending status for run_id: {run_id}")
+        
+    except Exception as e:
+        logger.error(f"Background Lambda execution error: {str(e)}")

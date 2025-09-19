@@ -135,20 +135,62 @@ class LogCapture:
     
     def _process_captured_output(self, stdout_content: str, stderr_content: str):
         """Process captured stdout/stderr and store as individual log entries."""
-        
+
         # Process stdout
         if stdout_content.strip():
             for line in stdout_content.strip().split('\n'):
                 if line.strip():  # Skip empty lines
                     LocalLogService.add_log(self.version_id, line.strip(), self.variant)
-        
-        # Process stderr (usually errors/warnings)
+
+        # Process stderr with smart log level detection
         if stderr_content.strip():
             for line in stderr_content.strip().split('\n'):
                 if line.strip():  # Skip empty lines
-                    # Mark stderr content as errors
-                    message = f"[ERROR] {line.strip()}" if not line.strip().startswith('[') else line.strip()
-                    LocalLogService.add_log(self.version_id, message, self.variant)
+                    processed_message = self._smart_process_stderr_line(line.strip())
+                    LocalLogService.add_log(self.version_id, processed_message, self.variant)
+
+    def _smart_process_stderr_line(self, line: str) -> str:
+        """Smart processing of stderr lines to preserve original log levels."""
+        # If line already has a tag (like [ERROR]), keep it as-is
+        if line.startswith('['):
+            return line
+
+        # Detect log level from common Python logging patterns
+        import re
+
+        # Pattern: "LEVEL:logger:message" (e.g., "INFO:httpx:HTTP Request...")
+        log_pattern = r'^(DEBUG|INFO|WARNING|WARN|ERROR|CRITICAL|EXCEPTION):.*'
+        match = re.match(log_pattern, line, re.IGNORECASE)
+
+        if match:
+            level = match.group(1).upper()
+            if level in ['DEBUG', 'INFO']:
+                return f"[INFO] {line}"
+            elif level in ['WARNING', 'WARN']:
+                return f"[WARNING] {line}"
+            elif level in ['ERROR', 'CRITICAL', 'EXCEPTION']:
+                return f"[ERROR] {line}"
+            else:
+                return f"[INFO] {line}"  # Default for unknown levels
+
+        # Check for common warning patterns
+        warning_indicators = [
+            'warning:', 'warn:', 'userwarning:', 'deprecationwarning:',
+            'futurewarning:', 'api key is used with an insecure connection'
+        ]
+        if any(indicator in line.lower() for indicator in warning_indicators):
+            return f"[WARNING] {line}"
+
+        # Check for obvious error patterns
+        error_indicators = [
+            'error:', 'exception:', 'traceback', 'failed:', 'failure:',
+            'could not', 'unable to', 'permission denied', 'forbidden'
+        ]
+        if any(indicator in line.lower() for indicator in error_indicators):
+            return f"[ERROR] {line}"
+
+        # Default: treat as info level (not error)
+        return f"[INFO] {line}"
     
     def add_custom_log(self, message: str):
         """Add a custom log message during execution."""

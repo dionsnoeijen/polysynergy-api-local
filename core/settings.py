@@ -9,6 +9,13 @@ class Settings(BaseSettings):
     DATABASE_HOST: str
     DATABASE_PORT: int = 5432
 
+    # Agno Session Database (separate from main API database)
+    AGNO_DB_NAME: str | None = None
+    AGNO_DB_USER: str | None = None
+    AGNO_DB_PASSWORD: str | None = None
+    AGNO_DB_HOST: str | None = None
+    AGNO_DB_PORT: int | None = None
+
     REDIS_URL: str | None = None
 
     @property

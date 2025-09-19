@@ -9,7 +9,7 @@ from utils.get_current_account import get_project_or_403
 router = APIRouter()
 
 class StorageConfig(BaseModel):
-    type: str  # 'LocalAgentStorage' or 'DynamoDBAgentStorage'
+    type: str  # 'LocalAgentStorage', 'DynamoDBAgentStorage', 'LocalDb', 'DynamoDb'
     table_name: Optional[str] = None
     db_file: Optional[str] = None
     region_name: Optional[str] = None
@@ -28,10 +28,14 @@ class SessionListRequest(BaseModel):
     user_id: Optional[str] = None
     limit: int = 50
 
+class DeleteSessionRequest(BaseModel):
+    storage_config: StorageConfig
+    session_id: str
+
 @router.post("/session-history", response_model=Dict[str, Any])
 async def get_session_history(
     request: SessionHistoryRequest,
-    _: Project = Depends(get_project_or_403),
+    project: Project = Depends(get_project_or_403),
     service: AgnoChatHistoryService = Depends(get_agno_chat_history_service)
 ):
     """
@@ -45,7 +49,8 @@ async def get_session_history(
             storage_config=request.storage_config.dict(),
             session_id=request.session_id,
             user_id=request.user_id,
-            limit=request.limit
+            limit=request.limit,
+            project=project
         )
         return history
     except Exception as e:
@@ -54,7 +59,7 @@ async def get_session_history(
 @router.post("/sessions", response_model=List[Dict[str, Any]])
 async def list_sessions(
     request: SessionListRequest,
-    _: Project = Depends(get_project_or_403),
+    project: Project = Depends(get_project_or_403),
     service: AgnoChatHistoryService = Depends(get_agno_chat_history_service)
 ):
     """
@@ -64,7 +69,8 @@ async def list_sessions(
         sessions = await service.list_sessions(
             storage_config=request.storage_config.dict(),
             user_id=request.user_id,
-            limit=request.limit
+            limit=request.limit,
+            project=project
         )
         return sessions
     except Exception as e:
@@ -72,9 +78,8 @@ async def list_sessions(
 
 @router.post("/delete-session")
 async def delete_session(
-    storage_config: StorageConfig,
-    session_id: str,
-    _: Project = Depends(get_project_or_403),
+    request: DeleteSessionRequest,
+    project: Project = Depends(get_project_or_403),
     service: AgnoChatHistoryService = Depends(get_agno_chat_history_service)
 ):
     """
@@ -82,9 +87,28 @@ async def delete_session(
     """
     try:
         await service.delete_session(
-            storage_config=storage_config.dict(),
-            session_id=session_id
+            storage_config=request.storage_config.dict(),
+            session_id=request.session_id,
+            project=project
         )
-        return {"message": f"Session {session_id} deleted successfully"}
+        return {"message": f"Session {request.session_id} deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
+
+@router.get("/run-detail/{run_id}", response_model=Dict[str, Any])
+async def get_run_detail(
+    run_id: str,
+    project: Project = Depends(get_project_or_403),
+    service: AgnoChatHistoryService = Depends(get_agno_chat_history_service)
+):
+    """
+    Get detailed information for a specific run.
+    This provides the full run object for transparency features.
+    """
+    try:
+        run_detail = await service.get_run_detail(run_id, project)
+        return run_detail
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve run detail: {str(e)}")

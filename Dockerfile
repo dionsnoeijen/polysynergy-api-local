@@ -16,12 +16,13 @@ COPY ./nodes /nodes
 COPY ./node_runner /node_runner
 COPY ./nodes_agno /nodes_agno
 COPY ./nodes_dev /nodes_dev
-COPY ./api-local/pyproject.toml ./api-local/poetry.lock ./
+COPY ./api-local/pyproject.toml ./
 
 ENV POETRY_VIRTUALENVS_CREATE=false
 
 RUN rm -rf /root/.cache/pypoetry/*
-RUN poetry lock && poetry install --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false \
+ && poetry install --no-interaction --no-ansi
 
 COPY ./api-local /app
 

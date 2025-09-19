@@ -1,3 +1,7 @@
+import sys, six  # type: ignore
+# maak de virtuele submodule meteen “echt” voor het import-systeem
+sys.modules.setdefault("six.moves", six.moves)
+
 from dotenv import load_dotenv
 load_dotenv()
 
