@@ -286,6 +286,9 @@ async def execute_lambda_background(
             "run_id": run_id  # Pass run_id to Lambda
         }
         
+        # Note: Lambda will send run_start and run_end events itself
+        # No need to send from API to avoid duplicates
+        
         delay = INITIAL_DELAY
         for attempt in range(1, MAX_RETRIES + 1):
             try:
