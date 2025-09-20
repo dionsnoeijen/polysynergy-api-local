@@ -83,6 +83,11 @@ class LambdaService:
                     'AWS_S3_PUBLIC_BUCKET_NAME': settings.AWS_S3_PUBLIC_BUCKET_NAME,
                     'AWS_S3_PRIVATE_BUCKET_NAME': settings.AWS_S3_PRIVATE_BUCKET_NAME,
                     'REDIS_URL': settings.REDIS_URL,
+                    "AGNO_DB_NAME": settings.AGNO_DB_NAME,
+                    "AGNO_DB_USER": settings.AGNO_DB_USER,
+                    "AGNO_DB_PASSWORD": settings.AGNO_DB_PASSWORD,
+                    "AGNO_DB_HOST": settings.AGNO_DB_HOST,
+                    "AGNO_DB_PORT": str(settings.AGNO_DB_PORT),
                 }
             }
         )
@@ -143,6 +148,11 @@ class LambdaService:
                             'AWS_S3_PUBLIC_BUCKET_NAME': settings.AWS_S3_PUBLIC_BUCKET_NAME,
                             'AWS_S3_PRIVATE_BUCKET_NAME': settings.AWS_S3_PRIVATE_BUCKET_NAME,
                             "REDIS_URL": settings.REDIS_URL,
+                            "AGNO_DB_NAME": settings.AGNO_DB_NAME,
+                            "AGNO_DB_USER": settings.AGNO_DB_USER,
+                            "AGNO_DB_PASSWORD": settings.AGNO_DB_PASSWORD,
+                            "AGNO_DB_HOST": settings.AGNO_DB_HOST,
+                            "AGNO_DB_PORT": str(settings.AGNO_DB_PORT),
                         }
                     }
                 )
