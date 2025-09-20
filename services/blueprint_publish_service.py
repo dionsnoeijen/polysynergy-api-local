@@ -56,6 +56,13 @@ class BlueprintPublishService:
                     str(blueprint.tenant_id),
                     str(project_id)
                 )
+            else:
+                # Always update environment variables to ensure they're current
+                self.lambda_service.update_function_configuration(
+                    function_name,
+                    str(blueprint.tenant_id),
+                    str(project_id)
+                )
 
             if sync_status['needs_s3_update']:
                 self.lambda_service.upload_code_to_s3(
