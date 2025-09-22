@@ -1,6 +1,5 @@
 import asyncio
 import inspect
-import logging
 import os
 import time
 import traceback
@@ -21,9 +20,10 @@ from services.lambda_service import get_lambda_service, LambdaService
 from services.local_log_service import LogCapture
 from utils.get_current_account import get_project_or_403
 from core.settings import settings
+from core.logging_config import get_logger
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 MAX_RETRIES = 5
 INITIAL_DELAY = 2
@@ -39,10 +39,20 @@ async def mock_play(
     node_setup_repository: NodeSetupRepository = Depends(get_node_setup_repository),
     mock_sync_service: MockSyncService = Depends(get_mock_sync_service)
 ):
+    # Log execution context
+    logger.info_ctx("Mock execution starting",
+        version_id=str(version_id),
+        node_id=str(mock_node_id),
+        project_id=str(project.id),
+        sub_stage=sub_stage,
+        execution_mode="local" if settings.EXECUTE_NODE_SETUP_LOCAL else "lambda"
+    )
+
     active_listener_service.set_listener(str(version_id))
     version = node_setup_repository.get_or_404(version_id)
 
     if settings.EXECUTE_NODE_SETUP_LOCAL:
+        logger.debug("Executing locally")
         return await execute_local(project, version, mock_node_id, sub_stage, active_listener_service)
 
     function_name = f"node_setup_{version_id}_mock"
@@ -53,22 +63,45 @@ async def mock_play(
         "mock": True,
         "sub_stage": sub_stage,
     }
+
+    logger.info_ctx("Invoking Lambda function",
+        function_name=function_name,
+        payload_size=len(str(payload))
+    )
+
     delay = INITIAL_DELAY
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda_service.invoke_lambda, function_name, payload)
+            logger.info_ctx("Lambda execution successful",
+                version_id=str(version_id),
+                attempts=attempt
+            )
             return {"status": "mock executed", "result": response}
         except Exception as e:
             msg = str(e)
             if "ResourceConflictException" in msg and "Pending" in msg:
-                logger.warning(f"Lambda pending, retry {attempt}/{MAX_RETRIES} in {delay}s")
+                logger.warning_ctx(f"Lambda pending, retry {attempt}/{MAX_RETRIES} in {delay}s",
+                    version_id=str(version_id),
+                    retry_attempt=attempt,
+                    delay_seconds=delay
+                )
                 time.sleep(delay)
                 delay *= 2
             else:
-                logger.error(f"Lambda exec error: {msg}")
+                logger.error_ctx("Lambda execution failed",
+                    version_id=str(version_id),
+                    error_type=type(e).__name__,
+                    error_message=msg,
+                    attempts=attempt
+                )
                 raise HTTPException(status_code=500, detail={"error": "Lambda error", "details": msg})
 
+    logger.error_ctx("Lambda stuck in pending status after max retries",
+        version_id=str(version_id),
+        max_retries=MAX_RETRIES
+    )
     raise HTTPException(status_code=503, detail="Lambda remained in pending status")
 
 
