@@ -92,9 +92,18 @@ def publish_route(
     route_repository: RouteRepository = Depends(get_route_repository),
     publish_service: RoutePublishService = Depends(get_route_publish_service)
 ):
+    from core.settings import settings
+
     route = route_repository.get_one_with_versions_by_id(route_id, project)
 
     try:
+        # Skip Lambda operations when in local execution mode
+        if settings.EXECUTE_NODE_SETUP_LOCAL:
+            # Only update the router service for route registration
+            # but skip all Lambda-related operations
+            logger.info(f"Local mode: Skipping Lambda publish for route {route_id}")
+            return {"message": "Route publish skipped in local execution mode"}
+
         return publish_service.publish(route, body.stage.strip())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -110,9 +119,16 @@ def unpublish_route(
     route_repository: RouteRepository = Depends(get_route_repository),
     unpublish_service: RouteUnpublishService = Depends(get_route_unpublish_service)
 ):
+    from core.settings import settings
+
     route = route_repository.get_one_with_versions_by_id(route_id, project)
 
     try:
+        # Skip Lambda operations when in local execution mode
+        if settings.EXECUTE_NODE_SETUP_LOCAL:
+            logger.info(f"Local mode: Skipping Lambda unpublish for route {route_id}")
+            return {"message": "Route unpublish skipped in local execution mode"}
+
         unpublish_service.unpublish(route, body.stage.strip())
         return {"message": "Route successfully unpublished"}
     except Exception as e:

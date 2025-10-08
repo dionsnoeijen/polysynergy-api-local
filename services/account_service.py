@@ -45,6 +45,7 @@ class AccountService:
             first_name=data["first_name"],
             last_name=data["last_name"],
             email=data["email"],
+            role=data.get("role", "chat_user"),
             active=True
         )
         session.add(account)
@@ -65,7 +66,7 @@ class AccountService:
         return account
 
     @staticmethod
-    def invite_to_tenant(session: Session, inviter: Account, email: str, background_tasks: BackgroundTasks) -> Account:
+    def invite_to_tenant(session: Session, inviter: Account, email: str, background_tasks: BackgroundTasks, role: str = "chat_user") -> Account:
         tenant = inviter.memberships[0].tenant
 
         temp_password = generate_temporary_password()
@@ -82,7 +83,7 @@ class AccountService:
             MessageAction="SUPPRESS",
         )
 
-        account = Account(cognito_id=user["User"]["Username"], email=email, first_name="", last_name="")
+        account = Account(cognito_id=user["User"]["Username"], email=email, first_name="", last_name="", role=role)
         session.add(account)
         session.flush()
 

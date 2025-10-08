@@ -9,6 +9,7 @@ from models import Blueprint, NodeSetupVersion, Route, Schedule, Project
 from services.blueprint_publish_service import BlueprintPublishService, get_blueprint_publish_service
 from services.route_publish_service import RoutePublishService, get_route_publish_service
 from services.schedule_publish_service import SchedulePublishService, get_schedule_publish_service
+from core.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,14 @@ class MockSyncService:
 
         if stored_hash and new_hash == stored_hash:
             logger.debug(f"No changes detected for {version.id}, skipping publish")
+            return
+
+        # Skip Lambda sync when in local execution mode
+        if settings.EXECUTE_NODE_SETUP_LOCAL:
+            logger.info(f"Local mode: Skipping Lambda sync for version {version.id}")
+            # Still update the hash to mark as "synced"
+            version.executable_hash = new_hash
+            self.db.commit()
             return
 
         parent = version.node_setup.resolve_parent(self.db)

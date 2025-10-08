@@ -27,6 +27,11 @@ class SchedulePublishService:
         self.sync_checker = sync_checker
 
     def publish(self, schedule: Schedule, stage: str = 'prod'):
+        # Skip Lambda operations when in local execution mode
+        if settings.EXECUTE_NODE_SETUP_LOCAL:
+            logger.info(f"Local mode: Skipping Lambda publish for schedule {schedule.id}")
+            return
+
         node_setup_version = self._validate(schedule)
 
         project = schedule.project

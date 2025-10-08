@@ -11,6 +11,7 @@ import logging
 from fastapi import APIRouter, Depends, Path, HTTPException, status
 
 from services.schedule_publish_service import SchedulePublishService, get_schedule_publish_service
+from core.settings import settings
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -29,6 +30,48 @@ def create_schedule(
     schedule_repository: ScheduleRepository = Depends(get_schedule_repository),
 ):
     return schedule_repository.create(data, project)
+
+@router.get("/local-jobs/", status_code=status.HTTP_200_OK)
+async def get_local_scheduled_jobs(
+    project: Project = Depends(get_project_or_403),
+):
+    """
+    Get all currently active scheduled jobs in the local scheduler.
+    Only available when EXECUTE_NODE_SETUP_LOCAL is enabled.
+    """
+    if not settings.EXECUTE_NODE_SETUP_LOCAL:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Local schedule execution is not enabled"
+        )
+
+    try:
+        # Import here to avoid circular imports
+        from services.local_schedule_service import get_local_schedule_service
+
+        local_service = get_local_schedule_service()
+
+        if not local_service.is_running():
+            return {
+                "active_jobs": [],
+                "scheduler_status": "stopped",
+                "message": "Local scheduler is not running"
+            }
+
+        active_jobs = local_service.get_active_jobs()
+
+        return {
+            "active_jobs": active_jobs,
+            "scheduler_status": "running",
+            "total_jobs": len(active_jobs)
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting local scheduled jobs: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving local scheduled jobs: {str(e)}"
+        )
 
 @router.get("/{schedule_id}/", response_model=ScheduleDetailOut)
 def get_schedule_detail(
@@ -58,7 +101,7 @@ def delete_schedule(
 
 
 @router.post("/{schedule_id}/publish/", status_code=status.HTTP_202_ACCEPTED)
-def publish_schedule(
+async def publish_schedule(
     schedule_id: UUID,
     body: SchedulePublishIn,
     project: Project = Depends(get_project_or_403),
@@ -68,8 +111,78 @@ def publish_schedule(
     schedule = schedule_repository.get_one_with_versions_by_id(schedule_id, project)
 
     try:
-        publish_service.publish(schedule, body.stage.strip())
-        return {"message": "Schedule successfully published"}
+        # Use local schedule service when in local execution mode
+        if settings.EXECUTE_NODE_SETUP_LOCAL:
+            # Import here to avoid circular imports
+            from services.local_schedule_service import get_local_schedule_service
+            from models import NodeSetup, NodeSetupVersion
+            from db.session import get_db
+
+            # Get the executable code like in regular publish service
+            db = next(get_db())
+            try:
+                node_setup = db.query(NodeSetup).filter_by(
+                    content_type="schedule",
+                    object_id=schedule.id
+                ).first()
+
+                if not node_setup:
+                    raise HTTPException(status_code=404, detail="NodeSetup not found for this schedule.")
+
+                version = sorted(node_setup.versions, key=lambda v: v.created_at, reverse=True)
+                node_setup_version = version[0] if version else None
+
+                if not node_setup_version or not node_setup_version.executable:
+                    raise HTTPException(status_code=400, detail="No executable code found for this schedule.")
+
+                if not schedule.cron_expression:
+                    raise HTTPException(status_code=400, detail="No cron expression defined")
+
+                # Store necessary data to avoid SQLAlchemy session issues
+                schedule_data = {
+                    'id': schedule.id,
+                    'name': schedule.name,
+                    'project_id': schedule.project_id,
+                    'tenant_id': project.tenant_id,
+                    'cron_expression': schedule.cron_expression
+                }
+
+                local_service = get_local_schedule_service()
+                success = await local_service.add_schedule_with_code(
+                    schedule_data,
+                    node_setup_version.executable
+                )
+
+                if success:
+                    # Create NodeSetupVersionStage record to update publish matrix
+                    from models import Stage, NodeSetupVersionStage
+
+                    stage_obj = db.query(Stage).filter_by(
+                        project=project, name=body.stage.strip()
+                    ).first()
+
+                    if stage_obj:
+                        # Create or update the stage link
+                        db.merge(NodeSetupVersionStage(
+                            stage_id=stage_obj.id,
+                            node_setup_id=node_setup.id,
+                            version_id=node_setup_version.id,
+                            executable_hash=node_setup_version.executable_hash
+                        ))
+                        db.commit()
+                        logger.debug(f"Created NodeSetupVersionStage link for schedule {schedule.id} and stage {body.stage.strip()}")
+                    else:
+                        logger.warning(f"Stage '{body.stage.strip()}' not found for project {project.id}")
+
+                    return {"message": "Schedule successfully published locally"}
+                else:
+                    raise HTTPException(status_code=500, detail="Failed to publish schedule locally")
+            finally:
+                db.close()
+        else:
+            # Use Lambda for production or when local execution is disabled
+            publish_service.publish(schedule, body.stage.strip())
+            return {"message": "Schedule successfully published"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -77,7 +190,7 @@ def publish_schedule(
         raise HTTPException(status_code=500, detail="Unexpected error during publish")
 
 @router.post("/{schedule_id}/unpublish/", status_code=status.HTTP_202_ACCEPTED)
-def unpublish_schedule(
+async def unpublish_schedule(
     schedule_id: UUID,
     body: ScheduleUnpublishIn,
     project: Project = Depends(get_project_or_403),
@@ -87,8 +200,41 @@ def unpublish_schedule(
     schedule = schedule_repository.get_one_with_versions_by_id(schedule_id, project)
 
     try:
-        schedule_unpublish_service.unpublish(schedule, body.stage.strip())
-        return {"message": "Schedule unpublished successfully"}
+        # Use local schedule service when in local execution mode
+        if settings.EXECUTE_NODE_SETUP_LOCAL:
+            # Import here to avoid circular imports
+            from services.local_schedule_service import get_local_schedule_service
+            from models import Stage, NodeSetupVersionStage
+            from db.session import get_db as get_database_session
+
+            local_service = get_local_schedule_service()
+            success = await local_service.remove_schedule(str(schedule_id))
+
+            # Remove NodeSetupVersionStage record to update publish matrix
+            db = next(get_database_session())
+            try:
+                stage_obj = db.query(Stage).filter_by(
+                    project=project, name=body.stage.strip()
+                ).first()
+
+                if stage_obj:
+                    deleted = db.query(NodeSetupVersionStage).filter(
+                        NodeSetupVersionStage.stage_id == stage_obj.id,
+                        NodeSetupVersionStage.node_setup.has(content_type="schedule", object_id=schedule_id)
+                    ).delete()
+                    db.commit()
+                    logger.debug(f"Deleted {deleted} NodeSetupVersionStage link(s) for schedule {schedule_id}")
+            finally:
+                db.close()
+
+            if success:
+                return {"message": "Schedule unpublished locally"}
+            else:
+                return {"message": "Schedule not found in local scheduler or already unpublished"}
+        else:
+            # Use Lambda for production
+            schedule_unpublish_service.unpublish(schedule, body.stage.strip())
+            return {"message": "Schedule unpublished successfully"}
     except Exception as e:
         logger.error(f"Error during unpublish for schedule {schedule_id}: {str(e)}", exc_info=True)
         raise HTTPException(

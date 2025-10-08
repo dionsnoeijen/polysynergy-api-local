@@ -17,6 +17,8 @@ from api.v1.project import router as v1_project_router
 from api.v1.account import router as v1_account_router
 from api.v1.execution import router as v1_execution_router
 from api.v1.documentation.documentation import router as v1_documentation_router
+from api.v1.updates.updates import router as v1_updates_router
+from api.v1.oauth.oauth_callback import router as v1_oauth_router
 
 from ws.v1.execution import router as websocket_execution_router
 
@@ -69,10 +71,60 @@ def filter_sentry_event(event, hint):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    logger.info_ctx("PolySynergy API starting up",
-                    environment="production" if "AWS_LAMBDA_FUNCTION_NAME" in os.environ else "local")
+    logger.info("PolySynergy API starting up")
+
+    # Start local schedule service if local execution is enabled
+    local_scheduler = None
+    if settings.EXECUTE_NODE_SETUP_LOCAL:
+        try:
+            from services.local_schedule_service import get_local_schedule_service
+            from services.local_schedule_recovery_service import get_local_schedule_recovery_service
+            from db.session import get_db
+
+            # Start the local scheduler
+            local_scheduler = get_local_schedule_service()
+            local_scheduler.start()
+            logger.info("Local schedule service started")
+
+            # Recover published schedules from database
+            try:
+                db = next(get_db())
+                try:
+                    recovery_service = get_local_schedule_recovery_service(db)
+
+                    # Import asyncio to run the async recovery method
+                    import asyncio
+
+                    # Run recovery in the background
+                    async def run_recovery():
+                        try:
+                            recovery_count = await recovery_service.recover_published_schedules(local_scheduler)
+                            logger.info(f"Schedule recovery completed: {recovery_count} schedules restored")
+                        except Exception as e:
+                            logger.error(f"Schedule recovery failed: {e}")
+
+                    # Schedule recovery as a background task
+                    asyncio.create_task(run_recovery())
+
+                finally:
+                    db.close()
+            except Exception as recovery_error:
+                logger.error(f"Schedule recovery failed: {recovery_error}")
+                # Don't fail startup if recovery fails
+
+        except Exception as e:
+            logger.error(f"Failed to start local schedule service: {e}")
+
     yield
+
     # Shutdown
+    if local_scheduler:
+        try:
+            local_scheduler.stop()
+            logger.info("Local schedule service stopped")
+        except Exception as e:
+            logger.error(f"Error stopping local schedule service: {e}")
+
     logger.info("PolySynergy API shutting down")
 
 app = FastAPI(title="PolySynergy API", version="1.0.0", lifespan=lifespan)
@@ -191,6 +243,8 @@ app.include_router(v1_project_router, prefix="/api/v1")
 app.include_router(v1_account_router, prefix="/api/v1")
 app.include_router(v1_execution_router, prefix="/api/v1")
 app.include_router(v1_documentation_router, prefix="/api/v1/documentation", tags=["documentation"])
+app.include_router(v1_updates_router, prefix="/api/v1/updates", tags=["updates"])
+app.include_router(v1_oauth_router, prefix="/api/v1/oauth")
 app.include_router(websocket_execution_router, prefix="/ws/v1")
 
 @app.get("/health")

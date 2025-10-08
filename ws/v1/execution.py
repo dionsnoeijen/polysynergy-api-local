@@ -19,9 +19,10 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
 
     exec_channel = f"execution_updates:{flow_id}"
     chat_channel = f"chat_stream:{flow_id}"
+    interaction_channel = f"interaction_events:{flow_id}"
 
     pubsub = redis_client.pubsub()
-    await pubsub.subscribe(exec_channel, chat_channel)
+    await pubsub.subscribe(exec_channel, chat_channel, interaction_channel)
 
     async def forward_messages():
         try:
@@ -35,7 +36,7 @@ async def execution_ws(websocket: WebSocket, flow_id: str):
                     await websocket.send_text(message["data"])
         except asyncio.CancelledError:
             print(f"🛑 Forward task cancelled for flow_id={flow_id}")
-            await pubsub.unsubscribe(exec_channel, chat_channel)
+            await pubsub.unsubscribe(exec_channel, chat_channel, interaction_channel)
             await pubsub.close()
             raise
 

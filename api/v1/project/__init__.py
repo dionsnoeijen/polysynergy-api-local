@@ -6,6 +6,8 @@ from . import (
     stage,
     route,
     schedule,
+    chat_window,
+    chat_window_access,
     service,
     secret,
     env_var,
@@ -26,6 +28,8 @@ router.include_router(node_setup.router, prefix="/node-setup", tags=["Node Setup
 router.include_router(stage.router, prefix="/stages", tags=["Stages"])
 router.include_router(route.router, prefix="/routes", tags=["Routes"])
 router.include_router(schedule.router, prefix="/schedules", tags=["Schedules"])
+router.include_router(chat_window.router, prefix="/chat-windows", tags=["Chat Windows"])
+router.include_router(chat_window_access.router, tags=["Chat Window Access"])
 router.include_router(service.router, prefix="/services", tags=["Services"])
 router.include_router(secret.router, prefix="/secrets", tags=["Secrets"])
 router.include_router(env_var.router, prefix="/env-vars", tags=["Environment Variables"])

@@ -24,6 +24,11 @@ class BlueprintPublishService:
         self.sync_checker = sync_checker
 
     def publish(self, blueprint: Blueprint, project_id: UUID):
+        # Skip Lambda operations when in local execution mode
+        if settings.EXECUTE_NODE_SETUP_LOCAL:
+            logger.info(f"Local mode: Skipping Lambda publish for blueprint {blueprint.id}")
+            return
+
         node_setup_version = self._validate(blueprint)
 
         logger.debug(f"Publishing Blueprint: {blueprint.id}")

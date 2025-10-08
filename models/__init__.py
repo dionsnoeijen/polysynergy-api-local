@@ -8,6 +8,8 @@ from models.node_setup_version_stage import NodeSetupVersionStage
 from models.route import Route
 from models.route_segment import RouteSegment
 from models.schedule import Schedule
+from models.chat_window import ChatWindow
+from models.chat_window_access import ChatWindowAccess
 from models.service import Service
 from models.stage import Stage
 from models.tenant import Tenant

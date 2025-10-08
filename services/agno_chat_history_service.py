@@ -108,64 +108,115 @@ class AgnoChatHistoryService:
                 # Extract runs from JSON column and transform to chat messages
                 runs_data = row[0]  # runs column
                 messages = []
-                
+
                 # Handle runs as array (like your JSON example)
                 if isinstance(runs_data, list):
                     runs_list = runs_data
                 else:
                     runs_list = [runs_data] if runs_data else []
-                
+
                 # Apply limit to runs
                 if limit:
                     runs_list = runs_list[-limit:]  # Get last N runs
+
+                # NO SORTING - use exact order from database
                 
                 for run in runs_list:
                     # Skip incomplete runs
                     if not isinstance(run, dict) or run.get('status') != 'COMPLETED':
                         continue
-                    
-                    # Skip team member runs (they have parent_run_id)
-                    # Member responses should only appear in transparency details
-                    if run.get('parent_run_id'):
-                        continue
-                        
+
                     # Skip if no input or content
                     if not run.get('input') or not run.get('content'):
                         continue
-                        
+
+                    # DEBUG: Log the run structure to understand where team instructions are stored
+                    print(f"DEBUG: Run structure keys: {list(run.keys())}")
+                    if 'member_responses' in run:
+                        print(f"DEBUG: Found member_responses: {run.get('member_responses')}")
+                    if 'input' in run:
+                        input_data = run.get('input')
+                        print(f"DEBUG: Input structure: {type(input_data)} - {list(input_data.keys()) if isinstance(input_data, dict) else 'not dict'}")
+
                     timestamp_iso = self._to_iso_timestamp(run.get('created_at'))
                     run_id = run.get('run_id')
-                    
+
+                    print(f"DEBUG: Processing run {run_id} with timestamp {timestamp_iso} (raw: {run.get('created_at')})")
+                    print(f"DEBUG: Run {run_id} all timestamp fields: created_at={run.get('created_at')}, updated_at={run.get('updated_at')}, started_at={run.get('started_at')}, finished_at={run.get('finished_at')}")
+
                     # Extract node identification (team_id or agent_id = frontend node.id)
                     node_id = run.get('team_id') or run.get('agent_id')
+
+                    print(f"DEBUG: Run {run_id} - parent_run_id: {run.get('parent_run_id')}, node_id: {node_id}")
+
+                    # Team member metadata
+                    parent_run_id = run.get('parent_run_id')
+                    is_team_member = bool(parent_run_id)
+                    parent_team_id = None
+                    member_index = None
+
+                    # If this is a team member response, get team info
+                    if is_team_member:
+                        # The parent run should have team_id
+                        # For now, we'll set parent_team_id to the team_id if available
+                        parent_team_id = run.get('team_id')
+                        # Extract member index from member metadata if available
+                        member_index = run.get('member_index')
                     
-                    # Extract user input
+                    # Extract user input from messages with role "user" (excluding system/team instructions)
                     input_data = run.get('input')
                     user_content = None
-                    if isinstance(input_data, dict) and 'input_content' in input_data:
+
+                    # Look for actual user input in the messages array
+                    if isinstance(input_data, dict) and 'messages' in input_data:
+                        messages_list = input_data['messages']
+                        if isinstance(messages_list, list):
+                            # Find the first message with role "user" that's not a system instruction
+                            for msg in messages_list:
+                                if isinstance(msg, dict) and msg.get('role') == 'user':
+                                    content = msg.get('content', '')
+                                    # Skip if it looks like team instructions
+                                    if content and not content.startswith('You are a member of a team of agents'):
+                                        user_content = content
+                                        break
+                    elif isinstance(input_data, dict) and 'input_content' in input_data:
                         user_content = input_data['input_content']
                     elif isinstance(input_data, str):
                         user_content = input_data
-                        
-                    # Add user message
+
+                    # Add user message (only if it's real user input and not system instructions)
                     if user_content and user_content.strip():
-                        # Refresh any expired S3 URLs in user content as well
                         user_text = user_content.strip()
-                        print(f"DEBUG: Processing user content: {user_text[:100]}...")
-                        refreshed_user_content = refresh_s3_urls_in_text(user_text)
-                        
-                        if refreshed_user_content != user_text:
-                            print(f"DEBUG: ✅ S3 URLs refreshed in user message - length changed from {len(user_text)} to {len(refreshed_user_content)}")
+
+                        # Filter out system instructions - be more aggressive
+                        if self._is_system_instruction(user_text):
+                            print(f"DEBUG: Skipping system instruction: {user_text[:100]}...")
                         else:
-                            print(f"DEBUG: ❌ No S3 URLs found or refreshed in user message")
-                        
-                        messages.append({
-                            "sender": "user",
-                            "text": refreshed_user_content,
-                            "timestamp": timestamp_iso,
-                            "run_id": run_id,
-                            "node_id": node_id
-                        })
+                            print(f"DEBUG: Processing user content: {user_text[:100]}...")
+                            refreshed_user_content = refresh_s3_urls_in_text(user_text)
+
+                            if refreshed_user_content != user_text:
+                                print(f"DEBUG: ✅ S3 URLs refreshed in user message - length changed from {len(user_text)} to {len(refreshed_user_content)}")
+                            else:
+                                print(f"DEBUG: ❌ No S3 URLs found or refreshed in user message")
+
+                            # Extract images from input_data if present
+                            images = None
+                            if isinstance(input_data, dict) and 'images' in input_data:
+                                images = input_data['images']
+                                print(f"DEBUG: Found {len(images) if images else 0} images in user message")
+
+                            messages.append({
+                                "sender": "user",
+                                "text": refreshed_user_content,
+                                "timestamp": timestamp_iso,
+                                "run_id": run_id,
+                                "node_id": node_id,
+                                "is_team_member": is_team_member,
+                                "parent_team_id": parent_team_id,
+                                "member_index": member_index,
+                                "images": images
+                            })
                     
                     # Add assistant response
                     content = run.get('content')
@@ -181,13 +232,28 @@ class AgnoChatHistoryService:
                             print(f"DEBUG: ❌ No S3 URLs found or refreshed in agent message")
                         
                         messages.append({
-                            "sender": "agent", 
+                            "sender": "agent",
                             "text": refreshed_content,
                             "timestamp": timestamp_iso,
                             "run_id": run_id,
-                            "node_id": node_id
+                            "node_id": node_id,
+                            "is_team_member": is_team_member,
+                            "parent_team_id": parent_team_id,
+                            "member_index": member_index
                         })
                 
+                # Add index to preserve original order as secondary sort key
+                for idx, msg in enumerate(messages):
+                    msg['_original_index'] = idx
+
+                # Sort messages by timestamp (primary) and original index (secondary)
+                # This ensures chronological order while preserving insertion order for same timestamps
+                messages.sort(key=lambda x: (x.get('timestamp', ''), x.get('_original_index', 0)))
+
+                # Remove temporary index field
+                for msg in messages:
+                    msg.pop('_original_index', None)
+
                 return {
                     "session_id": session_id,
                     "messages": messages,
@@ -248,6 +314,43 @@ class AgnoChatHistoryService:
             print(f"Error retrieving run detail: {e}")
             raise
     
+
+    def _is_system_instruction(self, content: str) -> bool:
+        """
+        Detect if content is a system instruction that should be filtered out.
+        Returns True if it looks like system/team instructions.
+        """
+        if not content:
+            return False
+
+        content_lower = content.lower().strip()
+
+        # Common system instruction patterns
+        system_patterns = [
+            'you are a member of a team of agents',
+            'you are an ai assistant',
+            'you are a helpful assistant',
+            'your goal is to complete the following task',
+            'your task is to',
+            '<task>',
+            '<expected_output>',
+            '<your_role>',
+            '<instructions>',
+            'hr informatie verstrekker',
+            'jij bent een hr expert',
+        ]
+
+        # Check if content starts with or contains system instruction patterns
+        for pattern in system_patterns:
+            if pattern in content_lower:
+                return True
+
+        # Check if it's XML-like instructions
+        if '<' in content and '>' in content and any(tag in content_lower for tag in ['role', 'task', 'instructions']):
+            return True
+
+        return False
+
     def _to_iso_timestamp(self, timestamp) -> str:
         """Convert timestamp to ISO string."""
         try:

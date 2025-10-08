@@ -33,6 +33,7 @@ class Project(Base):
 
     routes: Mapped[list["Route"]] = relationship("Route", back_populates="project", cascade="all, delete-orphan")
     schedules: Mapped[list["Schedule"]] = relationship("Schedule", back_populates="project", cascade="all, delete-orphan")
+    chat_windows: Mapped[list["ChatWindow"]] = relationship("ChatWindow", back_populates="project", cascade="all, delete-orphan")
     stages: Mapped[list["Stage"]] = relationship("Stage", back_populates="project", cascade="all, delete-orphan")
 
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

@@ -51,6 +51,7 @@ def invite_account(
         inviter=current_account,
         email=str(data.email),
         background_tasks=background_tasks,
+        role=data.role.value,
     )
     return account
 

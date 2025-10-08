@@ -5,37 +5,34 @@ from fastapi import HTTPException
 
 from fastapi import Depends
 from db.session import get_db
-from models import Route, NodeSetupVersion, Stage, NodeSetupVersionStage, NodeSetup
+from models import ChatWindow, NodeSetupVersion, Stage, NodeSetupVersionStage, NodeSetup
 from services.lambda_service import LambdaService, get_lambda_service
-from services.router_service import RouterService, get_router_service
 from services.sync_checker_service import SyncCheckerService, get_sync_checker_service
 from core.settings import settings
 
 logger = logging.getLogger(__name__)
 
 
-class RoutePublishService:
+class ChatWindowPublishService:
     def __init__(
         self,
         db: Session,
         lambda_service: LambdaService,
-        router_service: RouterService,
         sync_checker: SyncCheckerService
     ):
         self.db = db
         self.lambda_service = lambda_service
-        self.router_service = router_service
         self.sync_checker = sync_checker
 
-    def sync_lambda(self, route: Route, stage: str = 'prod'):
+    def sync_lambda(self, chat_window: ChatWindow, stage: str = 'mock'):
         # Skip Lambda operations when in local execution mode
         if settings.EXECUTE_NODE_SETUP_LOCAL:
-            logger.info(f"Local mode: Skipping Lambda sync for route {route.id}")
+            logger.info(f"Local mode: Skipping Lambda sync for chat window {chat_window.id}")
             return
 
-        node_setup_version = self._validate(route)
+        node_setup_version = self._validate(chat_window)
 
-        project = route.project
+        project = chat_window.project
         function_name = f"node_setup_{node_setup_version.id}_{stage}"
 
         sync_status = self.sync_checker.check_sync_needed(
@@ -68,22 +65,17 @@ class RoutePublishService:
                     node_setup_version.executable
                 )
 
-    def update_route(self, route: Route, version: NodeSetupVersion, stage: str):
-        response = self.router_service.update_route(route, version, stage)
-        if response.status_code != 200:
-            logger.error(f"Router update failed: {response.status_code} - {response.text}")
-            raise HTTPException(status_code=500, detail="Router update failed")
-        return response.json()
+    def publish(self, chat_window: ChatWindow):
+        # Chat windows always use "mock" stage
+        stage = 'mock'
 
-    def publish(self, route: Route, stage: str = 'prod'):
-        node_setup_version = self._validate(route)
+        node_setup_version = self._validate(chat_window)
 
-        logger.info(f"Publishing route {route.id} to stage '{stage}'")
-        self.sync_lambda(route, stage)
-        response = self.update_route(route, node_setup_version, stage)
+        logger.info(f"Publishing chat window {chat_window.id} to stage '{stage}'")
+        self.sync_lambda(chat_window, stage)
 
         stage_obj = self.db.query(Stage).filter_by(
-            project=route.project, name=stage
+            project=chat_window.project, name=stage
         ).one()
 
         self.db.merge(NodeSetupVersionStage(
@@ -94,24 +86,24 @@ class RoutePublishService:
         ))
         self.db.commit()
 
-        return response
+        return {"message": f"Chat window successfully published to {stage}"}
 
-    def _validate(self, route: Route) -> NodeSetupVersion:
-        if not isinstance(route, Route):
-            raise HTTPException(status_code=400, detail="Only Route publishing is supported")
+    def _validate(self, chat_window: ChatWindow) -> NodeSetupVersion:
+        if not isinstance(chat_window, ChatWindow):
+            raise HTTPException(status_code=400, detail="Only ChatWindow publishing is supported")
 
         node_setup = self.db.query(NodeSetup).filter_by(
-            content_type="route",
-            object_id=route.id
+            content_type="chat_window",
+            object_id=chat_window.id
         ).first()
 
         if not node_setup:
-            raise HTTPException(status_code=404, detail="NodeSetup not found for this schedule.")
+            raise HTTPException(status_code=404, detail="NodeSetup not found for this chat window.")
 
         version = sorted(node_setup.versions, key=lambda v: v.created_at, reverse=True)
         node_setup_version = version[0] if version else None
         if not node_setup_version:
-            raise HTTPException(status_code=404, detail="No version found for this route")
+            raise HTTPException(status_code=404, detail="No version found for this chat window")
 
         if not node_setup_version.executable:
             raise HTTPException(status_code=400, detail="No executable defined")
@@ -119,15 +111,13 @@ class RoutePublishService:
         return node_setup_version
 
 
-def get_route_publish_service(
+def get_chat_window_publish_service(
     db: Session = Depends(get_db),
     lambda_service: LambdaService = Depends(get_lambda_service),
-    router_service: RouterService = Depends(get_router_service),
     sync_checker: SyncCheckerService = Depends(get_sync_checker_service),
-) -> RoutePublishService:
-    return RoutePublishService(
+) -> ChatWindowPublishService:
+    return ChatWindowPublishService(
         db=db,
         lambda_service=lambda_service,
-        router_service=router_service,
         sync_checker=sync_checker
     )
