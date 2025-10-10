@@ -136,7 +136,7 @@ class DocumentationService:
                 "title": metadata.get("title", filename.replace('.md', '').replace('-', ' ').title()),
                 "description": metadata.get("description", ""),
                 "tags": metadata.get("tags", []),
-                "order": metadata.get("order", 999),
+                "order": metadata.get("order", 0),  # Optional, kept for backwards compatibility
                 "last_updated": metadata.get("last_updated", datetime.fromtimestamp(stat.st_mtime).isoformat()[:10]),
                 "content": content,
                 "body": body_content,
@@ -151,21 +151,21 @@ class DocumentationService:
     def get_all_documentation(self) -> Dict[str, Any]:
         """Get all documentation - only guides, tutorials, and reference (no nodes)."""
         manifest = self._load_manifest()
-        
+
         # Get generic documentation only
         guides = {}
         for nav_category in manifest.get("navigation", []):
             category = nav_category["category"]
             guides[category] = []
-            
+
             for item in nav_category["items"]:
                 doc = self._load_document(category, item["file"])
                 if doc:
                     guides[category].append(doc)
-            
-            # Sort by order
-            guides[category].sort(key=lambda x: x["order"])
-        
+
+            # Documents are already in the correct order from the manifest
+            # No sorting needed - use manifest array order
+
         return {
             "categories": manifest.get("categories", []),
             "guides": guides,
@@ -302,4 +302,5 @@ class DocumentationService:
         """Get all documentation categories."""
         manifest = self._load_manifest()
         categories = manifest.get("categories", [])
-        return sorted(categories, key=lambda x: x.get("order", 999))
+        # Return categories in manifest array order - no sorting needed
+        return categories
