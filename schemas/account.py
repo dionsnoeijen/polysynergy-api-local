@@ -16,7 +16,7 @@ class AccountCreate(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
-    role: AccountRoleEnum = AccountRoleEnum.CHAT_USER
+    role: AccountRoleEnum = AccountRoleEnum.ADMIN
 
 
 class AccountActivate(BaseModel):
