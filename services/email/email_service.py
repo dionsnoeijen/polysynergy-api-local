@@ -18,11 +18,39 @@ class EmailService:
         template = template_env.get_template("invitation_email.html")
         html_body = template.render(
             email=to,
-            portal_url=portal_url, 
+            portal_url=portal_url,
             temporary_password=temporary_password
         )
 
         background_tasks.add_task(EmailService._send_via_ses, to, subject, html_body)
+
+    @staticmethod
+    def send_welcome_email(to: str, first_name: str, email: str, account_type: str, portal_url: str, background_tasks: BackgroundTasks):
+        subject = "Welcome to PolySynergy!"
+        template = template_env.get_template("welcome_email.html")
+        html_body = template.render(
+            first_name=first_name,
+            email=email,
+            account_type=account_type,
+            portal_url=portal_url
+        )
+
+        background_tasks.add_task(EmailService._send_via_ses, to, subject, html_body)
+
+    @staticmethod
+    def send_admin_notification(admin_email: str, first_name: str, last_name: str, email: str, account_type: str, tenant_name: str, timestamp: str, background_tasks: BackgroundTasks):
+        subject = "New Account Registration - PolySynergy"
+        template = template_env.get_template("admin_new_account_notification.html")
+        html_body = template.render(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            account_type=account_type,
+            tenant_name=tenant_name,
+            timestamp=timestamp
+        )
+
+        background_tasks.add_task(EmailService._send_via_ses, admin_email, subject, html_body)
 
     @staticmethod
     def _send_via_ses(to: str, subject: str, html_body: str):

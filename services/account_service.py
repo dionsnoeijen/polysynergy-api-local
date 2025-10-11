@@ -36,7 +36,9 @@ class AccountService:
         ).scalars().all()
 
     @staticmethod
-    def create_account_with_tenant(session: Session, data: dict) -> Account:
+    def create_account_with_tenant(session: Session, data: dict, background_tasks: BackgroundTasks = None) -> Account:
+        from datetime import datetime
+
         # Determine if this is a single user account (tenant name = email)
         is_single_user = data["tenant_name"] == data["email"]
 
@@ -67,6 +69,33 @@ class AccountService:
                 {"Name": "custom:tenant", "Value": str(tenant.id)},
             ]
         )
+
+        # Send welcome email and admin notification
+        if background_tasks:
+            # Determine account type display name
+            account_type = "Personal Account" if is_single_user else "Organization Account"
+
+            # Send welcome email to the new user
+            EmailService.send_welcome_email(
+                to=account.email,
+                first_name=account.first_name,
+                email=account.email,
+                account_type=account_type,
+                portal_url=settings.PORTAL_URL,
+                background_tasks=background_tasks
+            )
+
+            # Send admin notification
+            EmailService.send_admin_notification(
+                admin_email="dion@polysynergy.com",
+                first_name=account.first_name,
+                last_name=account.last_name,
+                email=account.email,
+                account_type=account_type,
+                tenant_name=tenant.name,
+                timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                background_tasks=background_tasks
+            )
 
         return account
 

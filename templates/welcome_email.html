@@ -25,14 +25,14 @@
             border-bottom: 2px solid #3498db;
             padding-bottom: 10px;
         }
-        .credentials {
+        .info-box {
             background-color: #ecf0f1;
             border-left: 4px solid #3498db;
             padding: 15px;
             margin: 20px 0;
             border-radius: 4px;
         }
-        .credentials strong {
+        .info-box strong {
             color: #2c3e50;
         }
         .button {
@@ -55,43 +55,49 @@
             color: #666;
             font-size: 14px;
         }
-        .warning {
-            color: #e74c3c;
-            font-weight: 500;
-            margin-top: 15px;
-        }
-        .logo-container {
+        .success-icon {
             text-align: center;
-            margin-bottom: 20px;
-            padding: 10px 0;
+            font-size: 48px;
+            margin: 20px 0;
         }
-        .logo-container svg {
-            max-width: 100%;
-            height: auto;
+        .contact-links {
+            margin: 15px 0;
+        }
+        .contact-links a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .contact-links a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="success-icon">✓</div>
         <h1>Welcome to PolySynergy!</h1>
-        
-        <p>You have been invited to join PolySynergy. Your account has been created successfully.</p>
-        
-        <div class="credentials">
+
+        <p>Hi {{ first_name }},</p>
+
+        <p>Your PolySynergy account has been successfully created. We're excited to have you on board!</p>
+
+        <div class="info-box">
+            <p><strong>Account Type:</strong> {{ account_type }}</p>
             <p><strong>Email:</strong> {{ email }}</p>
-            <p><strong>Temporary Password:</strong> {{ temporary_password }}</p>
         </div>
-        
-        <p class="warning">Please change your password after your first login for security purposes.</p>
-        
-        <p>Click the button below to access the portal:</p>
-        
+
+        <p>You can now access the PolySynergy platform and start building powerful automation workflows.</p>
+
+        <p>Click the button below to get started:</p>
+
         <a href="{{ portal_url }}" class="button">Go to Portal</a>
-        
+
         <div class="footer">
             <p><strong>Need help?</strong> We're here to support you:</p>
-            <p style="margin: 10px 0;">📧 Email: <a href="mailto:dion@polysynergy.com" style="color: #3498db; text-decoration: none;">dion@polysynergy.com</a></p>
-            <p style="margin: 10px 0;">💬 Discord: <a href="https://discord.gg/g3atXten" style="color: #3498db; text-decoration: none;">Join our community</a></p>
+            <div class="contact-links">
+                <p>📧 Email: <a href="mailto:dion@polysynergy.com">dion@polysynergy.com</a></p>
+                <p>💬 Discord: <a href="https://discord.gg/g3atXten">Join our community</a></p>
+            </div>
             <p style="margin-top: 15px;">This is an automated message, please do not reply to this email.</p>
         </div>
     </div>

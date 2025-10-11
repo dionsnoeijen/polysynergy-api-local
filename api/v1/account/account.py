@@ -21,9 +21,10 @@ router = APIRouter()
 @router.post("/", response_model=AccountOut, status_code=status.HTTP_201_CREATED)
 def create_account(
     data: AccountCreate,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_db)
 ):
-    account = AccountService.create_account_with_tenant(session, data.model_dump())
+    account = AccountService.create_account_with_tenant(session, data.model_dump(), background_tasks)
     return account
 
 
