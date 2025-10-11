@@ -37,16 +37,21 @@ class AccountService:
 
     @staticmethod
     def create_account_with_tenant(session: Session, data: dict) -> Account:
+        # Determine if this is a single user account (tenant name = email)
+        is_single_user = data["tenant_name"] == data["email"]
+
         tenant = Tenant(name=data["tenant_name"])
         session.add(tenant)
 
+        # Account creator is always admin (they're creating their own tenant)
         account = Account(
             cognito_id=data["cognito_id"],
             first_name=data["first_name"],
             last_name=data["last_name"],
             email=data["email"],
-            role=data.get("role", "chat_user"),
-            active=True
+            role=data.get("role", "admin"),  # ✅ Creator is admin, not chat_user
+            active=True,
+            single_user=is_single_user
         )
         session.add(account)
 
