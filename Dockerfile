@@ -31,7 +31,10 @@ COPY ./api-local /app
 # Set default reload directories (can be overridden by docker-compose)
 ENV RELOAD_DIRS="--reload-dir /app"
 
+# Make startup script executable
+RUN chmod +x /app/startup.sh
+
 EXPOSE 8090
 
-# Use environment variable for reload directories
-CMD sh -c "poetry run uvicorn main:app --host 0.0.0.0 --port 8090 --reload ${RELOAD_DIRS}"
+# Use startup script to load secrets and start server
+CMD ["/app/startup.sh"]
