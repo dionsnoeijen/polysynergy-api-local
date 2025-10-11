@@ -48,6 +48,7 @@ if settings.SENTRY_DSN:
         attach_stacktrace=True,
         send_default_pii=False,  # Geen persoonlijke info
         before_send=lambda event, hint: filter_sentry_event(event, hint),
+        auto_enabling_integrations=False,  # Disable automatic integration loading to prevent incompatibilities
     )
     logger.info_ctx("Sentry error tracking enabled", environment=settings.SENTRY_ENVIRONMENT)
 
