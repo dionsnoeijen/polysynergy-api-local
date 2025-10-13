@@ -3,20 +3,21 @@ set -e
 
 echo "🚀 Starting PolySynergy API..."
 
-# Read Redis password from Docker secret if it exists
-if [ -f /run/secrets/redis_password ]; then
-    REDIS_PASSWORD=$(cat /run/secrets/redis_password)
-    export REDIS_URL="redis://:${REDIS_PASSWORD}@redis:6379"
-    echo "✓ Redis password loaded from Docker secret"
-    echo "✓ REDIS_URL configured: redis://:*****@redis:6379"
-else
-    # Fallback to environment variable or default (for local development)
-    if [ -z "$REDIS_URL" ]; then
-        export REDIS_URL="redis://redis:6379"
-        echo "⚠ No Redis secret found, using default: redis://redis:6379"
+# Use REDIS_URL from environment (.env file) - DO NOT override it
+# The .env file contains the correct production Redis URL
+if [ -z "$REDIS_URL" ]; then
+    echo "⚠ WARNING: REDIS_URL not set in environment"
+    # Only set default if truly empty (local dev without .env)
+    if [ -f /run/secrets/redis_password ]; then
+        REDIS_PASSWORD=$(cat /run/secrets/redis_password)
+        export REDIS_URL="redis://:${REDIS_PASSWORD}@redis:6379"
+        echo "✓ Using Docker secret for Redis password"
     else
-        echo "✓ Using REDIS_URL from environment"
+        export REDIS_URL="redis://redis:6379"
+        echo "⚠ Using default Redis URL (no auth)"
     fi
+else
+    echo "✓ Using REDIS_URL from environment: ${REDIS_URL}"
 fi
 
 # Read PostgreSQL password from Docker secret if it exists
