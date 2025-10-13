@@ -31,10 +31,8 @@ COPY ./api-local /app
 # Set default reload directories (can be overridden by docker-compose)
 ENV RELOAD_DIRS="--reload-dir /app"
 
-# Make startup script executable
-RUN chmod +x /app/startup.sh
-
 EXPOSE 8090
 
 # Use startup script to load secrets and start server
-CMD ["/app/startup.sh"]
+# Using sh -c to avoid permission issues with volume mounts
+CMD ["sh", "/app/startup.sh"]
