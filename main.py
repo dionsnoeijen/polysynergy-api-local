@@ -19,6 +19,7 @@ from api.v1.execution import router as v1_execution_router
 from api.v1.documentation.documentation import router as v1_documentation_router
 from api.v1.updates.updates import router as v1_updates_router
 from api.v1.oauth.oauth_callback import router as v1_oauth_router
+from api.v1.feedback import router as v1_feedback_router
 
 from ws.v1.execution import router as websocket_execution_router
 
@@ -246,6 +247,7 @@ app.include_router(v1_execution_router, prefix="/api/v1")
 app.include_router(v1_documentation_router, prefix="/api/v1/documentation", tags=["documentation"])
 app.include_router(v1_updates_router, prefix="/api/v1/updates", tags=["updates"])
 app.include_router(v1_oauth_router, prefix="/api/v1/oauth")
+app.include_router(v1_feedback_router, prefix="/api/v1")
 app.include_router(websocket_execution_router, prefix="/ws/v1")
 
 @app.get("/health")

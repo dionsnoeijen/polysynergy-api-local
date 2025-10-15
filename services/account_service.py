@@ -182,6 +182,37 @@ class AccountService:
         )
 
     @staticmethod
+    def update_account(session: Session, account_id: str, updates: dict) -> Account:
+        account = session.execute(
+            select(Account).where(Account.id == uuid_module.UUID(account_id))
+        ).scalar_one_or_none()
+
+        if not account:
+            raise ValueError("Account not found")
+
+        # Build list of cognito attributes to update
+        cognito_attrs = []
+
+        if "first_name" in updates and updates["first_name"] is not None:
+            account.first_name = updates["first_name"]
+            cognito_attrs.append({"Name": "given_name", "Value": updates["first_name"]})
+
+        if "last_name" in updates and updates["last_name"] is not None:
+            account.last_name = updates["last_name"]
+            cognito_attrs.append({"Name": "family_name", "Value": updates["last_name"]})
+
+        # Update Cognito if there are changes
+        if cognito_attrs:
+            AccountService._update_cognito_user(
+                email=account.email,
+                attrs=cognito_attrs
+            )
+
+        session.commit()
+        session.refresh(account)
+        return account
+
+    @staticmethod
     def delete_account(session: Session, account_id: str):
         account = session.execute(
             select(Account).where(Account.id == uuid_module.UUID(account_id))

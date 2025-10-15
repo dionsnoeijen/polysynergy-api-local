@@ -24,6 +24,11 @@ class AccountActivate(BaseModel):
     last_name: str
 
 
+class AccountUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+
+
 class AccountInvite(BaseModel):
     email: EmailStr
     role: AccountRoleEnum = AccountRoleEnum.CHAT_USER

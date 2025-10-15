@@ -7,6 +7,7 @@ from services.account_service import AccountService
 from schemas.account import (
     AccountCreate,
     AccountActivate,
+    AccountUpdate,
     AccountInvite,
     AccountOut,
 )
@@ -88,6 +89,24 @@ def get_account(
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
     return account
+
+
+@router.patch("/{account_id}/", response_model=AccountOut)
+def update_account(
+    account_id: UUID,
+    data: AccountUpdate,
+    current_account: Account = Depends(get_current_account),
+    session: Session = Depends(get_db)
+):
+    # Only allow users to update their own account (or admins to update any)
+    if str(current_account.id) != str(account_id) and current_account.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to update this account")
+
+    try:
+        return AccountService.update_account(session, str(account_id), data.model_dump(exclude_unset=True))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 
 @router.delete("/{account_id}/")
 def delete_account(
