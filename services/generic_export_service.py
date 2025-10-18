@@ -1,6 +1,7 @@
 import io
 import json
 import zipfile
+import hashlib
 import logging
 from typing import BinaryIO
 from datetime import datetime
@@ -100,6 +101,15 @@ class GenericExportService:
         if not latest_version:
             raise HTTPException(status_code=404, detail=f"No version found for blueprint {blueprint_id}")
         
+        # Compute content hash for duplicate detection
+        content = latest_version.content
+        content_hash = hashlib.sha256(
+            json.dumps(content, sort_keys=True).encode('utf-8')
+        ).hexdigest()
+
+        # Get executable hash if it exists
+        executable_hash = latest_version.executable_hash if latest_version.executable_hash else None
+
         # Add to export data
         blueprint_data = {
             "id": str(blueprint.id),
@@ -108,19 +118,15 @@ class GenericExportService:
             "version_number": latest_version.version_number,
             "version_id": str(latest_version.id),
             "node_setup_id": str(node_setup.id),
-            "executable_hash": latest_version.executable_hash,
+            "content": content,  # Include nodes + connections
+            "content_hash": content_hash,  # For duplicate detection
+            "executable_hash": executable_hash,  # For integrity verification
             "created_at": blueprint.created_at.isoformat() if blueprint.created_at else None,
             "updated_at": blueprint.updated_at.isoformat() if blueprint.updated_at else None,
         }
         export_data["blueprints"].append(blueprint_data)
-        
-        # Add executable file to zip
-        if latest_version.executable:
-            zip_file.writestr(
-                f"blueprints/{blueprint.name}_executable.py",
-                latest_version.executable
-            )
-            logger.info(f"Added blueprint '{blueprint.name}' executable to export")
+
+        logger.info(f"Added blueprint '{blueprint.name}' with content to export")
 
     def _export_service(self, service_id: str, project: Project, export_data: dict, zip_file: zipfile.ZipFile):
         """Export a single service"""
@@ -139,6 +145,15 @@ class GenericExportService:
         if not latest_version:
             raise HTTPException(status_code=404, detail=f"No version found for service {service_id}")
         
+        # Compute content hash for duplicate detection
+        content = latest_version.content
+        content_hash = hashlib.sha256(
+            json.dumps(content, sort_keys=True).encode('utf-8')
+        ).hexdigest()
+
+        # Get executable hash if it exists
+        executable_hash = latest_version.executable_hash if latest_version.executable_hash else None
+
         # Add to export data
         service_data = {
             "id": str(service.id),
@@ -147,19 +162,15 @@ class GenericExportService:
             "version_number": latest_version.version_number,
             "version_id": str(latest_version.id),
             "node_setup_id": str(node_setup.id),
-            "executable_hash": latest_version.executable_hash,
+            "content": content,  # Include nodes + connections
+            "content_hash": content_hash,  # For duplicate detection
+            "executable_hash": executable_hash,  # For integrity verification
             "created_at": service.created_at.isoformat() if service.created_at else None,
             "updated_at": service.updated_at.isoformat() if service.updated_at else None,
         }
         export_data["services"].append(service_data)
-        
-        # Add executable file to zip
-        if latest_version.executable:
-            zip_file.writestr(
-                f"services/{service.name}_executable.py",
-                latest_version.executable
-            )
-            logger.info(f"Added service '{service.name}' executable to export")
+
+        logger.info(f"Added service '{service.name}' with content to export")
 
     def _get_latest_version(self, node_setup: NodeSetup) -> NodeSetupVersion | None:
         """Get the latest version for a node setup"""

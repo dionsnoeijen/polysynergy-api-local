@@ -15,7 +15,28 @@ class ServiceRepository:
         self.db = db
 
     def get_all_by_project(self, project: Project) -> list[Service]:
-        return self.db.query(Service).filter(Service.projects.any(id=project.id)).all()
+        services = self.db.query(Service).filter(Service.projects.any(id=project.id)).all()
+
+        if not services:
+            return []
+
+        # Get all service IDs
+        service_ids = [service.id for service in services]
+
+        # Fetch all node_setups for these services in one query
+        node_setups = self.db.query(NodeSetup).filter(
+            NodeSetup.content_type == "service",
+            NodeSetup.object_id.in_(service_ids)
+        ).all()
+
+        # Create a mapping of service_id -> node_setup
+        node_setup_map = {ns.object_id: ns for ns in node_setups}
+
+        # Attach node_setup to each service
+        for service in services:
+            service.node_setup = node_setup_map.get(service.id)
+
+        return services
 
     def get_one_with_versions_by_id(self, service_id: str, project: Project) -> Service:
         service = (

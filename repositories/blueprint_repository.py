@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid4, UUID
 from datetime import datetime, timezone
 
 from fastapi import Depends
@@ -7,7 +7,7 @@ from starlette.exceptions import HTTPException
 
 from db.session import get_db
 from models import Blueprint, NodeSetup, NodeSetupVersion, Project
-from schemas.blueprint import BlueprintIn
+from schemas.blueprint import BlueprintIn, BlueprintShareIn
 
 
 class BlueprintRepository:
@@ -15,7 +15,28 @@ class BlueprintRepository:
         self.db = db
 
     def get_all_by_project(self, project: Project) -> list[Blueprint]:
-        return self.db.query(Blueprint).filter(Blueprint.projects.any(id=project.id)).all()
+        blueprints = self.db.query(Blueprint).filter(Blueprint.projects.any(id=project.id)).all()
+
+        if not blueprints:
+            return []
+
+        # Get all blueprint IDs
+        blueprint_ids = [blueprint.id for blueprint in blueprints]
+
+        # Fetch all node_setups for these blueprints in one query
+        node_setups = self.db.query(NodeSetup).filter(
+            NodeSetup.content_type == "blueprint",
+            NodeSetup.object_id.in_(blueprint_ids)
+        ).all()
+
+        # Create a mapping of blueprint_id -> node_setup
+        node_setup_map = {ns.object_id: ns for ns in node_setups}
+
+        # Attach node_setup to each blueprint
+        for blueprint in blueprints:
+            blueprint.node_setup = node_setup_map.get(blueprint.id)
+
+        return blueprints
 
     def get_one_with_versions_by_id(self, blueprint_id: str, project: Project) -> Blueprint:
         blueprint = (

@@ -90,13 +90,12 @@ class EmailService:
         </html>
         """
 
-        # Use user's email as reply-to so admin can directly reply to the user
+        # Send feedback email (user email is visible in the email body)
         background_tasks.add_task(
             EmailService._send_via_ses,
             admin_email,
             subject,
-            html_body,
-            reply_to=user_email
+            html_body
         )
 
     @staticmethod
@@ -121,3 +120,4 @@ class EmailService:
             ses.send_email(**email_params)
         except ClientError as e:
             logging.error(f"Failed to send email: {e.response['Error']['Message']}")
+            raise  # Re-raise the exception so the caller knows it failed

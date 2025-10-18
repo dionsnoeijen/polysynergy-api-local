@@ -225,51 +225,87 @@ class GenericImportService:
     def _detect_blueprint_conflicts(self, item_details: ImportItemDetails, project: Project) -> list[ImportItemConflict]:
         """Detect conflicts for blueprint import"""
         conflicts = []
-        
+
         existing_blueprint = self._find_blueprint_by_name(item_details.name, project)
         if existing_blueprint:
-            suggested_names = [
-                f"{item_details.name} (2)",
-                f"{item_details.name} - Imported",
-                f"{item_details.name} - {item_details.version_number}" if item_details.version_number else f"{item_details.name} - Copy"
-            ]
-            
-            conflicts.append(ImportItemConflict(
-                item_type="blueprint",
-                item_name=item_details.name,
-                conflict_type="name_exists",
-                existing_id=str(existing_blueprint.id),
-                existing_name=existing_blueprint.name,
-                existing_created_at=existing_blueprint.created_at,
-                suggested_names=suggested_names,
-                description=f"A blueprint named '{item_details.name}' already exists in this project"
-            ))
-        
+            # Compare content hash to detect exact duplicates
+            existing_hash = self._get_content_hash(existing_blueprint.id, "blueprint")
+            import_hash = item_details.metadata.get("content_hash")
+
+            if existing_hash and import_hash and existing_hash == import_hash:
+                # Exact duplicate - auto-skip recommended
+                conflicts.append(ImportItemConflict(
+                    item_type="blueprint",
+                    item_name=item_details.name,
+                    conflict_type="exact_duplicate",
+                    existing_id=str(existing_blueprint.id),
+                    existing_name=existing_blueprint.name,
+                    existing_created_at=existing_blueprint.created_at,
+                    suggested_names=[],
+                    description=f"Blueprint '{item_details.name}' is an exact duplicate (same content)"
+                ))
+            else:
+                # Name conflict with different content
+                suggested_names = [
+                    f"{item_details.name} (2)",
+                    f"{item_details.name} - Imported",
+                    f"{item_details.name} - v{item_details.version_number}" if item_details.version_number else f"{item_details.name} - Copy"
+                ]
+
+                conflicts.append(ImportItemConflict(
+                    item_type="blueprint",
+                    item_name=item_details.name,
+                    conflict_type="name_exists",
+                    existing_id=str(existing_blueprint.id),
+                    existing_name=existing_blueprint.name,
+                    existing_created_at=existing_blueprint.created_at,
+                    suggested_names=suggested_names,
+                    description=f"A different blueprint named '{item_details.name}' already exists"
+                ))
+
         return conflicts
 
     def _detect_service_conflicts(self, item_details: ImportItemDetails, project: Project) -> list[ImportItemConflict]:
         """Detect conflicts for service import"""
         conflicts = []
-        
+
         existing_service = self._find_service_by_name(item_details.name, project)
         if existing_service:
-            suggested_names = [
-                f"{item_details.name} (2)",
-                f"{item_details.name} - Imported",
-                f"{item_details.name} - {item_details.version_number}" if item_details.version_number else f"{item_details.name} - Copy"
-            ]
-            
-            conflicts.append(ImportItemConflict(
-                item_type="service",
-                item_name=item_details.name,
-                conflict_type="name_exists",
-                existing_id=str(existing_service.id),
-                existing_name=existing_service.name,
-                existing_created_at=existing_service.created_at,
-                suggested_names=suggested_names,
-                description=f"A service named '{item_details.name}' already exists in this project"
-            ))
-        
+            # Compare content hash to detect exact duplicates
+            existing_hash = self._get_content_hash(existing_service.id, "service")
+            import_hash = item_details.metadata.get("content_hash")
+
+            if existing_hash and import_hash and existing_hash == import_hash:
+                # Exact duplicate - auto-skip recommended
+                conflicts.append(ImportItemConflict(
+                    item_type="service",
+                    item_name=item_details.name,
+                    conflict_type="exact_duplicate",
+                    existing_id=str(existing_service.id),
+                    existing_name=existing_service.name,
+                    existing_created_at=existing_service.created_at,
+                    suggested_names=[],
+                    description=f"Service '{item_details.name}' is an exact duplicate (same content)"
+                ))
+            else:
+                # Name conflict with different content
+                suggested_names = [
+                    f"{item_details.name} (2)",
+                    f"{item_details.name} - Imported",
+                    f"{item_details.name} - v{item_details.version_number}" if item_details.version_number else f"{item_details.name} - Copy"
+                ]
+
+                conflicts.append(ImportItemConflict(
+                    item_type="service",
+                    item_name=item_details.name,
+                    conflict_type="name_exists",
+                    existing_id=str(existing_service.id),
+                    existing_name=existing_service.name,
+                    existing_created_at=existing_service.created_at,
+                    suggested_names=suggested_names,
+                    description=f"A different service named '{item_details.name}' already exists"
+                ))
+
         return conflicts
 
     def _import_blueprint(self, blueprint_data: dict, executables: dict, resolution: ImportItemResolution | None, project: Project) -> ImportItemResult:
@@ -295,10 +331,15 @@ class GenericImportService:
             if resolution and resolution.resolution == "overwrite":
                 existing_blueprint = self._find_blueprint_by_name(final_name, project)
                 if existing_blueprint:
-                    # Update existing
+                    # Update existing with content
+                    content = blueprint_data.get("content", {})
+                    if content:
+                        self._update_node_setup_content(existing_blueprint.id, "blueprint", content)
+
+                    # Update executable if exists
                     executable_path = f"blueprints/{original_name}_executable.py"
                     if executable_path in executables:
-                        self._update_node_setup_version(existing_blueprint.id, "blueprint", executables[executable_path])
+                        self._update_node_setup_executable(existing_blueprint.id, "blueprint", executables[executable_path])
                     
                     return ImportItemResult(
                         item_type="blueprint",
@@ -312,11 +353,16 @@ class GenericImportService:
             # Create new blueprint
             blueprint_input = BlueprintIn(name=final_name, meta=blueprint_data.get("meta", {}))
             blueprint = self.blueprint_repository.create(blueprint_input, project)
-            
-            # Update with executable
+
+            # Update with content (nodes + connections)
+            content = blueprint_data.get("content", {})
+            if content:
+                self._update_node_setup_content(blueprint.id, "blueprint", content)
+
+            # Update with executable (if exists - optional for old exports)
             executable_path = f"blueprints/{original_name}_executable.py"
             if executable_path in executables:
-                self._update_node_setup_version(blueprint.id, "blueprint", executables[executable_path])
+                self._update_node_setup_executable(blueprint.id, "blueprint", executables[executable_path])
             
             return ImportItemResult(
                 item_type="blueprint",
@@ -361,10 +407,15 @@ class GenericImportService:
             if resolution and resolution.resolution == "overwrite":
                 existing_service = self._find_service_by_name(final_name, project)
                 if existing_service:
-                    # Update existing
+                    # Update existing with content
+                    content = service_data.get("content", {})
+                    if content:
+                        self._update_node_setup_content(existing_service.id, "service", content)
+
+                    # Update executable if exists
                     executable_path = f"services/{original_name}_executable.py"
                     if executable_path in executables:
-                        self._update_node_setup_version(existing_service.id, "service", executables[executable_path])
+                        self._update_node_setup_executable(existing_service.id, "service", executables[executable_path])
                     
                     return ImportItemResult(
                         item_type="service",
@@ -378,11 +429,16 @@ class GenericImportService:
             # Create new service
             service_input = ServiceCreateIn(name=final_name, meta=service_data.get("meta", {}))
             service = self.service_repository.create(service_input, project)
-            
-            # Update with executable
+
+            # Update with content (nodes + connections)
+            content = service_data.get("content", {})
+            if content:
+                self._update_node_setup_content(service.id, "service", content)
+
+            # Update with executable (if exists - optional for old exports)
             executable_path = f"services/{original_name}_executable.py"
             if executable_path in executables:
-                self._update_node_setup_version(service.id, "service", executables[executable_path])
+                self._update_node_setup_executable(service.id, "service", executables[executable_path])
             
             return ImportItemResult(
                 item_type="service",
@@ -418,23 +474,62 @@ class GenericImportService:
             Service.projects.any(id=project.id)
         ).first()
 
-    def _update_node_setup_version(self, object_id: str, content_type: str, executable_code: str):
+    def _get_content_hash(self, object_id: str, content_type: str) -> str | None:
+        """Get content hash for existing blueprint/service"""
+        node_setup = self.db.query(NodeSetup).filter_by(
+            content_type=content_type,
+            object_id=object_id
+        ).first()
+
+        if not node_setup or not node_setup.versions:
+            return None
+
+        latest_version = sorted(node_setup.versions, key=lambda v: v.created_at, reverse=True)[0]
+        content = latest_version.content
+
+        if not content:
+            return None
+
+        return hashlib.sha256(
+            json.dumps(content, sort_keys=True).encode('utf-8')
+        ).hexdigest()
+
+    def _update_node_setup_content(self, object_id: str, content_type: str, content: dict):
+        """Update the NodeSetupVersion with imported content (nodes + connections)"""
+        node_setup = self.db.query(NodeSetup).filter_by(
+            content_type=content_type,
+            object_id=object_id
+        ).first()
+
+        if not node_setup:
+            raise HTTPException(status_code=500, detail="NodeSetup not found after creation")
+
+        # Get the version (should be version 1 from creation)
+        latest_version = sorted(node_setup.versions, key=lambda v: v.created_at, reverse=True)[0]
+
+        # Update with imported content
+        latest_version.content = content
+
+        self.db.commit()
+        logger.info(f"Updated NodeSetupVersion with imported content for {content_type} {object_id}")
+
+    def _update_node_setup_executable(self, object_id: str, content_type: str, executable_code: str):
         """Update the NodeSetupVersion with imported executable code"""
         node_setup = self.db.query(NodeSetup).filter_by(
             content_type=content_type,
             object_id=object_id
         ).first()
-        
+
         if not node_setup:
             raise HTTPException(status_code=500, detail="NodeSetup not found after creation")
-        
+
         # Get the version (should be version 1 from creation)
         latest_version = sorted(node_setup.versions, key=lambda v: v.created_at, reverse=True)[0]
-        
+
         # Update with imported executable and compute new hash
         latest_version.executable = executable_code
         latest_version.executable_hash = hashlib.sha256(executable_code.encode('utf-8')).hexdigest()
-        
+
         self.db.commit()
         logger.info(f"Updated NodeSetupVersion with imported executable for {content_type} {object_id}")
 
