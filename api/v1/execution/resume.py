@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 class ResumeRequest(BaseModel):
     run_id: str
     resume_node_id: str
-    user_input: dict
+    user_input: dict | bool  # Accept both dict and bool for different pause types
 
 
 @router.post("/{version_id}/resume/", response_model=None)

@@ -44,6 +44,30 @@ def update_node_setup_version(
         )
 
     try:
+        # CRITICAL: Data loss prevention - validate content is not empty
+        if not data.content:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot save empty content - data loss prevention"
+            )
+
+        # Check if nodes and connections are empty
+        nodes = data.content.get('nodes', [])
+        connections = data.content.get('connections', [])
+
+        if len(nodes) == 0 and len(connections) == 0:
+            # Allow empty ONLY for brand new setups (no previous content)
+            if version.content and (version.content.get('nodes') or version.content.get('connections')):
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "Data loss prevention",
+                        "message": f"Cannot save empty content over existing data. This would wipe the {type} clean.",
+                        "previous_nodes": len(version.content.get('nodes', [])),
+                        "previous_connections": len(version.content.get('connections', []))
+                    }
+                )
+
         version.content = data.content
         version.executable = generate_code_from_json(data.content, version.id)
         db.commit()
