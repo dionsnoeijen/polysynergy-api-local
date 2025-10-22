@@ -25,7 +25,11 @@ class AgnoChatHistoryService:
     Uses AGNO_DB_* settings to connect to the Agno database.
     Extracts runs from JSON column and transforms to chat messages.
     """
-    
+
+    # Configuration flags
+    FILTER_SYSTEM_INSTRUCTIONS = True  # Set to False to see RAG context (useful for debugging)
+    STRICT_STATUS_CHECK = False  # Set to True to only accept status='COMPLETED'
+
     def __init__(self):
         self.agno_db_url = self._build_agno_db_url()
         self.engine = create_engine(self.agno_db_url, pool_pre_ping=True)
@@ -83,17 +87,19 @@ class AgnoChatHistoryService:
                 test_query = text("SELECT current_database(), current_user")
                 test_result = db.execute(test_query).fetchone()
                 print(f"Connected to database: {test_result[0]} as user: {test_result[1]}")
-                
-                query = text(f"""
+
+                # First check if session exists
+                check_query = text(f"""
                     SELECT runs, created_at, updated_at
                     FROM {table_name}
                     WHERE session_id = :session_id
                 """)
-                
-                result = db.execute(query, {"session_id": session_id})
-                row = result.fetchone()
-                
-                if not row or not row[0]:  # row[0] is 'runs' column
+
+                check_result = db.execute(check_query, {"session_id": session_id})
+                check_row = check_result.fetchone()
+
+                if not check_row or not check_row[0]:
+                    print(f"DEBUG: No session found or empty runs for session_id: {session_id}")
                     return {
                         "session_id": session_id,
                         "messages": [],
@@ -104,31 +110,107 @@ class AgnoChatHistoryService:
                             "participants": []
                         }
                     }
-                
-                # Extract runs from JSON column and transform to chat messages
-                runs_data = row[0]  # runs column
+
+                session_created_at = check_row[1]
+                session_updated_at = check_row[2]
+
+                # Try JSONB operations to extract individual runs (more efficient)
+                # Fallback to old method if JSONB query fails
+                runs_list = []
+                try:
+                    query = text(f"""
+                        SELECT
+                            jsonb_array_elements(runs) as run
+                        FROM {table_name}
+                        WHERE session_id = :session_id
+                            AND runs IS NOT NULL
+                            AND jsonb_array_length(runs) > 0
+                    """)
+
+                    print(f"DEBUG: Executing JSONB query for session: {session_id}")
+
+                    result = db.execute(query, {"session_id": session_id})
+                    rows = result.fetchall()
+
+                    print(f"DEBUG: JSONB query returned {len(rows)} run rows")
+
+                    if rows:
+                        runs_list = [row[0] for row in rows]  # row[0] is the 'run' jsonb object
+                    else:
+                        print(f"DEBUG: JSONB query returned no rows, trying fallback method")
+
+                except Exception as e:
+                    print(f"DEBUG: JSONB query failed: {e}, falling back to old method")
+                    # Fallback: get runs array directly and parse in Python
+                    runs_data = check_row[0]
+                    if isinstance(runs_data, list):
+                        runs_list = runs_data
+                    else:
+                        runs_list = [runs_data] if runs_data else []
+                    print(f"DEBUG: Fallback method extracted {len(runs_list)} runs")
+
+                if not runs_list:
+                    print(f"DEBUG: No runs found after extraction (JSONB or fallback)")
+                    return {
+                        "session_id": session_id,
+                        "messages": [],
+                        "total_messages": 0,
+                        "session_info": {
+                            "created_at": session_created_at.isoformat() if session_created_at else None,
+                            "last_activity": session_updated_at.isoformat() if session_updated_at else None,
+                            "participants": []
+                        }
+                    }
+
+                # Extract runs from query results
                 messages = []
 
-                # Handle runs as array (like your JSON example)
-                if isinstance(runs_data, list):
-                    runs_list = runs_data
-                else:
-                    runs_list = [runs_data] if runs_data else []
-
-                # Apply limit to runs
-                if limit:
-                    runs_list = runs_list[-limit:]  # Get last N runs
+                # Apply limit in Python (after expansion)
+                if limit and len(runs_list) > limit:
+                    runs_list = runs_list[-limit:]  # Take last N runs
+                    print(f"DEBUG: Applied limit {limit}, using last {len(runs_list)} runs")
 
                 # NO SORTING - use exact order from database
-                
+                print(f"DEBUG: Processing {len(runs_list)} runs (FILTER_SYSTEM_INSTRUCTIONS={self.FILTER_SYSTEM_INSTRUCTIONS}, STRICT_STATUS_CHECK={self.STRICT_STATUS_CHECK})")
+
+                processed_count = 0
+                skipped_count = 0
+
                 for run in runs_list:
-                    # Skip incomplete runs
-                    if not isinstance(run, dict) or run.get('status') != 'COMPLETED':
+                    # Basic validation: must be a dict
+                    if not isinstance(run, dict):
+                        print(f"DEBUG: Skipping non-dict run: {type(run)}")
+                        skipped_count += 1
                         continue
 
-                    # Skip if no input or content
-                    if not run.get('input') or not run.get('content'):
+                    run_status = run.get('status', 'NO_STATUS')
+                    run_id = run.get('run_id', 'NO_RUN_ID')
+
+                    # Optional strict status check
+                    if self.STRICT_STATUS_CHECK:
+                        if run_status != 'COMPLETED':
+                            print(f"DEBUG: Skipping run {run_id} with status: {run_status} (STRICT_STATUS_CHECK=True)")
+                            skipped_count += 1
+                            continue
+                    else:
+                        # Only skip explicitly failed runs
+                        if run_status and run_status.upper() == 'FAILED':
+                            print(f"DEBUG: Skipping run {run_id} - explicitly FAILED")
+                            skipped_count += 1
+                            continue
+                        else:
+                            print(f"DEBUG: Processing run {run_id} with status: {run_status}")
+
+                    # Skip if BOTH input and content are missing (at least one should exist)
+                    has_input = bool(run.get('input'))
+                    has_content = bool(run.get('content'))
+                    if not has_input and not has_content:
+                        print(f"DEBUG: Skipping run {run_id} - no input AND no content")
+                        skipped_count += 1
                         continue
+
+                    processed_count += 1
+                    print(f"DEBUG: Run {run_id} passed validation - has_input={has_input}, has_content={has_content}")
 
                     # DEBUG: Log the run structure to understand where team instructions are stored
                     print(f"DEBUG: Run structure keys: {list(run.keys())}")
@@ -167,8 +249,19 @@ class AgnoChatHistoryService:
                     input_data = run.get('input')
                     user_content = None
 
-                    # Look for actual user input in the messages array
-                    if isinstance(input_data, dict) and 'messages' in input_data:
+                    # PRIORITY 1: Check if run has a 'messages' array at top level (original user messages)
+                    if 'messages' in run and isinstance(run['messages'], list):
+                        print(f"DEBUG: Found messages array in run with {len(run['messages'])} messages")
+                        for msg in run['messages']:
+                            if isinstance(msg, dict) and msg.get('role') == 'user':
+                                content = msg.get('content', '')
+                                if content and isinstance(content, str):
+                                    print(f"DEBUG: Found user message in run.messages: {content[:100]}...")
+                                    user_content = content
+                                    break
+
+                    # PRIORITY 2: Look for actual user input in the input.messages array
+                    if not user_content and isinstance(input_data, dict) and 'messages' in input_data:
                         messages_list = input_data['messages']
                         if isinstance(messages_list, list):
                             # Find the first message with role "user" that's not a system instruction
@@ -179,20 +272,39 @@ class AgnoChatHistoryService:
                                     if content and not content.startswith('You are a member of a team of agents'):
                                         user_content = content
                                         break
-                    elif isinstance(input_data, dict) and 'input_content' in input_data:
+
+                    # PRIORITY 3: Check input_content (but this is often RAG context)
+                    if not user_content and isinstance(input_data, dict) and 'input_content' in input_data:
                         user_content = input_data['input_content']
-                    elif isinstance(input_data, str):
-                        user_content = input_data
+
+                    # PRIORITY 4: Handle other input types
+                    if not user_content:
+                        if isinstance(input_data, str):
+                            user_content = input_data
+                        elif isinstance(input_data, list):
+                            # Sometimes input is a list - convert to string or skip
+                            print(f"DEBUG: Input is a list with {len(input_data)} items, converting to string")
+                            user_content = str(input_data)
+
+                    # Ensure user_content is a string before processing
+                    if user_content and not isinstance(user_content, str):
+                        print(f"DEBUG: user_content is {type(user_content)}, converting to string")
+                        user_content = str(user_content)
 
                     # Add user message (only if it's real user input and not system instructions)
-                    if user_content and user_content.strip():
+                    if user_content and isinstance(user_content, str) and user_content.strip():
                         user_text = user_content.strip()
 
-                        # Filter out system instructions - be more aggressive
-                        if self._is_system_instruction(user_text):
-                            print(f"DEBUG: Skipping system instruction: {user_text[:100]}...")
+                        # Optional: Filter out system instructions (can cause messages to be skipped)
+                        if self.FILTER_SYSTEM_INSTRUCTIONS and self._is_system_instruction(user_text):
+                            print(f"DEBUG: Skipping system instruction (FILTER_SYSTEM_INSTRUCTIONS=True): {user_text[:100]}...")
+                            # Skip to next run without adding message
                         else:
-                            print(f"DEBUG: Processing user content: {user_text[:100]}...")
+                            if self.FILTER_SYSTEM_INSTRUCTIONS:
+                                print(f"DEBUG: Processing user content (passed system filter): {user_text[:100]}...")
+                            else:
+                                print(f"DEBUG: Processing user content (no filtering): {user_text[:100]}...")
+
                             refreshed_user_content = refresh_s3_urls_in_text(user_text)
 
                             if refreshed_user_content != user_text:
@@ -242,6 +354,13 @@ class AgnoChatHistoryService:
                             "member_index": member_index
                         })
                 
+                # Summary logging
+                print(f"DEBUG: ===== PROCESSING SUMMARY =====")
+                print(f"DEBUG: Total runs processed: {processed_count}")
+                print(f"DEBUG: Total runs skipped: {skipped_count}")
+                print(f"DEBUG: Total messages created: {len(messages)}")
+                print(f"DEBUG: ==============================")
+
                 # Add index to preserve original order as secondary sort key
                 for idx, msg in enumerate(messages):
                     msg['_original_index'] = idx
