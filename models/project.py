@@ -12,7 +12,7 @@ from models.base import Base
 class Project(Base):
     __tablename__ = "projects"
 
-    name: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str] = mapped_column()
     tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"))
 
     rest_api_gateway_id: Mapped[Optional[str]] = mapped_column(nullable=True)
