@@ -9,6 +9,7 @@ from models import Route, NodeSetupVersion, Stage, NodeSetupVersionStage, NodeSe
 from services.lambda_service import LambdaService, get_lambda_service
 from services.router_service import RouterService, get_router_service
 from services.sync_checker_service import SyncCheckerService, get_sync_checker_service
+from services.lambda_warmup_service import LambdaWarmupService, get_lambda_warmup_service
 from core.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -20,12 +21,14 @@ class RoutePublishService:
         db: Session,
         lambda_service: LambdaService,
         router_service: RouterService,
-        sync_checker: SyncCheckerService
+        sync_checker: SyncCheckerService,
+        warmup_service: LambdaWarmupService
     ):
         self.db = db
         self.lambda_service = lambda_service
         self.router_service = router_service
         self.sync_checker = sync_checker
+        self.warmup_service = warmup_service
 
     def sync_lambda(self, route: Route, stage: str = 'prod'):
         # Skip Lambda operations when in local execution mode
@@ -69,6 +72,11 @@ class RoutePublishService:
                     sync_status['s3_key'],
                     node_setup_version.executable
                 )
+
+        # Ensure warmup rule exists for this Lambda
+        if not self.warmup_service.warmup_rule_exists(function_name):
+            self.warmup_service.create_warmup_rule(function_name)
+            logger.debug(f"Created warmup rule for {function_name}")
 
     def update_route(self, route: Route, version: NodeSetupVersion, stage: str):
         response = self.router_service.update_route(route, version, stage)
@@ -126,10 +134,12 @@ def get_route_publish_service(
     lambda_service: LambdaService = Depends(get_lambda_service),
     router_service: RouterService = Depends(get_router_service),
     sync_checker: SyncCheckerService = Depends(get_sync_checker_service),
+    warmup_service: LambdaWarmupService = Depends(get_lambda_warmup_service),
 ) -> RoutePublishService:
     return RoutePublishService(
         db=db,
         lambda_service=lambda_service,
         router_service=router_service,
-        sync_checker=sync_checker
+        sync_checker=sync_checker,
+        warmup_service=warmup_service
     )

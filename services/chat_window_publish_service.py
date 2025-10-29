@@ -8,6 +8,7 @@ from db.session import get_db
 from models import ChatWindow, NodeSetupVersion, Stage, NodeSetupVersionStage, NodeSetup
 from services.lambda_service import LambdaService, get_lambda_service
 from services.sync_checker_service import SyncCheckerService, get_sync_checker_service
+from services.lambda_warmup_service import LambdaWarmupService, get_lambda_warmup_service
 from core.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -18,11 +19,13 @@ class ChatWindowPublishService:
         self,
         db: Session,
         lambda_service: LambdaService,
-        sync_checker: SyncCheckerService
+        sync_checker: SyncCheckerService,
+        warmup_service: LambdaWarmupService
     ):
         self.db = db
         self.lambda_service = lambda_service
         self.sync_checker = sync_checker
+        self.warmup_service = warmup_service
 
     def sync_lambda(self, chat_window: ChatWindow, stage: str = 'mock'):
         # Skip Lambda operations when in local execution mode
@@ -66,6 +69,11 @@ class ChatWindowPublishService:
                     sync_status['s3_key'],
                     node_setup_version.executable
                 )
+
+        # Ensure warmup rule exists for this Lambda
+        if not self.warmup_service.warmup_rule_exists(function_name):
+            self.warmup_service.create_warmup_rule(function_name)
+            logger.debug(f"Created warmup rule for {function_name}")
 
     def publish(self, chat_window: ChatWindow):
         # Chat windows always use "mock" stage
@@ -117,9 +125,11 @@ def get_chat_window_publish_service(
     db: Session = Depends(get_db),
     lambda_service: LambdaService = Depends(get_lambda_service),
     sync_checker: SyncCheckerService = Depends(get_sync_checker_service),
+    warmup_service: LambdaWarmupService = Depends(get_lambda_warmup_service),
 ) -> ChatWindowPublishService:
     return ChatWindowPublishService(
         db=db,
         lambda_service=lambda_service,
-        sync_checker=sync_checker
+        sync_checker=sync_checker,
+        warmup_service=warmup_service
     )
