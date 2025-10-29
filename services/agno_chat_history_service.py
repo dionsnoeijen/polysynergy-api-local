@@ -28,7 +28,7 @@ class AgnoChatHistoryService:
 
     # Configuration flags
     FILTER_SYSTEM_INSTRUCTIONS = True  # Set to False to see RAG context (useful for debugging)
-    STRICT_STATUS_CHECK = False  # Set to True to only accept status='COMPLETED'
+    STRICT_STATUS_CHECK = True  # Strict mode: only accept status='COMPLETED' like before
 
     def __init__(self):
         self.agno_db_url = self._build_agno_db_url()
@@ -177,40 +177,13 @@ class AgnoChatHistoryService:
                 skipped_count = 0
 
                 for run in runs_list:
-                    # Basic validation: must be a dict
-                    if not isinstance(run, dict):
-                        print(f"DEBUG: Skipping non-dict run: {type(run)}")
-                        skipped_count += 1
+                    # Skip incomplete runs - STRICT like before
+                    if not isinstance(run, dict) or run.get('status') != 'COMPLETED':
                         continue
 
-                    run_status = run.get('status', 'NO_STATUS')
-                    run_id = run.get('run_id', 'NO_RUN_ID')
-
-                    # Optional strict status check
-                    if self.STRICT_STATUS_CHECK:
-                        if run_status != 'COMPLETED':
-                            print(f"DEBUG: Skipping run {run_id} with status: {run_status} (STRICT_STATUS_CHECK=True)")
-                            skipped_count += 1
-                            continue
-                    else:
-                        # Only skip explicitly failed runs
-                        if run_status and run_status.upper() == 'FAILED':
-                            print(f"DEBUG: Skipping run {run_id} - explicitly FAILED")
-                            skipped_count += 1
-                            continue
-                        else:
-                            print(f"DEBUG: Processing run {run_id} with status: {run_status}")
-
-                    # Skip if BOTH input and content are missing (at least one should exist)
-                    has_input = bool(run.get('input'))
-                    has_content = bool(run.get('content'))
-                    if not has_input and not has_content:
-                        print(f"DEBUG: Skipping run {run_id} - no input AND no content")
-                        skipped_count += 1
+                    # Skip if no input or content - BOTH required like before
+                    if not run.get('input') or not run.get('content'):
                         continue
-
-                    processed_count += 1
-                    print(f"DEBUG: Run {run_id} passed validation - has_input={has_input}, has_content={has_content}")
 
                     # DEBUG: Log the run structure to understand where team instructions are stored
                     print(f"DEBUG: Run structure keys: {list(run.keys())}")
@@ -249,19 +222,8 @@ class AgnoChatHistoryService:
                     input_data = run.get('input')
                     user_content = None
 
-                    # PRIORITY 1: Check if run has a 'messages' array at top level (original user messages)
-                    if 'messages' in run and isinstance(run['messages'], list):
-                        print(f"DEBUG: Found messages array in run with {len(run['messages'])} messages")
-                        for msg in run['messages']:
-                            if isinstance(msg, dict) and msg.get('role') == 'user':
-                                content = msg.get('content', '')
-                                if content and isinstance(content, str):
-                                    print(f"DEBUG: Found user message in run.messages: {content[:100]}...")
-                                    user_content = content
-                                    break
-
-                    # PRIORITY 2: Look for actual user input in the input.messages array
-                    if not user_content and isinstance(input_data, dict) and 'messages' in input_data:
+                    # Look for actual user input in the messages array
+                    if isinstance(input_data, dict) and 'messages' in input_data:
                         messages_list = input_data['messages']
                         if isinstance(messages_list, list):
                             # Find the first message with role "user" that's not a system instruction
@@ -272,38 +234,21 @@ class AgnoChatHistoryService:
                                     if content and not content.startswith('You are a member of a team of agents'):
                                         user_content = content
                                         break
-
-                    # PRIORITY 3: Check input_content (but this is often RAG context)
-                    if not user_content and isinstance(input_data, dict) and 'input_content' in input_data:
+                    elif isinstance(input_data, dict) and 'input_content' in input_data:
                         user_content = input_data['input_content']
-
-                    # PRIORITY 4: Handle other input types
-                    if not user_content:
-                        if isinstance(input_data, str):
-                            user_content = input_data
-                        elif isinstance(input_data, list):
-                            # Sometimes input is a list - convert to string or skip
-                            print(f"DEBUG: Input is a list with {len(input_data)} items, converting to string")
-                            user_content = str(input_data)
-
-                    # Ensure user_content is a string before processing
-                    if user_content and not isinstance(user_content, str):
-                        print(f"DEBUG: user_content is {type(user_content)}, converting to string")
-                        user_content = str(user_content)
+                    elif isinstance(input_data, str):
+                        user_content = input_data
 
                     # Add user message (only if it's real user input and not system instructions)
-                    if user_content and isinstance(user_content, str) and user_content.strip():
+                    if user_content and user_content.strip():
                         user_text = user_content.strip()
 
-                        # Optional: Filter out system instructions (can cause messages to be skipped)
-                        if self.FILTER_SYSTEM_INSTRUCTIONS and self._is_system_instruction(user_text):
-                            print(f"DEBUG: Skipping system instruction (FILTER_SYSTEM_INSTRUCTIONS=True): {user_text[:100]}...")
+                        # Filter out system instructions - be more aggressive
+                        if self._is_system_instruction(user_text):
+                            print(f"DEBUG: Skipping system instruction: {user_text[:100]}...")
                             # Skip to next run without adding message
                         else:
-                            if self.FILTER_SYSTEM_INSTRUCTIONS:
-                                print(f"DEBUG: Processing user content (passed system filter): {user_text[:100]}...")
-                            else:
-                                print(f"DEBUG: Processing user content (no filtering): {user_text[:100]}...")
+                            print(f"DEBUG: Processing user content: {user_text[:100]}...")
 
                             refreshed_user_content = refresh_s3_urls_in_text(user_text)
 
@@ -353,13 +298,6 @@ class AgnoChatHistoryService:
                             "parent_team_id": parent_team_id,
                             "member_index": member_index
                         })
-                
-                # Summary logging
-                print(f"DEBUG: ===== PROCESSING SUMMARY =====")
-                print(f"DEBUG: Total runs processed: {processed_count}")
-                print(f"DEBUG: Total runs skipped: {skipped_count}")
-                print(f"DEBUG: Total messages created: {len(messages)}")
-                print(f"DEBUG: ==============================")
 
                 # Add index to preserve original order as secondary sort key
                 for idx, msg in enumerate(messages):
