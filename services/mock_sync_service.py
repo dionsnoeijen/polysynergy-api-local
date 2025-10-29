@@ -5,10 +5,11 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from db.session import get_db
-from models import Blueprint, NodeSetupVersion, Route, Schedule, Project
+from models import Blueprint, NodeSetupVersion, Route, Schedule, ChatWindow, Project
 from services.blueprint_publish_service import BlueprintPublishService, get_blueprint_publish_service
 from services.route_publish_service import RoutePublishService, get_route_publish_service
 from services.schedule_publish_service import SchedulePublishService, get_schedule_publish_service
+from services.chat_window_publish_service import ChatWindowPublishService, get_chat_window_publish_service
 from core.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -18,12 +19,14 @@ class MockSyncService:
         db: Session,
         blueprint_publish_service: BlueprintPublishService,
         route_publish_service: RoutePublishService,
-        schedule_publish_service: SchedulePublishService
+        schedule_publish_service: SchedulePublishService,
+        chat_window_publish_service: ChatWindowPublishService
     ):
         self.db = db
         self.blueprint_publish_service = blueprint_publish_service
         self.route_publish_service = route_publish_service
         self.schedule_publish_service = schedule_publish_service
+        self.chat_window_publish_service = chat_window_publish_service
 
     def sync_if_needed(self, version: NodeSetupVersion, project: Project):
         if not version.executable:
@@ -53,6 +56,8 @@ class MockSyncService:
             self.route_publish_service.sync_lambda(parent, stage='mock')
         elif isinstance(parent, Schedule):
             self.schedule_publish_service.publish(parent, stage='mock')
+        elif isinstance(parent, ChatWindow):
+            self.chat_window_publish_service.sync_lambda(parent, stage='mock')
         else:
             logger.error(f"Unsupported parent type for mock sync: {type(parent)}")
             return
@@ -67,10 +72,12 @@ def get_mock_sync_service(
     blueprint_publish_service: BlueprintPublishService = Depends(get_blueprint_publish_service),
     route_publish_service: RoutePublishService = Depends(get_route_publish_service),
     schedule_publish_service: SchedulePublishService = Depends(get_schedule_publish_service),
+    chat_window_publish_service: ChatWindowPublishService = Depends(get_chat_window_publish_service),
 ) -> MockSyncService:
     return MockSyncService(
         db,
         blueprint_publish_service,
         route_publish_service,
         schedule_publish_service,
+        chat_window_publish_service,
     )
