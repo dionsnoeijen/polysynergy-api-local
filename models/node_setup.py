@@ -17,11 +17,13 @@ class NodeSetup(Base):
         from models.blueprint import Blueprint
         from models.service import Service
         from models.schedule import Schedule
+        from models.chat_window import ChatWindow
         model_map = {
             "route": Route,
             "blueprint": Blueprint,
             "service": Service,
             "schedule": Schedule,
+            "chat_window": ChatWindow,
         }
         Model = model_map.get(self.content_type)
         if not Model:
