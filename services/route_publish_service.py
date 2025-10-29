@@ -57,10 +57,12 @@ class RoutePublishService:
                     function_name, str(project.tenant.id), str(project.id)
                 )
             else:
-                # Always update environment variables to ensure they're current
-                self.lambda_service.update_function_configuration(
-                    function_name, str(project.tenant.id), str(project.id)
-                )
+                # Skip configuration updates for mock stage to avoid Lambda restarts on every save
+                if stage != 'mock':
+                    # Always update environment variables to ensure they're current
+                    self.lambda_service.update_function_configuration(
+                        function_name, str(project.tenant.id), str(project.id)
+                    )
             if sync_status['needs_s3_update']:
                 self.lambda_service.upload_code_to_s3(
                     settings.AWS_S3_LAMBDA_BUCKET_NAME,
