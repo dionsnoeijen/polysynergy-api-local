@@ -4,12 +4,12 @@ from fastapi import Depends
 
 from db.session import get_db
 from models import (
-    Project, Route, Schedule, Stage, NodeSetup, NodeSetupVersion, 
+    Project, Route, Schedule, ChatWindow, Stage, NodeSetup, NodeSetupVersion,
     NodeSetupVersionStage, RouteSegment
 )
 from schemas.publish_matrix import (
-    PublishMatrixOut, RoutePublishStatusOut, SchedulePublishStatusOut, 
-    StageOut, SegmentOut
+    PublishMatrixOut, RoutePublishStatusOut, SchedulePublishStatusOut,
+    ChatWindowPublishStatusOut, StageOut, SegmentOut
 )
 
 
@@ -21,24 +21,32 @@ class PublishMatrixRepository:
         """Get the complete publish matrix for a project."""
         routes = self._get_routes_by_project(project)
         schedules = self._get_schedules_by_project(project)
-        
+        chat_windows = self._get_chat_windows_by_project(project)
+
         route_data = []
         for route in routes:
             route_status = self._get_route_publish_status(route)
             if route_status:
                 route_data.append(route_status)
-        
+
         schedule_data = []
         for schedule in schedules:
             schedule_status = self._get_schedule_publish_status(schedule)
             if schedule_status:
                 schedule_data.append(schedule_status)
-        
+
+        chat_window_data = []
+        for chat_window in chat_windows:
+            chat_window_status = self._get_chat_window_publish_status(chat_window)
+            if chat_window_status:
+                chat_window_data.append(chat_window_status)
+
         stages = self._get_stages_by_project(project)
-        
+
         return PublishMatrixOut(
             routes=route_data,
             schedules=schedule_data,
+            chat_windows=chat_window_data,
             stages=stages
         )
 
@@ -50,6 +58,11 @@ class PublishMatrixRepository:
     def _get_schedules_by_project(self, project: Project) -> list[Schedule]:
         """Get all schedules for a project."""
         stmt = select(Schedule).where(Schedule.project_id == project.id)
+        return list(self.session.scalars(stmt).all())
+
+    def _get_chat_windows_by_project(self, project: Project) -> list[ChatWindow]:
+        """Get all chat windows for a project."""
+        stmt = select(ChatWindow).where(ChatWindow.project_id == project.id)
         return list(self.session.scalars(stmt).all())
 
     def _get_stages_by_project(self, project: Project) -> list[StageOut]:
@@ -155,6 +168,49 @@ class PublishMatrixRepository:
             id=str(schedule.id),
             name=schedule.name,
             cron_expression=schedule.cron_expression,
+            published_stages=published,
+            stages_can_update=can_update
+        )
+
+    def _get_chat_window_publish_status(self, chat_window: ChatWindow) -> ChatWindowPublishStatusOut | None:
+        """Get publish status for a specific chat window."""
+        # Find the node setup for this chat window
+        node_setup = self.session.scalar(
+            select(NodeSetup).where(
+                NodeSetup.object_id == chat_window.id,
+                NodeSetup.content_type == "chat_window"
+            )
+        )
+        if not node_setup:
+            return None
+
+        # Get the latest version
+        latest_version = self.session.scalar(
+            select(NodeSetupVersion)
+            .where(NodeSetupVersion.node_setup_id == node_setup.id)
+            .order_by(NodeSetupVersion.created_at.desc())
+        )
+        latest_hash = latest_version.executable_hash if latest_version else None
+
+        # Get stage links
+        stage_links = self.session.scalars(
+            select(NodeSetupVersionStage)
+            .where(NodeSetupVersionStage.node_setup_id == node_setup.id)
+            .options(joinedload(NodeSetupVersionStage.stage))
+        ).all()
+
+        published = []
+        can_update = []
+
+        for link in stage_links:
+            published.append(link.stage.name)
+            if latest_hash and latest_hash != link.executable_hash:
+                can_update.append(link.stage.name)
+
+        return ChatWindowPublishStatusOut(
+            id=str(chat_window.id),
+            name=chat_window.name,
+            description=chat_window.description,
             published_stages=published,
             stages_can_update=can_update
         )

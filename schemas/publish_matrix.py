@@ -26,6 +26,14 @@ class SchedulePublishStatusOut(BaseModel):
     stages_can_update: list[str]
 
 
+class ChatWindowPublishStatusOut(BaseModel):
+    id: str
+    name: str
+    description: str | None
+    published_stages: list[str]
+    stages_can_update: list[str]
+
+
 class StageOut(BaseModel):
     id: str
     name: str
@@ -35,4 +43,5 @@ class StageOut(BaseModel):
 class PublishMatrixOut(BaseModel):
     routes: list[RoutePublishStatusOut]
     schedules: list[SchedulePublishStatusOut]
+    chat_windows: list[ChatWindowPublishStatusOut]
     stages: list[StageOut]
