@@ -2,19 +2,20 @@
 
 [[package]]
 name = "agno"
-version = "2.0.11"
+version = "2.2.3"
 description = "Agno: a lightweight library for building Multi-Agent Systems"
 optional = false
 python-versions = "<4,>=3.7"
 groups = ["main"]
 files = [
-    {file = "agno-2.0.11-py3-none-any.whl", hash = "sha256:cce61a9265fa094be9596fb36a1bbbc90e3836f4d80a850f4b12c9ba3ebc8f00"},
-    {file = "agno-2.0.11.tar.gz", hash = "sha256:acc2f99ba3387ff8bd32624732cf16a52ddd48e13ecbb6af7276ff7e71b9d8aa"},
+    {file = "agno-2.2.3-py3-none-any.whl", hash = "sha256:3853f0993797a51f863d0e0cbc7cd6ca2b2d25570cd6266e1063b340a7fc366b"},
+    {file = "agno-2.2.3.tar.gz", hash = "sha256:3a816b3bd9577b7d1b1ab9dd5d371570742cc417f994a5b7ae86eb580fc8baae"},
 ]
 
 [package.dependencies]
 docstring-parser = "*"
 gitpython = "*"
+h11 = ">=0.16.0"
 httpx = "*"
 packaging = "*"
 pydantic = "*"
@@ -27,12 +28,14 @@ typer = "*"
 typing-extensions = "*"
 
 [package.extras]
+a2a = ["a2a-sdk"]
 agentql = ["agentql"]
 agui = ["ag-ui-protocol"]
 anthropic = ["anthropic"]
 apify = ["apify-client"]
 arize = ["agno[opentelemetry]", "arize-phoenix", "opentelemetry-distro", "opentelemetry-exporter-otlp-proto-grpc"]
 arxiv = ["arxiv"]
+async-postgres = ["asyncpg"]
 aws = ["agno-infra[aws]", "agno-infra[docker]"]
 aws-bedrock = ["aioboto3", "boto3"]
 azure = ["aiohttp", "azure-ai-inference"]
@@ -74,8 +77,8 @@ huggingface = ["huggingface-hub"]
 ibm = ["ibm-watsonx-ai"]
 infinity = ["infinity_client"]
 infra = ["agno-infra"]
-integration-tests = ["Pillow", "ddgs", "exa_py", "sqlalchemy", "yfinance"]
-knowledge = ["agno[chonkie]", "agno[csv]", "agno[docx]", "agno[markdown]", "agno[pdf]", "agno[text]"]
+integration-tests = ["Pillow", "ddgs", "exa_py", "fastmcp", "sqlalchemy", "yfinance"]
+knowledge = ["agno[chonkie]", "agno[csv]", "agno[docx]", "agno[markdown]", "agno[pdf]", "agno[pptx]", "agno[text]"]
 lancedb = ["lancedb (>=0.24.0)", "tantivy"]
 langfuse = ["langfuse"]
 litellm = ["litellm"]
@@ -88,7 +91,7 @@ memori = ["memorisdk"]
 meta = ["llama-api-client"]
 milvusdb = ["pymilvus (>=2.5.10)"]
 mistral = ["mistralai"]
-models = ["agno[anthropic]", "agno[aws-bedrock]", "agno[azure]", "agno[cerebras]", "agno[cohere]", "agno[google]", "agno[groq]", "agno[ibm]", "agno[infinity]", "agno[infinity]", "agno[litellm]", "agno[meta]", "agno[mistral]", "agno[ollama]", "agno[openai]", "agno[portkey]"]
+models = ["agno[anthropic]", "agno[aws-bedrock]", "agno[azure]", "agno[cerebras]", "agno[cohere]", "agno[google]", "agno[groq]", "agno[ibm]", "agno[infinity]", "agno[litellm]", "agno[meta]", "agno[mistral]", "agno[ollama]", "agno[openai]", "agno[portkey]"]
 mongodb = ["pymongo[srv]"]
 neo4j = ["neo4j"]
 newspaper = ["lxml_html_clean", "newspaper4k"]
@@ -97,7 +100,7 @@ openai = ["openai"]
 opencv = ["opencv-python"]
 openlit = ["agno[opentelemetry]", "openlit"]
 opentelemetry = ["opentelemetry-exporter-otlp", "opentelemetry-sdk"]
-os = ["fastapi", "uvicorn"]
+os = ["PyJWT", "fastapi", "uvicorn"]
 oxylabs = ["oxylabs"]
 pdf = ["pypdf", "rapidocr_onnxruntime"]
 performance = ["memory_profiler"]
@@ -105,6 +108,7 @@ pgvector = ["pgvector"]
 pinecone = ["pinecone (==5.4.2)"]
 portkey = ["portkey-ai"]
 postgres = ["psycopg-binary"]
+pptx = ["python-pptx"]
 psycopg = ["psycopg", "psycopg-binary"]
 pylance = ["pylance"]
 qdrant = ["qdrant-client"]
@@ -114,12 +118,13 @@ scrapegraph = ["scrapegraph-py"]
 singlestore = ["sqlalchemy"]
 sql = ["sqlalchemy"]
 sqlite = ["sqlalchemy"]
-storage = ["agno[firestore]", "agno[gcs]", "agno[postgres]", "agno[redis]", "agno[sql]", "agno[sqlite]"]
+storage = ["agno[async-postgres]", "agno[firestore]", "agno[gcs]", "agno[postgres]", "agno[redis]", "agno[sql]", "agno[sqlite]"]
 surrealdb = ["surrealdb (>=1.0.4)"]
+tavily = ["tavily-python"]
 tests = ["agno[agui]", "agno[cookbooks]", "agno[dev]", "agno[embedders]", "agno[knowledge]", "agno[models]", "agno[performance]", "agno[storage]", "agno[tools]", "agno[vectordbs]", "build", "twine"]
 text = ["aiofiles"]
 todoist = ["todoist-api-python"]
-tools = ["agno[agentql]", "agno[apify]", "agno[arxiv]", "agno[brave]", "agno[browserbase]", "agno[cartesia]", "agno[confluence]", "agno[crawl4ai]", "agno[ddg]", "agno[duckdb]", "agno[elevenlabs]", "agno[evm]", "agno[exa]", "agno[fal]", "agno[firecrawl]", "agno[github]", "agno[gmail]", "agno[google-bigquery]", "agno[googlemaps]", "agno[matplotlib]", "agno[mcp]", "agno[mem0]", "agno[memori]", "agno[neo4j]", "agno[newspaper]", "agno[opencv]", "agno[oxylabs]", "agno[psycopg]", "agno[reportlab]", "agno[scrapegraph]", "agno[todoist]", "agno[trafilatura]", "agno[valyu]", "agno[webex]", "agno[youtube]", "agno[zep]"]
+tools = ["agno[agentql]", "agno[apify]", "agno[arxiv]", "agno[brave]", "agno[browserbase]", "agno[cartesia]", "agno[confluence]", "agno[crawl4ai]", "agno[ddg]", "agno[duckdb]", "agno[elevenlabs]", "agno[evm]", "agno[exa]", "agno[fal]", "agno[firecrawl]", "agno[github]", "agno[gmail]", "agno[google-bigquery]", "agno[googlemaps]", "agno[matplotlib]", "agno[mcp]", "agno[mem0]", "agno[memori]", "agno[neo4j]", "agno[newspaper]", "agno[opencv]", "agno[oxylabs]", "agno[psycopg]", "agno[reportlab]", "agno[scrapegraph]", "agno[tavily]", "agno[todoist]", "agno[trafilatura]", "agno[valyu]", "agno[webex]", "agno[youtube]", "agno[zep]"]
 trafilatura = ["trafilatura"]
 upstash = ["upstash-vector"]
 valyu = ["valyu"]

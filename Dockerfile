@@ -19,12 +19,23 @@ COPY ./node_runner /node_runner
 COPY ./nodes_agno /nodes_agno
 COPY ./nodes_dev /nodes_dev
 COPY ./api-local/pyproject.toml ./
+COPY ./api-local/poetry.lock ./
 
 ENV POETRY_VIRTUALENVS_CREATE=false
 
-RUN rm -rf /root/.cache/pypoetry/*
+# Clean all caches to prevent conflicts
+RUN rm -rf /root/.cache/pypoetry/* && \
+    rm -rf /root/.cache/pip/* && \
+    pip cache purge || true
+
+# Install dependencies using locked versions
 RUN poetry config virtualenvs.create false \
- && poetry install --no-interaction --no-ansi
+ && poetry install --no-interaction --no-ansi --no-root
+
+# Verify installed versions for debugging
+RUN echo "=== Installed package versions ===" && \
+    poetry show agno || echo "agno not found via poetry" && \
+    pip show agno || echo "agno not found via pip"
 
 COPY ./api-local /app
 

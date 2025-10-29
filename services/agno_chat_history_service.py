@@ -31,6 +31,14 @@ class AgnoChatHistoryService:
     STRICT_STATUS_CHECK = True  # Strict mode: only accept status='COMPLETED' like before
 
     def __init__(self):
+        # Debug: Log which agno version is actually imported
+        try:
+            import agno
+            print(f"DEBUG: Agno version imported at runtime: {agno.__version__}")
+            print(f"DEBUG: Agno module location: {agno.__file__}")
+        except Exception as e:
+            print(f"DEBUG: Could not determine agno version: {e}")
+
         self.agno_db_url = self._build_agno_db_url()
         self.engine = create_engine(self.agno_db_url, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
@@ -243,8 +251,13 @@ class AgnoChatHistoryService:
                     if user_content and user_content.strip():
                         user_text = user_content.strip()
 
+                        # CRITICAL FIX: Skip team member input messages (internal team instructions)
+                        # These are prompts from team manager to individual agents and should never be shown in UI
+                        if is_team_member:
+                            print(f"DEBUG: Skipping team member user message (internal instruction): {user_text[:100]}...")
+                            # Don't add user message, but continue to process agent response below
                         # Filter out system instructions - be more aggressive
-                        if self._is_system_instruction(user_text):
+                        elif self._is_system_instruction(user_text):
                             print(f"DEBUG: Skipping system instruction: {user_text[:100]}...")
                             # Skip to next run without adding message
                         else:
