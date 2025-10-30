@@ -7,8 +7,8 @@ _DISCOVERED_NODES = None
 
 def discover_nodes(packages: list[str] = None):
     global _DISCOVERED_NODES
-    if _DISCOVERED_NODES is not None:
-        return _DISCOVERED_NODES
+    # if _DISCOVERED_NODES is not None:
+    #     return _DISCOVERED_NODES
 
     if packages is None:
         # Get packages from settings, split by comma and strip whitespace

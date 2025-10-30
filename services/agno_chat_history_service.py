@@ -11,11 +11,8 @@ from core.settings import settings
 try:
     from utils.s3_url_refresh import refresh_s3_urls_in_text
     S3_REFRESH_AVAILABLE = True
-    print("DEBUG: S3 refresh functionality loaded successfully")
 except ImportError as e:
-    print(f"DEBUG: S3 refresh not available: {e}")
     def refresh_s3_urls_in_text(text, expiration=3600):
-        print("DEBUG: S3 refresh skipped - boto3 dependencies not available")
         return text
     S3_REFRESH_AVAILABLE = False
 
@@ -34,8 +31,6 @@ class AgnoChatHistoryService:
         # Debug: Log which agno version is actually imported
         try:
             import agno
-            print(f"DEBUG: Agno version imported at runtime: {agno.__version__}")
-            print(f"DEBUG: Agno module location: {agno.__file__}")
         except Exception as e:
             print(f"DEBUG: Could not determine agno version: {e}")
 
@@ -135,12 +130,8 @@ class AgnoChatHistoryService:
                             AND jsonb_array_length(runs) > 0
                     """)
 
-                    print(f"DEBUG: Executing JSONB query for session: {session_id}")
-
                     result = db.execute(query, {"session_id": session_id})
                     rows = result.fetchall()
-
-                    print(f"DEBUG: JSONB query returned {len(rows)} run rows")
 
                     if rows:
                         runs_list = [row[0] for row in rows]  # row[0] is the 'run' jsonb object
@@ -148,17 +139,14 @@ class AgnoChatHistoryService:
                         print(f"DEBUG: JSONB query returned no rows, trying fallback method")
 
                 except Exception as e:
-                    print(f"DEBUG: JSONB query failed: {e}, falling back to old method")
                     # Fallback: get runs array directly and parse in Python
                     runs_data = check_row[0]
                     if isinstance(runs_data, list):
                         runs_list = runs_data
                     else:
                         runs_list = [runs_data] if runs_data else []
-                    print(f"DEBUG: Fallback method extracted {len(runs_list)} runs")
 
                 if not runs_list:
-                    print(f"DEBUG: No runs found after extraction (JSONB or fallback)")
                     return {
                         "session_id": session_id,
                         "messages": [],
@@ -176,10 +164,6 @@ class AgnoChatHistoryService:
                 # Apply limit in Python (after expansion)
                 if limit and len(runs_list) > limit:
                     runs_list = runs_list[-limit:]  # Take last N runs
-                    print(f"DEBUG: Applied limit {limit}, using last {len(runs_list)} runs")
-
-                # NO SORTING - use exact order from database
-                print(f"DEBUG: Processing {len(runs_list)} runs (FILTER_SYSTEM_INSTRUCTIONS={self.FILTER_SYSTEM_INSTRUCTIONS}, STRICT_STATUS_CHECK={self.STRICT_STATUS_CHECK})")
 
                 processed_count = 0
                 skipped_count = 0
@@ -193,24 +177,16 @@ class AgnoChatHistoryService:
                     if not run.get('input') or not run.get('content'):
                         continue
 
-                    # DEBUG: Log the run structure to understand where team instructions are stored
-                    print(f"DEBUG: Run structure keys: {list(run.keys())}")
                     if 'member_responses' in run:
                         print(f"DEBUG: Found member_responses: {run.get('member_responses')}")
                     if 'input' in run:
                         input_data = run.get('input')
-                        print(f"DEBUG: Input structure: {type(input_data)} - {list(input_data.keys()) if isinstance(input_data, dict) else 'not dict'}")
 
                     timestamp_iso = self._to_iso_timestamp(run.get('created_at'))
                     run_id = run.get('run_id')
 
-                    print(f"DEBUG: Processing run {run_id} with timestamp {timestamp_iso} (raw: {run.get('created_at')})")
-                    print(f"DEBUG: Run {run_id} all timestamp fields: created_at={run.get('created_at')}, updated_at={run.get('updated_at')}, started_at={run.get('started_at')}, finished_at={run.get('finished_at')}")
-
                     # Extract node identification (team_id or agent_id = frontend node.id)
                     node_id = run.get('team_id') or run.get('agent_id')
-
-                    print(f"DEBUG: Run {run_id} - parent_run_id: {run.get('parent_run_id')}, node_id: {node_id}")
 
                     # Team member metadata
                     parent_run_id = run.get('parent_run_id')
@@ -225,7 +201,7 @@ class AgnoChatHistoryService:
                         parent_team_id = run.get('team_id')
                         # Extract member index from member metadata if available
                         member_index = run.get('member_index')
-                    
+
                     # Extract user input from messages with role "user" (excluding system/team instructions)
                     input_data = run.get('input')
                     user_content = None
@@ -287,7 +263,7 @@ class AgnoChatHistoryService:
                                 "member_index": member_index,
                                 "images": images
                             })
-                    
+
                     # Add assistant response
                     content = run.get('content')
                     if content and str(content).strip():
@@ -295,12 +271,12 @@ class AgnoChatHistoryService:
                         content_text = str(content).strip()
                         print(f"DEBUG: Processing content: {content_text[:100]}...")
                         refreshed_content = refresh_s3_urls_in_text(content_text)
-                        
+
                         if refreshed_content != content_text:
                             print(f"DEBUG: ✅ S3 URLs refreshed in agent message - length changed from {len(content_text)} to {len(refreshed_content)}")
                         else:
                             print(f"DEBUG: ❌ No S3 URLs found or refreshed in agent message")
-                        
+
                         messages.append({
                             "sender": "agent",
                             "text": refreshed_content,
