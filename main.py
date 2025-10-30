@@ -1,6 +1,10 @@
 import sys, six  # type: ignore
 # maak de virtuele submodule meteen "echt" voor het import-systeem
 sys.modules.setdefault("six.moves", six.moves)
+sys.modules.setdefault("six.moves.urllib", six.moves.urllib)
+sys.modules.setdefault("six.moves.urllib.parse", six.moves.urllib.parse)
+sys.modules.setdefault("six.moves.urllib.request", six.moves.urllib.request)
+sys.modules.setdefault("six.moves.urllib.error", six.moves.urllib.error)
 
 from dotenv import load_dotenv
 load_dotenv()
