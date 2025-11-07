@@ -37,6 +37,45 @@ class LambdaService:
         )
         self.latest_image_uri = '754508895309.dkr.ecr.eu-central-1.amazonaws.com/polysynergy/polysynergy-lambda:latest'
 
+    def _get_lambda_env_vars(self, project_id: str, tenant_id: str) -> dict:
+        """
+        Build environment variables for Lambda functions.
+
+        Uses Lambda-specific database URLs if configured, otherwise falls back to
+        constructing URLs from individual database settings.
+        """
+        env_vars = {
+            'PROJECT_ID': str(project_id),
+            'TENANT_ID': str(tenant_id),
+            'AWS_S3_PUBLIC_BUCKET_NAME': settings.AWS_S3_PUBLIC_BUCKET_NAME,
+            'AWS_S3_PRIVATE_BUCKET_NAME': settings.AWS_S3_PRIVATE_BUCKET_NAME,
+            'REDIS_URL': settings.REDIS_URL,
+            "AGNO_DB_NAME": settings.AGNO_DB_NAME,
+            "AGNO_DB_USER": settings.AGNO_DB_USER,
+            "AGNO_DB_PASSWORD": settings.AGNO_DB_PASSWORD,
+            "AGNO_DB_HOST": settings.AGNO_DB_HOST,
+            "AGNO_DB_PORT": str(settings.AGNO_DB_PORT),
+        }
+
+        # Add main database URL for section metadata
+        if settings.LAMBDA_DATABASE_URL:
+            env_vars['DATABASE_URL'] = settings.LAMBDA_DATABASE_URL
+        else:
+            # Fallback: construct from individual settings
+            env_vars['DATABASE_URL'] = (
+                f"postgresql://{settings.DATABASE_USER}:{settings.DATABASE_PASSWORD}@"
+                f"{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}"
+            )
+
+        # Add sections database URL for dynamic content tables
+        if settings.LAMBDA_SECTIONS_DATABASE_URL:
+            env_vars['SECTIONS_DATABASE_URL'] = settings.LAMBDA_SECTIONS_DATABASE_URL
+        else:
+            # Fallback: use SECTIONS_DATABASE_URL property (which has Docker defaults)
+            env_vars['SECTIONS_DATABASE_URL'] = settings.SECTIONS_DATABASE_URL
+
+        return env_vars
+
     def get_function(self, function_name: str):
         try:
             return self._lambda_client.get_function(FunctionName=function_name)
@@ -74,22 +113,11 @@ class LambdaService:
             return None
 
     def update_function_configuration(self, function_name: str, tenant_id: str, project_id: str) -> None:
+        """Update Lambda function environment variables."""
+        env_vars = self._get_lambda_env_vars(project_id, tenant_id)
         self._lambda_client.update_function_configuration(
             FunctionName=function_name,
-            Environment={
-                'Variables': {
-                    'PROJECT_ID': str(project_id),
-                    'TENANT_ID': str(tenant_id),
-                    'AWS_S3_PUBLIC_BUCKET_NAME': settings.AWS_S3_PUBLIC_BUCKET_NAME,
-                    'AWS_S3_PRIVATE_BUCKET_NAME': settings.AWS_S3_PRIVATE_BUCKET_NAME,
-                    'REDIS_URL': settings.REDIS_URL,
-                    "AGNO_DB_NAME": settings.AGNO_DB_NAME,
-                    "AGNO_DB_USER": settings.AGNO_DB_USER,
-                    "AGNO_DB_PASSWORD": settings.AGNO_DB_PASSWORD,
-                    "AGNO_DB_HOST": settings.AGNO_DB_HOST,
-                    "AGNO_DB_PORT": str(settings.AGNO_DB_PORT),
-                }
-            }
+            Environment={'Variables': env_vars}
         )
 
     def update_function_image(self, function_name: str, tenant_id: str, project_id: str) -> str:
@@ -134,6 +162,7 @@ class LambdaService:
                 self.update_function_image(function_name, tenant_id, project_id)
             else:
                 # Create new function
+                env_vars = self._get_lambda_env_vars(project_id, tenant_id)
                 self._lambda_client.create_function(
                     FunctionName=function_name,
                     PackageType='Image',
@@ -141,20 +170,7 @@ class LambdaService:
                     Role=settings.AWS_LAMBDA_EXECUTION_ROLE,
                     Timeout=900,
                     MemorySize=1024,
-                    Environment={
-                        'Variables': {
-                            'PROJECT_ID': str(project_id),
-                            'TENANT_ID': str(tenant_id),
-                            'AWS_S3_PUBLIC_BUCKET_NAME': settings.AWS_S3_PUBLIC_BUCKET_NAME,
-                            'AWS_S3_PRIVATE_BUCKET_NAME': settings.AWS_S3_PRIVATE_BUCKET_NAME,
-                            "REDIS_URL": settings.REDIS_URL,
-                            "AGNO_DB_NAME": settings.AGNO_DB_NAME,
-                            "AGNO_DB_USER": settings.AGNO_DB_USER,
-                            "AGNO_DB_PASSWORD": settings.AGNO_DB_PASSWORD,
-                            "AGNO_DB_HOST": settings.AGNO_DB_HOST,
-                            "AGNO_DB_PORT": str(settings.AGNO_DB_PORT),
-                        }
-                    }
+                    Environment={'Variables': env_vars}
                 )
 
             s3_key = f"{tenant_id}/{project_id}/{function_name}.py"

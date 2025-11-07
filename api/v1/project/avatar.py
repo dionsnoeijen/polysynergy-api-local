@@ -32,4 +32,11 @@ async def generate_avatar(
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
+        # Check if it's an OpenAI server error
+        error_msg = str(e)
+        if "server_error" in error_msg or "Error code: 500" in error_msg:
+            raise HTTPException(
+                status_code=503,
+                detail="OpenAI's image generation service is temporarily unavailable. Please try again in a few moments. This is an OpenAI server issue, not a problem with PolySynergy."
+            )
         raise HTTPException(status_code=500, detail=str(e))

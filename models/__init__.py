@@ -18,8 +18,8 @@ from models.account import Account
 from models.membership import Membership
 
 # Section Field System
-from models.field_type_registry import FieldTypeRegistry
 from models.database_connection import DatabaseConnection
 from models.section import Section
-from models.section_field import SectionField
+from models.field import Field
+from models.section_field_assignment import SectionFieldAssignment
 from models.section_migration import SectionMigration

@@ -82,13 +82,87 @@ def get_schedule_detail(
     return schedule_repository.get_one_with_versions_by_id(schedule_id, project)
 
 @router.patch("/{schedule_id}/", response_model=ScheduleDetailOut)
-def update_schedule(
+async def update_schedule(
     schedule_id: UUID,
     data: ScheduleUpdateIn,
     project: Project = Depends(get_project_or_403),
     schedule_repository: ScheduleRepository = Depends(get_schedule_repository),
 ):
-    return schedule_repository.update(schedule_id, data, project)
+    # Update in database first
+    updated_schedule = schedule_repository.update(schedule_id, data, project)
+
+    # If local execution is enabled, also update the schedule in APScheduler
+    if settings.EXECUTE_NODE_SETUP_LOCAL:
+        try:
+            from services.local_schedule_service import get_local_schedule_service
+            from models import NodeSetup, NodeSetupVersion, NodeSetupVersionStage, Stage
+            from db.session import get_db
+
+            local_service = get_local_schedule_service()
+
+            # Check if this schedule is currently published to any stage
+            db = next(get_db())
+            try:
+                node_setup = db.query(NodeSetup).filter_by(
+                    content_type="schedule",
+                    object_id=schedule_id
+                ).first()
+
+                if node_setup:
+                    # Get all stage links for this schedule
+                    stage_links = db.query(NodeSetupVersionStage).filter_by(
+                        node_setup_id=node_setup.id
+                    ).all()
+
+                    if stage_links:
+                        # Get the latest version with executable code
+                        version = sorted(node_setup.versions, key=lambda v: v.created_at, reverse=True)
+                        node_setup_version = version[0] if version else None
+
+                        if node_setup_version and node_setup_version.executable:
+                            # For each published stage, update the schedule in APScheduler
+                            for stage_link in stage_links:
+                                stage_obj = db.query(Stage).filter_by(id=stage_link.stage_id).first()
+                                if not stage_obj:
+                                    continue
+
+                                # If schedule is now inactive, remove it from APScheduler
+                                if data.is_active is False:
+                                    await local_service.remove_schedule(str(schedule_id))
+                                    logger.info(f"Removed inactive schedule {schedule_id} from local scheduler")
+                                else:
+                                    # Update the schedule in APScheduler by removing and re-adding
+                                    schedule_data = {
+                                        'id': updated_schedule.id,
+                                        'name': updated_schedule.name,
+                                        'project_id': updated_schedule.project_id,
+                                        'tenant_id': project.tenant_id,
+                                        'cron_expression': updated_schedule.cron_expression,
+                                        'stage': stage_obj.name
+                                    }
+
+                                    # Remove old schedule
+                                    await local_service.remove_schedule(str(schedule_id))
+
+                                    # Add updated schedule
+                                    success = await local_service.add_schedule_with_code(
+                                        schedule_data,
+                                        node_setup_version.executable
+                                    )
+
+                                    if success:
+                                        logger.info(f"Updated schedule {schedule_id} in local scheduler for stage {stage_obj.name}")
+                                    else:
+                                        logger.warning(f"Failed to update schedule {schedule_id} in local scheduler")
+            finally:
+                db.close()
+
+        except Exception as e:
+            logger.error(f"Error updating schedule in local scheduler: {str(e)}", exc_info=True)
+            # Don't fail the entire request if local scheduler update fails
+            # The database update already succeeded
+
+    return updated_schedule
 
 @router.delete("/{schedule_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_schedule(

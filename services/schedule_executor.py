@@ -139,9 +139,12 @@ class ScheduleExecutor:
                 if 'lambda_handler' in namespace:
                     log_capture.add_custom_log("Found lambda_handler, executing...")
 
+                    # Get the stage from the schedule object, default to 'local'
+                    schedule_stage = getattr(schedule, 'stage', 'local')
+
                     # Create a mock event and context for schedule execution
                     mock_event = {
-                        "stage": "schedule",
+                        "stage": schedule_stage,
                         "sub_stage": "local",
                         "run_id": run_id,
                         "node_id": None,  # This will trigger production start

@@ -16,6 +16,18 @@ class Settings(BaseSettings):
     AGNO_DB_HOST: str | None = None
     AGNO_DB_PORT: int | None = None
 
+    # Sections Database (for dynamic section content tables)
+    SECTIONS_DB_NAME: str | None = None
+    SECTIONS_DB_USER: str | None = None
+    SECTIONS_DB_PASSWORD: str | None = None
+    SECTIONS_DB_HOST: str | None = None
+    SECTIONS_DB_PORT: int | None = None
+
+    # Lambda-specific database URLs (for AWS Lambda functions)
+    # These should point to publicly accessible RDS instances or VPC-configured endpoints
+    LAMBDA_DATABASE_URL: str | None = None
+    LAMBDA_SECTIONS_DATABASE_URL: str | None = None
+
     REDIS_URL: str | None = None
 
     @property
@@ -25,6 +37,22 @@ class Settings(BaseSettings):
             f"{self.DATABASE_PASSWORD}@{self.DATABASE_HOST}:"
             f"{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         )
+
+    @property
+    def SECTIONS_DATABASE_URL(self) -> str:
+        """
+        Get sections database URL.
+        Defaults to sections_db service if not configured.
+        """
+        if self.SECTIONS_DB_HOST and self.SECTIONS_DB_USER and self.SECTIONS_DB_PASSWORD and self.SECTIONS_DB_NAME:
+            port = self.SECTIONS_DB_PORT or 5432
+            return (
+                f"postgresql://{self.SECTIONS_DB_USER}:"
+                f"{self.SECTIONS_DB_PASSWORD}@{self.SECTIONS_DB_HOST}:"
+                f"{port}/{self.SECTIONS_DB_NAME}"
+            )
+        # Default to Docker Compose sections_db service
+        return "postgresql://sections_user:sections_password@sections_db:5432/sections_db"
 
     COGNITO_AWS_REGION: str
     COGNITO_USER_POOL_ID: str

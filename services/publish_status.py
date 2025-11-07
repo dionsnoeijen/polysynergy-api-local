@@ -37,6 +37,14 @@ def get_route_publish_status(route: Route, session: Session) -> RoutePublishStat
         if latest_hash and latest_hash != link.executable_hash:
             can_update.append(link.stage.name)
 
+    # If no stage links exist but we have a valid executable_hash,
+    # allow publishing to all stages (first-time publish)
+    if not stage_links and latest_hash:
+        all_stages = session.execute(
+            select(Stage).where(Stage.project_id == route.project_id)
+        ).scalars().all()
+        can_update = [stage.name for stage in all_stages]
+
     segment_objs = session.execute(
         select(RouteSegment).where(RouteSegment.route_id == route.id)
     )
@@ -89,6 +97,14 @@ def get_schedule_publish_status(schedule: Schedule, session: Session) -> Schedul
         published.append(link.stage.name)
         if latest_hash and latest_hash != link.executable_hash:
             can_update.append(link.stage.name)
+
+    # If no stage links exist but we have a valid executable_hash,
+    # allow publishing to all stages (first-time publish)
+    if not stage_links and latest_hash:
+        all_stages = session.execute(
+            select(Stage).where(Stage.project_id == schedule.project_id)
+        ).scalars().all()
+        can_update = [stage.name for stage in all_stages]
 
     return SchedulePublishStatusOut(
         id=str(schedule.id),

@@ -101,18 +101,21 @@ class LocalScheduleService:
                 schedule_id = schedule_data['id']
                 schedule_name = schedule_data['name']
                 cron_expression = schedule_data['cron_expression']
+                stage = schedule_data.get('stage', 'local')  # Default to 'local' if not specified
             else:
                 # Backward compatibility with Schedule objects
                 schedule_id = schedule_data.id
                 schedule_name = schedule_data.name
                 cron_expression = schedule_data.cron_expression
+                stage = getattr(schedule_data, 'stage', 'local')
 
             job_id = f"schedule_{schedule_id}"
 
-            # Store the schedule data with executable code
+            # Store the schedule data with executable code and stage
             stored_data = {
                 'schedule_data': schedule_data,
-                'executable_code': executable_code
+                'executable_code': executable_code,
+                'stage': stage
             }
             self._schedules[str(schedule_id)] = stored_data
 
@@ -247,17 +250,12 @@ class LocalScheduleService:
         """
         Wrapper for schedule execution that handles async context.
         This runs in the scheduler's thread pool.
+        Uses asyncio.run() to create an isolated event loop and prevent blocking the main API.
         """
         try:
-            # Create new event loop for this thread if needed
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-
-            # Run the async execution
-            loop.run_until_complete(self._execute_schedule(schedule_id))
+            # Use asyncio.run() to create a fresh, isolated event loop for this thread
+            # This prevents blocking the main FastAPI event loop and ensures proper cleanup
+            asyncio.run(self._execute_schedule(schedule_id))
 
         except Exception as e:
             logger.error(f"Failed to execute schedule {schedule_id}: {e}")
@@ -278,10 +276,11 @@ class LocalScheduleService:
                 logger.error(f"Schedule {schedule_id} not found in stored schedules")
                 return
 
-            # Extract schedule data and executable code
+            # Extract schedule data, executable code, and stage
             if isinstance(stored_data, dict) and 'schedule_data' in stored_data:
                 schedule_data = stored_data['schedule_data']
                 executable_code = stored_data['executable_code']
+                stage = stored_data.get('stage', 'local')  # Default to 'local'
 
                 # Handle both dict and Schedule object
                 if isinstance(schedule_data, dict):
@@ -299,6 +298,7 @@ class LocalScheduleService:
                 # Old format compatibility
                 schedule = stored_data.get('schedule', stored_data)
                 executable_code = stored_data.get('executable_code', getattr(schedule, 'code', 'print("No code available")'))
+                stage = stored_data.get('stage', 'local')
                 schedule_id_val = schedule.id
                 schedule_name = schedule.name
                 project_id = schedule.project_id
@@ -310,7 +310,8 @@ class LocalScheduleService:
                 'name': schedule_name,
                 'project_id': project_id,
                 'code': executable_code,
-                'tenant_id': tenant_id
+                'tenant_id': tenant_id,
+                'stage': stage
             })()
 
             # Execute the schedule

@@ -118,6 +118,14 @@ class PublishMatrixRepository:
             if latest_hash and latest_hash != link.executable_hash:
                 can_update.append(link.stage.name)
 
+        # If no stage links exist but we have a valid executable_hash,
+        # allow publishing to all stages (first-time publish)
+        if not stage_links and latest_hash:
+            all_stages = self.session.scalars(
+                select(Stage).where(Stage.project_id == route.project_id)
+            ).all()
+            can_update = [stage.name for stage in all_stages]
+
         # Get route segments
         segments = self._get_route_segments(route)
 
@@ -164,6 +172,14 @@ class PublishMatrixRepository:
             if latest_hash and latest_hash != link.executable_hash:
                 can_update.append(link.stage.name)
 
+        # If no stage links exist but we have a valid executable_hash,
+        # allow publishing to all stages (first-time publish)
+        if not stage_links and latest_hash:
+            all_stages = self.session.scalars(
+                select(Stage).where(Stage.project_id == schedule.project_id)
+            ).all()
+            can_update = [stage.name for stage in all_stages]
+
         return SchedulePublishStatusOut(
             id=str(schedule.id),
             name=schedule.name,
@@ -206,6 +222,14 @@ class PublishMatrixRepository:
             published.append(link.stage.name)
             if latest_hash and latest_hash != link.executable_hash:
                 can_update.append(link.stage.name)
+
+        # If no stage links exist but we have a valid executable_hash,
+        # allow publishing to all stages (first-time publish)
+        if not stage_links and latest_hash:
+            all_stages = self.session.scalars(
+                select(Stage).where(Stage.project_id == chat_window.project_id)
+            ).all()
+            can_update = [stage.name for stage in all_stages]
 
         return ChatWindowPublishStatusOut(
             id=str(chat_window.id),

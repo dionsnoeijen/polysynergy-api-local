@@ -1,0 +1,540 @@
+[
+  {
+    "run_id": "048317f8-9008-4ebd-9f41-e5265a5e8bab",
+    "agent_id": "fea9019f-f8ba-4a1a-908b-388ca80c15cd",
+    "agent_name": "OUTZ Kennis Agent",
+    "session_id": "session-ruy23da9c-mhbu4ln6",
+    "parent_run_id": "adeabf4d-8b21-4711-9c34-ac10fb69fe91",
+    "user_id": "dion",
+    "content": "Volgens het \"Algemene IT informatie\" document is e... [TRUNCATED from 527 chars]",
+    "content_type": "str",
+    "model": "gpt-4o",
+    "model_provider": "OpenAI",
+    "metrics": {
+      "input_tokens": 7739,
+      "output_tokens": 123,
+      "total_tokens": 7862,
+      "cache_read_tokens": 1280,
+      "time_to_first_token": 2.005894625908695,
+      "duration": 5.360411793924868
+    },
+    "created_at": 1761732651,
+    "status": "COMPLETED",
+    "messages": [
+      {
+        "id": "996a5ac6-748d-4d0b-906c-6af1c5edf9fd",
+        "content": "<p>Super, medewerker die alles van algemene regels... [TRUNCATED from 3856 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "system",
+        "created_at": 1761732651
+      },
+      {
+        "id": "9fffb975-993d-4d11-af43-711d86827e14",
+        "content": "You are a member of a team of agents. Your goal is... [TRUNCATED from 476 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "user",
+        "created_at": 1761732651
+      },
+      {
+        "id": "64c53be9-248e-4ac2-9627-8a930665028d",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_iJt0Yb92pvqpzWzyXHISgfg2",
+            "type": "function",
+            "function": {
+              "name": "search_knowledge_base",
+              "arguments": "{\"query\":\"privégebruik zakelijke laptop\"}"
+            }
+          }
+        ],
+        "metrics": {
+          "input_tokens": 1296,
+          "output_tokens": 20,
+          "total_tokens": 1316
+        },
+        "created_at": 1761732651
+      },
+      {
+        "id": "bb7e3e6b-1c36-4285-936c-0ca7e2309f55",
+        "content": "[\n  {\n    \"meta_data\": {\n      \"chunk\": 1,\n      \"... [TRUNCATED from 12605 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "tool",
+        "tool_call_id": "call_iJt0Yb92pvqpzWzyXHISgfg2",
+        "tool_name": "search_knowledge_base",
+        "tool_args": {
+          "query": "privégebruik zakelijke laptop"
+        },
+        "tool_call_error": false,
+        "created_at": 1761732653
+      },
+      {
+        "id": "e2f76960-69b7-494e-966c-1ac8c0f5842c",
+        "content": "Volgens het \"Algemene IT informatie\" document is e... [TRUNCATED from 527 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "metrics": {
+          "input_tokens": 6443,
+          "output_tokens": 103,
+          "total_tokens": 6546,
+          "cache_read_tokens": 1280
+        },
+        "created_at": 1761732653
+      }
+    ],
+    "references": [
+      {
+        "query": "privégebruik zakelijke laptop",
+        "references": [
+          {
+            "meta_data": {
+              "chunk": 1,
+              "chunk_size": 976,
+              "filename": "HR_Servicedesk_Werkdocument.docx",
+              "id": "01A3CZCU5T6CEGZPMYY5B3PS37OG24777Q",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 48048,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "category": "hr_service_desk",
+              "document_name": "download.aspx",
+              "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            },
+            "name": "HR_Servicedesk_Werkdocument.docx",
+            "content": "HR Servicedesk Werkdocument – Interne Procedures 1... [TRUNCATED from 976 chars]"
+          },
+          {
+            "meta_data": {
+              "chunk": 2,
+              "chunk_size": 953,
+              "filename": "HR_Servicedesk_Werkdocument.docx",
+              "id": "01A3CZCU5T6CEGZPMYY5B3PS37OG24777Q",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 48048,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "category": "hr_service_desk",
+              "document_name": "download.aspx",
+              "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            },
+            "name": "HR_Servicedesk_Werkdocument.docx",
+            "content": "m volgens de interne correctieprocedure. • Pas all... [TRUNCATED from 953 chars]"
+          },
+          {
+            "meta_data": {
+              "chunk": 2,
+              "chunk_size": 885,
+              "filename": "HR_Werkinstructies.docx",
+              "id": "01A3CZCUYDBC2KOUEL3JGJW4IAHF4EPZFJ",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 46526,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "category": "hr_procedures",
+              "document_name": "download.aspx",
+              "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 989 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            },
+            "name": "HR_Werkinstructies.docx",
+            "content": "gendommen 5. Administratieve afhandeling (salaris,... [TRUNCATED from 885 chars]"
+          },
+          {
+            "meta_data": {
+              "chunk": 1,
+              "chunk_size": 989,
+              "filename": "HR_Werkinstructies.docx",
+              "id": "01A3CZCUYDBC2KOUEL3JGJW4IAHF4EPZFJ",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 46526,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "category": "hr_procedures",
+              "document_name": "download.aspx",
+              "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 989 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            },
+            "name": "HR_Werkinstructies.docx",
+            "content": "HR Werkinstructies 1. Onboarden Het onboarden van ... [TRUNCATED from 989 chars]"
+          },
+          {
+            "meta_data": {
+              "chunk": 1,
+              "chunk_size": 1000,
+              "filename": "Algemene_IT_informatie.docx",
+              "id": "01A3CZCU2B7QE2KAOYEBHK3FSZPHJEN6TP",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 47694,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            },
+            "name": "Algemene_IT_informatie.docx",
+            "content": "Algemene IT informatie Server aanvragen Wil je een... [TRUNCATED from 1000 chars]"
+          }
+        ],
+        "time": 0.5781
+      }
+    ],
+    "tools": [
+      {
+        "tool_call_id": "call_iJt0Yb92pvqpzWzyXHISgfg2",
+        "tool_name": "search_knowledge_base",
+        "tool_args": {
+          "query": "privégebruik zakelijke laptop"
+        },
+        "tool_call_error": false,
+        "result": "[\n  {\n    \"meta_data\": {\n      \"chunk\": 1,\n      \"... [TRUNCATED from 12605 chars]",
+        "metrics": {},
+        "child_run_id": null,
+        "stop_after_tool_call": false,
+        "created_at": 1761731901,
+        "requires_confirmation": null,
+        "confirmed": null,
+        "confirmation_note": null,
+        "requires_user_input": null,
+        "user_input_schema": null,
+        "answered": null,
+        "external_execution_required": null
+      }
+    ],
+    "input": {
+      "input_content": "You are a member of a team of agents. Your goal is... [TRUNCATED from 476 chars]"
+    }
+  },
+  {
+    "content": "Er is geen specifiek beleid gevonden met betrekkin... [TRUNCATED from 359 chars]",
+    "content_type": "str",
+    "metrics": {
+      "input_tokens": 4978,
+      "output_tokens": 170,
+      "total_tokens": 5148,
+      "audio_input_tokens": 0,
+      "audio_output_tokens": 0,
+      "audio_total_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "timer": null,
+      "time_to_first_token": null,
+      "duration": 7.645895462017506,
+      "provider_metrics": null,
+      "additional_metrics": null
+    },
+    "model": "gpt-4o",
+    "model_provider": "OpenAI",
+    "member_responses": [
+      {
+        "run_id": "048317f8-9008-4ebd-9f41-e5265a5e8bab",
+        "agent_id": "fea9019f-f8ba-4a1a-908b-388ca80c15cd",
+        "agent_name": "OUTZ Kennis Agent",
+        "session_id": "session-ruy23da9c-mhbu4ln6",
+        "parent_run_id": "adeabf4d-8b21-4711-9c34-ac10fb69fe91",
+        "user_id": "dion",
+        "content": "Volgens het \"Algemene IT informatie\" document is e... [TRUNCATED from 527 chars]",
+        "content_type": "str",
+        "model": "gpt-4o",
+        "model_provider": "OpenAI",
+        "metrics": {
+          "input_tokens": 7739,
+          "output_tokens": 123,
+          "total_tokens": 7862,
+          "cache_read_tokens": 1280,
+          "time_to_first_token": 2.005894625908695,
+          "duration": 5.360411793924868
+        },
+        "created_at": 1761732651,
+        "status": "COMPLETED",
+        "messages": [
+          {
+            "id": "996a5ac6-748d-4d0b-906c-6af1c5edf9fd",
+            "content": "<p>Super, medewerker die alles van algemene regels... [TRUNCATED from 3856 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "system",
+            "created_at": 1761732651
+          },
+          {
+            "id": "9fffb975-993d-4d11-af43-711d86827e14",
+            "content": "You are a member of a team of agents. Your goal is... [TRUNCATED from 476 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "user",
+            "created_at": 1761732651
+          },
+          {
+            "id": "64c53be9-248e-4ac2-9627-8a930665028d",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "id": "call_iJt0Yb92pvqpzWzyXHISgfg2",
+                "type": "function",
+                "function": {
+                  "name": "search_knowledge_base",
+                  "arguments": "{\"query\":\"privégebruik zakelijke laptop\"}"
+                }
+              }
+            ],
+            "metrics": {
+              "input_tokens": 1296,
+              "output_tokens": 20,
+              "total_tokens": 1316
+            },
+            "created_at": 1761732651
+          },
+          {
+            "id": "bb7e3e6b-1c36-4285-936c-0ca7e2309f55",
+            "content": "[\n  {\n    \"meta_data\": {\n      \"chunk\": 1,\n      \"... [TRUNCATED from 12605 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "tool",
+            "tool_call_id": "call_iJt0Yb92pvqpzWzyXHISgfg2",
+            "tool_name": "search_knowledge_base",
+            "tool_args": {
+              "query": "privégebruik zakelijke laptop"
+            },
+            "tool_call_error": false,
+            "created_at": 1761732653
+          },
+          {
+            "id": "e2f76960-69b7-494e-966c-1ac8c0f5842c",
+            "content": "Volgens het \"Algemene IT informatie\" document is e... [TRUNCATED from 527 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "assistant",
+            "metrics": {
+              "input_tokens": 6443,
+              "output_tokens": 103,
+              "total_tokens": 6546,
+              "cache_read_tokens": 1280
+            },
+            "created_at": 1761732653
+          }
+        ],
+        "references": [
+          {
+            "query": "privégebruik zakelijke laptop",
+            "references": [
+              {
+                "meta_data": {
+                  "chunk": 1,
+                  "chunk_size": 976,
+                  "filename": "HR_Servicedesk_Werkdocument.docx",
+                  "id": "01A3CZCU5T6CEGZPMYY5B3PS37OG24777Q",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 48048,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "category": "hr_service_desk",
+                  "document_name": "download.aspx",
+                  "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                },
+                "name": "HR_Servicedesk_Werkdocument.docx",
+                "content": "HR Servicedesk Werkdocument – Interne Procedures 1... [TRUNCATED from 976 chars]"
+              },
+              {
+                "meta_data": {
+                  "chunk": 2,
+                  "chunk_size": 953,
+                  "filename": "HR_Servicedesk_Werkdocument.docx",
+                  "id": "01A3CZCU5T6CEGZPMYY5B3PS37OG24777Q",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 48048,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "category": "hr_service_desk",
+                  "document_name": "download.aspx",
+                  "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                },
+                "name": "HR_Servicedesk_Werkdocument.docx",
+                "content": "m volgens de interne correctieprocedure. • Pas all... [TRUNCATED from 953 chars]"
+              },
+              {
+                "meta_data": {
+                  "chunk": 2,
+                  "chunk_size": 885,
+                  "filename": "HR_Werkinstructies.docx",
+                  "id": "01A3CZCUYDBC2KOUEL3JGJW4IAHF4EPZFJ",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 46526,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "category": "hr_procedures",
+                  "document_name": "download.aspx",
+                  "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 989 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                },
+                "name": "HR_Werkinstructies.docx",
+                "content": "gendommen 5. Administratieve afhandeling (salaris,... [TRUNCATED from 885 chars]"
+              },
+              {
+                "meta_data": {
+                  "chunk": 1,
+                  "chunk_size": 989,
+                  "filename": "HR_Werkinstructies.docx",
+                  "id": "01A3CZCUYDBC2KOUEL3JGJW4IAHF4EPZFJ",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 46526,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "category": "hr_procedures",
+                  "document_name": "download.aspx",
+                  "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 989 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                },
+                "name": "HR_Werkinstructies.docx",
+                "content": "HR Werkinstructies 1. Onboarden Het onboarden van ... [TRUNCATED from 989 chars]"
+              },
+              {
+                "meta_data": {
+                  "chunk": 1,
+                  "chunk_size": 1000,
+                  "filename": "Algemene_IT_informatie.docx",
+                  "id": "01A3CZCU2B7QE2KAOYEBHK3FSZPHJEN6TP",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 47694,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                },
+                "name": "Algemene_IT_informatie.docx",
+                "content": "Algemene IT informatie Server aanvragen Wil je een... [TRUNCATED from 1000 chars]"
+              }
+            ],
+            "time": 0.5781
+          }
+        ],
+        "tools": [
+          {
+            "tool_call_id": "call_iJt0Yb92pvqpzWzyXHISgfg2",
+            "tool_name": "search_knowledge_base",
+            "tool_args": {
+              "query": "privégebruik zakelijke laptop"
+            },
+            "tool_call_error": false,
+            "result": "[\n  {\n    \"meta_data\": {\n      \"chunk\": 1,\n      \"... [TRUNCATED from 12605 chars]",
+            "metrics": {},
+            "child_run_id": null,
+            "stop_after_tool_call": false,
+            "created_at": 1761731901,
+            "requires_confirmation": null,
+            "confirmed": null,
+            "confirmation_note": null,
+            "requires_user_input": null,
+            "user_input_schema": null,
+            "answered": null,
+            "external_execution_required": null
+          }
+        ],
+        "input": {
+          "input_content": "You are a member of a team of agents. Your goal is... [TRUNCATED from 476 chars]"
+        }
+      }
+    ],
+    "run_id": "adeabf4d-8b21-4711-9c34-ac10fb69fe91",
+    "team_id": "dc2b406d-81ca-452a-9571-3b9bf8fd59ef",
+    "team_name": "HR Support Team",
+    "session_id": "session-ruy23da9c-mhbu4ln6",
+    "input": {
+      "input_content": "Mag ik mijn laptop prive gebruiken?"
+    },
+    "created_at": 1761732646,
+    "status": "COMPLETED",
+    "messages": [
+      {
+        "id": "00966b7e-c81a-4c92-b4cb-9bf4c2469f89",
+        "content": "You are the leader of a team and sub-teams of AI A... [TRUNCATED from 8180 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "system",
+        "created_at": 1761732646
+      },
+      {
+        "id": "982f429f-18ae-4a89-8225-b1bc8aaa8f5d",
+        "content": "Mag ik mijn laptop prive gebruiken?",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "user",
+        "created_at": 1761732646
+      },
+      {
+        "id": "3e7d6333-6ff6-4966-a992-b0418d11f77b",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_AbrjaAX1lM1JcXEjTIn9YrBY",
+            "type": "function",
+            "function": {
+              "name": "delegate_task_to_member",
+              "arguments": "{\"member_id\":\"outz-kennis-agent\",\"task_description... [TRUNCATED from 414 chars]"
+            }
+          }
+        ],
+        "metrics": {
+          "input_tokens": 2387,
+          "output_tokens": 92,
+          "total_tokens": 2479
+        },
+        "created_at": 1761732646
+      },
+      {
+        "id": "b566c5ce-d973-48e7-86c0-881f3000ce34",
+        "content": "Volgens het \"Algemene IT informatie\" document is e... [TRUNCATED from 527 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "tool",
+        "tool_call_id": "call_AbrjaAX1lM1JcXEjTIn9YrBY",
+        "tool_name": "delegate_task_to_member",
+        "tool_args": {
+          "member_id": "outz-kennis-agent",
+          "task_description": "De gebruiker vraagt of ze hun werk laptop voor pri... [TRUNCATED from 254 chars]",
+          "expected_output": "Informatie over het HR-beleid met betrekking tot p... [TRUNCATED from 84 chars]"
+        },
+        "tool_call_error": false,
+        "created_at": 1761732657
+      },
+      {
+        "id": "37cf2dd3-e64a-44ee-a31a-f1222fcc2e71",
+        "content": "Er is geen specifiek beleid gevonden met betrekkin... [TRUNCATED from 359 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "metrics": {
+          "input_tokens": 2591,
+          "output_tokens": 78,
+          "total_tokens": 2669
+        },
+        "created_at": 1761732657
+      }
+    ],
+    "tools": [
+      {
+        "tool_call_id": "call_AbrjaAX1lM1JcXEjTIn9YrBY",
+        "tool_name": "delegate_task_to_member",
+        "tool_args": {
+          "member_id": "outz-kennis-agent",
+          "task_description": "De gebruiker vraagt of ze hun werk laptop voor pri... [TRUNCATED from 254 chars]",
+          "expected_output": "Informatie over het HR-beleid met betrekking tot p... [TRUNCATED from 84 chars]"
+        },
+        "tool_call_error": false,
+        "result": "Volgens het \"Algemene IT informatie\" document is e... [TRUNCATED from 527 chars]",
+        "metrics": {},
+        "child_run_id": "048317f8-9008-4ebd-9f41-e5265a5e8bab",
+        "stop_after_tool_call": false,
+        "created_at": 1761731901,
+        "requires_confirmation": null,
+        "confirmed": null,
+        "confirmation_note": null,
+        "requires_user_input": null,
+        "user_input_schema": null,
+        "answered": null,
+        "external_execution_required": null
+      }
+    ]
+  }
+]

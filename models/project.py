@@ -37,3 +37,9 @@ class Project(Base):
     stages: Mapped[list["Stage"]] = relationship("Stage", back_populates="project", cascade="all, delete-orphan")
 
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    @property
+    def schema_name(self) -> str:
+        """Generate schema name for this project's content tables"""
+        # Use project_ prefix + UUID to ensure uniqueness
+        return f"project_{str(self.id).replace('-', '_')}"

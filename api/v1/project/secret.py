@@ -113,9 +113,12 @@ def delete_secret(
         try:
             secrets_manager.delete_secret_by_key(key, project_id, stage_name)
             results.append(SecretDeleteResult(stage=stage_name, deleted=True))
-        except secrets_manager.client.exceptions.ResourceNotFoundException:
-            results.append(SecretDeleteResult(stage=stage_name, deleted=False))
         except Exception as e:
-            results.append(SecretDeleteResult(stage=stage_name, deleted=False, error=str(e)))
+            # Handle both Secrets Manager ResourceNotFoundException and DynamoDB errors
+            error_msg = str(e)
+            if 'ResourceNotFoundException' in error_msg or 'does not exist' in error_msg:
+                results.append(SecretDeleteResult(stage=stage_name, deleted=False))
+            else:
+                results.append(SecretDeleteResult(stage=stage_name, deleted=False, error=error_msg))
 
     return SecretDeleteOut(results=results)

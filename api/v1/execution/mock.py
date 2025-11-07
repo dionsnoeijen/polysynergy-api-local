@@ -118,6 +118,12 @@ async def execute_local(
     os.environ.setdefault("AWS_ACCESS_KEY_ID", settings.AWS_ACCESS_KEY_ID)
     os.environ.setdefault("AWS_SECRET_ACCESS_KEY", settings.AWS_SECRET_ACCESS_KEY)
 
+    # Set database URLs for section nodes
+    # Strip psycopg2 dialect for nodes (they use sqlalchemy with psycopg2-binary)
+    database_url = settings.DATABASE_URL.replace("postgresql+psycopg2://", "postgresql://")
+    os.environ.setdefault("DATABASE_URL", database_url)
+    os.environ.setdefault("SECTIONS_DATABASE_URL", settings.SECTIONS_DATABASE_URL)
+
     code = version.executable
     namespace = {}
     

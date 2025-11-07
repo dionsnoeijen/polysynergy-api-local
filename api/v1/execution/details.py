@@ -81,14 +81,22 @@ def get_mock_nodes(
     storage: DynamoDbExecutionStorageService = Depends(get_execution_storage_service),
 ):
     try:
+        # Get stage info from run metadata first
+        runs = storage.get_available_runs(flow_id)
+        run_info = next((r for r in runs if r["run_id"] == run_id), None)
+
+        # Use stage from run metadata, default to "mock" if not found
+        stage = run_info.get("stage", "mock") if run_info else "mock"
+        sub_stage = run_info.get("sub_stage", "mock") if run_info else "mock"
+
         # Use the existing get_all_nodes_for_run method to get the execution data
-        nodes = storage.get_all_nodes_for_run(flow_id, run_id, "mock", "mock")
-        
+        nodes = storage.get_all_nodes_for_run(flow_id, run_id, stage, sub_stage)
+
         # Convert to mock node format expected by frontend
         mock_nodes = []
         for node in nodes:
             node_data = node.get('data', {})
-            
+
             mock_node = {
                 "id": f"{node_data.get('node_id', node['node_id'])}-{node_data.get('order', node['order'])}",
                 "handle": node_data.get('handle', ''),
@@ -101,9 +109,14 @@ def get_mock_nodes(
                 "status": "killed" if node_data.get('killed') else ("error" if node_data.get('error') else "success")
             }
             mock_nodes.append(mock_node)
-        
-        return {"mock_nodes": mock_nodes}
-        
+
+        # Include stage information in the response so frontend can build correct links
+        return {
+            "mock_nodes": mock_nodes,
+            "stage": stage,
+            "sub_stage": sub_stage
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

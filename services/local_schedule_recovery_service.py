@@ -134,7 +134,8 @@ class LocalScheduleRecoveryService:
                 'name': schedule_data['name'],
                 'project_id': schedule_data['project_id'],
                 'tenant_id': schedule_data['tenant_id'],
-                'cron_expression': schedule_data['cron_expression']
+                'cron_expression': schedule_data['cron_expression'],
+                'stage': schedule_data['stage_name']
             }
 
             # Add schedule to local scheduler

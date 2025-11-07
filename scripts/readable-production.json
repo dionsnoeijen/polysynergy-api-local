@@ -1,0 +1,1243 @@
+[
+  {
+    "run_id": "fbec46c2-d10f-4e60-b755-30c141832b0a",
+    "agent_id": "a9522930-0cf3-410d-bc21-cad6ae1a4737",
+    "agent_name": "OUTZ Kennis Agent",
+    "session_id": "session-5fc009w95-mhbu78vb",
+    "parent_run_id": "cbd9f0ff-4799-4832-ba07-3b53971d9b02",
+    "user_id": "Dion",
+    "content": "Ik heb geen specifieke HR-beleid of procedures kun... [TRUNCATED from 177 chars]",
+    "content_type": "str",
+    "model": "gpt-4o",
+    "model_provider": "OpenAI",
+    "metrics": {
+      "input_tokens": 7605,
+      "output_tokens": 59,
+      "total_tokens": 7664,
+      "cache_read_tokens": 1152,
+      "time_to_first_token": 1.5448264130000027,
+      "duration": 2.5955005070000006
+    },
+    "created_at": 1761732787,
+    "status": "COMPLETED",
+    "messages": [
+      {
+        "id": "73081de9-047e-4072-8b5d-9238b13b1188",
+        "content": "<p>Super, medewerker die alles van algemene regels... [TRUNCATED from 3856 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "system",
+        "created_at": 1761732787
+      },
+      {
+        "id": "c3261f87-6867-4987-80ef-156b4b338f89",
+        "content": "Vraag of medewerkers hun werk-laptops privé kunnen... [TRUNCATED from 140 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "user",
+        "created_at": 1761732787
+      },
+      {
+        "id": "68634c73-5ea0-4672-9cd9-68acae6c90a3",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_fkMzsbY72bP5jc2HTczk0P1F",
+            "type": "function",
+            "function": {
+              "name": "search_knowledge_base",
+              "arguments": "{\"query\":\"werk-laptop privé gebruik\"}"
+            }
+          }
+        ],
+        "metrics": {
+          "input_tokens": 1229,
+          "output_tokens": 20,
+          "total_tokens": 1249
+        },
+        "created_at": 1761732787
+      },
+      {
+        "id": "d2276015-546c-4083-b3b8-a1b8735b1ad4",
+        "content": "[\n  {\n    \"content\": \"HR Servicedesk Werkdocument ... [TRUNCATED from 12605 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "tool",
+        "tool_call_id": "call_fkMzsbY72bP5jc2HTczk0P1F",
+        "tool_name": "search_knowledge_base",
+        "tool_args": {
+          "query": "werk-laptop privé gebruik"
+        },
+        "tool_call_error": false,
+        "created_at": 1761732789
+      },
+      {
+        "id": "c27723b7-a8ac-481a-aebe-44837bdc6cdb",
+        "content": "Ik heb geen specifieke HR-beleid of procedures kun... [TRUNCATED from 177 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "metrics": {
+          "input_tokens": 6376,
+          "output_tokens": 39,
+          "total_tokens": 6415,
+          "cache_read_tokens": 1152
+        },
+        "created_at": 1761732789
+      }
+    ],
+    "references": [
+      {
+        "query": "werk-laptop privé gebruik",
+        "references": [
+          {
+            "content": "HR Servicedesk Werkdocument – Interne Procedures 1... [TRUNCATED from 976 chars]",
+            "name": "HR_Servicedesk_Werkdocument.docx",
+            "meta_data": {
+              "chunk": 1,
+              "chunk_size": 976,
+              "filename": "HR_Servicedesk_Werkdocument.docx",
+              "id": "01A3CZCU5T6CEGZPMYY5B3PS37OG24777Q",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 48048,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "category": "hr_service_desk",
+              "document_name": "download.aspx",
+              "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            }
+          },
+          {
+            "content": "HR Werkinstructies 1. Onboarden Het onboarden van ... [TRUNCATED from 989 chars]",
+            "name": "HR_Werkinstructies.docx",
+            "meta_data": {
+              "chunk": 1,
+              "chunk_size": 989,
+              "filename": "HR_Werkinstructies.docx",
+              "id": "01A3CZCUYDBC2KOUEL3JGJW4IAHF4EPZFJ",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 46526,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "category": "hr_procedures",
+              "document_name": "download.aspx",
+              "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 989 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            }
+          },
+          {
+            "content": "m volgens de interne correctieprocedure. • Pas all... [TRUNCATED from 953 chars]",
+            "name": "HR_Servicedesk_Werkdocument.docx",
+            "meta_data": {
+              "chunk": 2,
+              "chunk_size": 953,
+              "filename": "HR_Servicedesk_Werkdocument.docx",
+              "id": "01A3CZCU5T6CEGZPMYY5B3PS37OG24777Q",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 48048,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "category": "hr_service_desk",
+              "document_name": "download.aspx",
+              "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            }
+          },
+          {
+            "content": "gendommen 5. Administratieve afhandeling (salaris,... [TRUNCATED from 885 chars]",
+            "name": "HR_Werkinstructies.docx",
+            "meta_data": {
+              "chunk": 2,
+              "chunk_size": 885,
+              "filename": "HR_Werkinstructies.docx",
+              "id": "01A3CZCUYDBC2KOUEL3JGJW4IAHF4EPZFJ",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 46526,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "category": "hr_procedures",
+              "document_name": "download.aspx",
+              "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 989 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            }
+          },
+          {
+            "content": "Algemene IT informatie Server aanvragen Wil je een... [TRUNCATED from 1000 chars]",
+            "name": "Algemene_IT_informatie.docx",
+            "meta_data": {
+              "chunk": 1,
+              "chunk_size": 1000,
+              "filename": "Algemene_IT_informatie.docx",
+              "id": "01A3CZCU2B7QE2KAOYEBHK3FSZPHJEN6TP",
+              "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+              "size": 47694,
+              "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+              "url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+              "chunking_strategy": "RecursiveChunking"
+            }
+          }
+        ],
+        "time": 0.7149
+      }
+    ],
+    "tools": [
+      {
+        "tool_call_id": "call_fkMzsbY72bP5jc2HTczk0P1F",
+        "tool_name": "search_knowledge_base",
+        "tool_args": {
+          "query": "werk-laptop privé gebruik"
+        },
+        "tool_call_error": false,
+        "result": "[\n  {\n    \"content\": \"HR Servicedesk Werkdocument ... [TRUNCATED from 12605 chars]",
+        "metrics": {},
+        "child_run_id": null,
+        "stop_after_tool_call": false,
+        "created_at": 1761732773,
+        "requires_confirmation": null,
+        "confirmed": null,
+        "confirmation_note": null,
+        "requires_user_input": null,
+        "user_input_schema": null,
+        "answered": null,
+        "external_execution_required": null
+      }
+    ],
+    "input": {
+      "input_content": "Vraag of medewerkers hun werk-laptops privé kunnen... [TRUNCATED from 140 chars]"
+    }
+  },
+  {
+    "run_id": "e2997927-7ab5-47c7-8c2b-5ecdcf0abd10",
+    "agent_id": "5da3b685-3f89-417d-9b25-675cacd6b517",
+    "agent_name": "OUTZ Support Ticket Specialist",
+    "session_id": "session-5fc009w95-mhbu78vb",
+    "parent_run_id": "cbd9f0ff-4799-4832-ba07-3b53971d9b02",
+    "user_id": "Dion",
+    "content": "Ik kan geen eerdere tickets vinden over het onderw... [TRUNCATED from 82 chars]",
+    "content_type": "str",
+    "model": "gpt-4o",
+    "model_provider": "OpenAI",
+    "metrics": {
+      "input_tokens": 6018,
+      "output_tokens": 37,
+      "total_tokens": 6055,
+      "time_to_first_token": 1.572998608999999,
+      "duration": 3.579420227
+    },
+    "created_at": 1761732787,
+    "status": "COMPLETED",
+    "messages": [
+      {
+        "id": "d17a7334-7312-4651-b937-04f1bc90fcf3",
+        "content": "<your_role>\nSupport Ticket Specialist\n</your_role>... [TRUNCATED from 2531 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "system",
+        "created_at": 1761732787
+      },
+      {
+        "id": "7e88ba39-a5b6-4512-b23e-2202107a199a",
+        "content": "Zoek naar vergelijkbare gevallen of support ticket... [TRUNCATED from 154 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "user",
+        "created_at": 1761732787
+      },
+      {
+        "id": "2e319a74-1e1f-47a1-a4b9-3979bec4ff73",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_ayXmxdqdIQgWopsSntDe7NFy",
+            "type": "function",
+            "function": {
+              "name": "search_knowledge_base",
+              "arguments": "{\"query\":\"werk-laptop privé gebruik\"}"
+            }
+          }
+        ],
+        "metrics": {
+          "input_tokens": 829,
+          "output_tokens": 20,
+          "total_tokens": 849
+        },
+        "created_at": 1761732787
+      },
+      {
+        "id": "87732ff2-065e-4aeb-8682-8ad9a05e84c5",
+        "content": "[\n  {\n    \"content\": \"{\\n  \\\"id\\\": \\\"68cfb4b818724... [TRUNCATED from 13861 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "tool",
+        "tool_call_id": "call_ayXmxdqdIQgWopsSntDe7NFy",
+        "tool_name": "search_knowledge_base",
+        "tool_args": {
+          "query": "werk-laptop privé gebruik"
+        },
+        "tool_call_error": false,
+        "created_at": 1761732789
+      },
+      {
+        "id": "462ef6a6-dc40-414d-8000-d6794c5c1d6f",
+        "content": "Ik kan geen eerdere tickets vinden over het onderw... [TRUNCATED from 82 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "metrics": {
+          "input_tokens": 5189,
+          "output_tokens": 17,
+          "total_tokens": 5206
+        },
+        "created_at": 1761732789
+      }
+    ],
+    "references": [
+      {
+        "query": "werk-laptop privé gebruik",
+        "references": [
+          {
+            "content": "{\n  \"id\": \"68cfb4b818724c9cab7e95fa\",\n  \"ticketId\"... [TRUNCATED from 515 chars]",
+            "name": "json_document_6",
+            "meta_data": {
+              "source": "json_data",
+              "index": 6,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb4b818724c9cab7e95fa",
+              "json_ticketId": "202505",
+              "json_title": "Vraag over reiskostenvergoeding",
+              "json_description": "Medewerker vraagt of hij recht heeft op reiskosten... [TRUNCATED from 82 chars]",
+              "json_category": "CAO",
+              "json_status": "Open",
+              "json_priority": "Middel",
+              "json_employee": "Peter Travel",
+              "json_hrEmployee": "Maarten Osendarp",
+              "json_notes": "Geef uitleg over het beleid rondom reiskosten bij ... [TRUNCATED from 65 chars]",
+              "json_submittedDate": "2025-08-30T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:59:17.512Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb4ef18724c9cab7e9606\",\n  \"ticketId\"... [TRUNCATED from 498 chars]",
+            "name": "json_document_4",
+            "meta_data": {
+              "source": "json_data",
+              "index": 4,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb4ef18724c9cab7e9606",
+              "json_ticketId": "202510",
+              "json_title": "Verzoek om sabbatical",
+              "json_description": "Medewerker wil weten of het mogelijk is om een sab... [TRUNCATED from 70 chars]",
+              "json_category": "Verlof",
+              "json_status": "Open",
+              "json_priority": "Laag",
+              "json_employee": "Miep Pastoor",
+              "json_hrEmployee": "Wim Kiebert",
+              "json_notes": "Check of dit binnen het CAO of bedrijfsbeleid valt... [TRUNCATED from 74 chars]",
+              "json_submittedDate": "2025-09-06T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:59:47.313Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb4c218724c9cab7e95ff\",\n  \"ticketId\"... [TRUNCATED from 496 chars]",
+            "name": "json_document_5",
+            "meta_data": {
+              "source": "json_data",
+              "index": 5,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb4c218724c9cab7e95ff",
+              "json_ticketId": "202506",
+              "json_title": "Verzoek om extra vakantiedagen",
+              "json_description": "Medewerker wil weten of het mogelijk is om extra v... [TRUNCATED from 76 chars]",
+              "json_category": "Verlof",
+              "json_status": "Open",
+              "json_priority": "Middel",
+              "json_employee": "Miep Metselaar",
+              "json_hrEmployee": "Wim Kiebert",
+              "json_notes": "Check of dit binnen het CAO of bedrijfsregeling va... [TRUNCATED from 53 chars]",
+              "json_submittedDate": "2025-08-13T22:00:00.000Z",
+              "json_lastModified": "2025-10-03T09:35:00.362Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb51818724c9cab7e9619\",\n  \"ticketId\"... [TRUNCATED from 486 chars]",
+            "name": "json_document_1",
+            "meta_data": {
+              "source": "json_data",
+              "index": 1,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb51818724c9cab7e9619",
+              "json_ticketId": "202509",
+              "json_title": "Vraag over thuiswerkvergoeding",
+              "json_description": "Medewerker vraagt of hij recht heeft op een thuisw... [TRUNCATED from 64 chars]",
+              "json_category": "Salaris",
+              "json_status": "Open",
+              "json_priority": "Laag",
+              "json_employee": "Joyce Janssen",
+              "json_hrEmployee": "Maarten Osendarp",
+              "json_notes": " Informeer over het beleid en eventuele voorwaarde... [TRUNCATED from 52 chars]",
+              "json_submittedDate": "2025-09-09T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:59:47.309Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb4a718724c9cab7e95f0\",\n  \"ticketId\"... [TRUNCATED from 544 chars]",
+            "name": "json_document_8",
+            "meta_data": {
+              "source": "json_data",
+              "index": 8,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb4a718724c9cab7e95f0",
+              "json_ticketId": "202503",
+              "json_title": "Verzoek om ouderschapsverlof",
+              "json_description": "Medewerker wil weten hoe hij ouderschapsverlof kan... [TRUNCATED from 87 chars]",
+              "json_category": "Verlof",
+              "json_status": "Open",
+              "json_priority": "Middel",
+              "json_employee": "Joris Kind",
+              "json_hrEmployee": "Maarten Osendarp",
+              "json_notes": " Informeer over het aanvraagproces, duur van het v... [TRUNCATED from 91 chars]",
+              "json_submittedDate": "2025-08-16T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:59:17.502Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb48a18724c9cab7e95e6\",\n  \"ticketId\"... [TRUNCATED from 558 chars]",
+            "name": "json_document_10",
+            "meta_data": {
+              "source": "json_data",
+              "index": 10,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb48a18724c9cab7e95e6",
+              "json_ticketId": "202501",
+              "json_title": "Wat zijn mijn vakantiedagen?",
+              "json_description": "Ik wil graag weten hoeveel vakantiedagen ik krijg ... [TRUNCATED from 72 chars]",
+              "json_category": "Verlof",
+              "json_status": "Gesloten",
+              "json_priority": "Middel",
+              "json_employee": "Piet Jansen",
+              "json_hrEmployee": "Wim Kiebert",
+              "json_notes": "Nodige uitgezocht en zie dat er in de procedures n... [TRUNCATED from 120 chars]",
+              "json_submittedDate": "2025-04-30T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:42:11.575Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb4a018724c9cab7e95eb\",\n  \"ticketId\"... [TRUNCATED from 574 chars]",
+            "name": "json_document_9",
+            "meta_data": {
+              "source": "json_data",
+              "index": 9,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb4a018724c9cab7e95eb",
+              "json_ticketId": "202502",
+              "json_title": "Hoeveel vakantiedagen krijg ik erbij?",
+              "json_description": "Hoi ik ben vandaag 50 geworden en was benieuwd of ... [TRUNCATED from 193 chars]",
+              "json_category": "Verlof",
+              "json_status": "Open",
+              "json_priority": "Middel",
+              "json_employee": "Truus Klaassen",
+              "json_hrEmployee": "Maarten Osendarp",
+              "json_submittedDate": "2025-08-31T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:38:44.499Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb4b018724c9cab7e95f5\",\n  \"ticketId\"... [TRUNCATED from 499 chars]",
+            "name": "json_document_7",
+            "meta_data": {
+              "source": "json_data",
+              "index": 7,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb4b018724c9cab7e95f5",
+              "json_ticketId": "202504",
+              "json_title": "Salaris klopt niet deze maand",
+              "json_description": "Medewerker geeft aan dat het ontvangen salaris lag... [TRUNCATED from 69 chars]",
+              "json_category": "Salaris",
+              "json_status": "Open",
+              "json_priority": "Middel",
+              "json_employee": "Harry Knoop",
+              "json_hrEmployee": "Wim Kiebert",
+              "json_notes": "Controleer op inhoudingen, wijzigingen in uren of ... [TRUNCATED from 66 chars]",
+              "json_submittedDate": "2025-09-07T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:59:17.509Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb51118724c9cab7e9615\",\n  \"ticketId\"... [TRUNCATED from 521 chars]",
+            "name": "json_document_2",
+            "meta_data": {
+              "source": "json_data",
+              "index": 2,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb51118724c9cab7e9615",
+              "json_ticketId": "202508",
+              "json_title": "Correctie functietitel in personeelsdossier",
+              "json_description": "Medewerker merkt op dat zijn functietitel niet klo... [TRUNCATED from 71 chars]",
+              "json_category": "CAO",
+              "json_status": "Gesloten",
+              "json_priority": "Middel",
+              "json_employee": "Achmed Bakker",
+              "json_hrEmployee": "Maarten Osendarp",
+              "json_notes": "Controleer met leidinggevende en pas indien nodig ... [TRUNCATED from 64 chars]",
+              "json_submittedDate": "2025-09-08T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:59:47.308Z"
+            }
+          },
+          {
+            "content": "{\n  \"id\": \"68cfb50718724c9cab7e9611\",\n  \"ticketId\"... [TRUNCATED from 531 chars]",
+            "name": "json_document_3",
+            "meta_data": {
+              "source": "json_data",
+              "index": 3,
+              "chunking_strategy": "DocumentChunking",
+              "json_id": "68cfb50718724c9cab7e9611",
+              "json_ticketId": "202507",
+              "json_title": "Vraag over pensioenregeling",
+              "json_description": "Medewerker wil inzicht in de pensioenregeling en h... [TRUNCATED from 90 chars]",
+              "json_category": "CAO",
+              "json_status": "Open",
+              "json_priority": "Middel",
+              "json_employee": "Klaas Pensioen",
+              "json_hrEmployee": "Maarten Osendarp",
+              "json_notes": "Verwijs eventueel naar het pensioenportaal en geef... [TRUNCATED from 75 chars]",
+              "json_submittedDate": "2025-08-02T22:00:00.000Z",
+              "json_lastModified": "2025-09-21T13:59:47.306Z"
+            }
+          }
+        ],
+        "time": 0.3891
+      }
+    ],
+    "tools": [
+      {
+        "tool_call_id": "call_ayXmxdqdIQgWopsSntDe7NFy",
+        "tool_name": "search_knowledge_base",
+        "tool_args": {
+          "query": "werk-laptop privé gebruik"
+        },
+        "tool_call_error": false,
+        "result": "[\n  {\n    \"content\": \"{\\n  \\\"id\\\": \\\"68cfb4b818724... [TRUNCATED from 13861 chars]",
+        "metrics": {},
+        "child_run_id": null,
+        "stop_after_tool_call": false,
+        "created_at": 1761732773,
+        "requires_confirmation": null,
+        "confirmed": null,
+        "confirmation_note": null,
+        "requires_user_input": null,
+        "user_input_schema": null,
+        "answered": null,
+        "external_execution_required": null
+      }
+    ],
+    "input": {
+      "input_content": "Zoek naar vergelijkbare gevallen of support ticket... [TRUNCATED from 154 chars]"
+    }
+  },
+  {
+    "content": "Er lijkt geen specifiek HR-beleid of procedure te ... [TRUNCATED from 296 chars]",
+    "content_type": "str",
+    "metrics": {
+      "input_tokens": 4703,
+      "output_tokens": 184,
+      "total_tokens": 4887,
+      "audio_input_tokens": 0,
+      "audio_output_tokens": 0,
+      "audio_total_tokens": 0,
+      "cache_read_tokens": 2176,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "timer": null,
+      "time_to_first_token": null,
+      "duration": 5.744418786000001,
+      "provider_metrics": null,
+      "additional_metrics": null
+    },
+    "model": "gpt-4o",
+    "model_provider": "OpenAI",
+    "member_responses": [
+      {
+        "run_id": "fbec46c2-d10f-4e60-b755-30c141832b0a",
+        "agent_id": "a9522930-0cf3-410d-bc21-cad6ae1a4737",
+        "agent_name": "OUTZ Kennis Agent",
+        "session_id": "session-5fc009w95-mhbu78vb",
+        "parent_run_id": "cbd9f0ff-4799-4832-ba07-3b53971d9b02",
+        "user_id": "Dion",
+        "content": "Ik heb geen specifieke HR-beleid of procedures kun... [TRUNCATED from 177 chars]",
+        "content_type": "str",
+        "model": "gpt-4o",
+        "model_provider": "OpenAI",
+        "metrics": {
+          "input_tokens": 7605,
+          "output_tokens": 59,
+          "total_tokens": 7664,
+          "cache_read_tokens": 1152,
+          "time_to_first_token": 1.5448264130000027,
+          "duration": 2.5955005070000006
+        },
+        "created_at": 1761732787,
+        "status": "COMPLETED",
+        "messages": [
+          {
+            "id": "73081de9-047e-4072-8b5d-9238b13b1188",
+            "content": "<p>Super, medewerker die alles van algemene regels... [TRUNCATED from 3856 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "system",
+            "created_at": 1761732787
+          },
+          {
+            "id": "c3261f87-6867-4987-80ef-156b4b338f89",
+            "content": "Vraag of medewerkers hun werk-laptops privé kunnen... [TRUNCATED from 140 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "user",
+            "created_at": 1761732787
+          },
+          {
+            "id": "68634c73-5ea0-4672-9cd9-68acae6c90a3",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "id": "call_fkMzsbY72bP5jc2HTczk0P1F",
+                "type": "function",
+                "function": {
+                  "name": "search_knowledge_base",
+                  "arguments": "{\"query\":\"werk-laptop privé gebruik\"}"
+                }
+              }
+            ],
+            "metrics": {
+              "input_tokens": 1229,
+              "output_tokens": 20,
+              "total_tokens": 1249
+            },
+            "created_at": 1761732787
+          },
+          {
+            "id": "d2276015-546c-4083-b3b8-a1b8735b1ad4",
+            "content": "[\n  {\n    \"content\": \"HR Servicedesk Werkdocument ... [TRUNCATED from 12605 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "tool",
+            "tool_call_id": "call_fkMzsbY72bP5jc2HTczk0P1F",
+            "tool_name": "search_knowledge_base",
+            "tool_args": {
+              "query": "werk-laptop privé gebruik"
+            },
+            "tool_call_error": false,
+            "created_at": 1761732789
+          },
+          {
+            "id": "c27723b7-a8ac-481a-aebe-44837bdc6cdb",
+            "content": "Ik heb geen specifieke HR-beleid of procedures kun... [TRUNCATED from 177 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "assistant",
+            "metrics": {
+              "input_tokens": 6376,
+              "output_tokens": 39,
+              "total_tokens": 6415,
+              "cache_read_tokens": 1152
+            },
+            "created_at": 1761732789
+          }
+        ],
+        "references": [
+          {
+            "query": "werk-laptop privé gebruik",
+            "references": [
+              {
+                "content": "HR Servicedesk Werkdocument – Interne Procedures 1... [TRUNCATED from 976 chars]",
+                "name": "HR_Servicedesk_Werkdocument.docx",
+                "meta_data": {
+                  "chunk": 1,
+                  "chunk_size": 976,
+                  "filename": "HR_Servicedesk_Werkdocument.docx",
+                  "id": "01A3CZCU5T6CEGZPMYY5B3PS37OG24777Q",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 48048,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "category": "hr_service_desk",
+                  "document_name": "download.aspx",
+                  "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                }
+              },
+              {
+                "content": "HR Werkinstructies 1. Onboarden Het onboarden van ... [TRUNCATED from 989 chars]",
+                "name": "HR_Werkinstructies.docx",
+                "meta_data": {
+                  "chunk": 1,
+                  "chunk_size": 989,
+                  "filename": "HR_Werkinstructies.docx",
+                  "id": "01A3CZCUYDBC2KOUEL3JGJW4IAHF4EPZFJ",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 46526,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "category": "hr_procedures",
+                  "document_name": "download.aspx",
+                  "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 989 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                }
+              },
+              {
+                "content": "m volgens de interne correctieprocedure. • Pas all... [TRUNCATED from 953 chars]",
+                "name": "HR_Servicedesk_Werkdocument.docx",
+                "meta_data": {
+                  "chunk": 2,
+                  "chunk_size": 953,
+                  "filename": "HR_Servicedesk_Werkdocument.docx",
+                  "id": "01A3CZCU5T6CEGZPMYY5B3PS37OG24777Q",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 48048,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "category": "hr_service_desk",
+                  "document_name": "download.aspx",
+                  "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                }
+              },
+              {
+                "content": "gendommen 5. Administratieve afhandeling (salaris,... [TRUNCATED from 885 chars]",
+                "name": "HR_Werkinstructies.docx",
+                "meta_data": {
+                  "chunk": 2,
+                  "chunk_size": 885,
+                  "filename": "HR_Werkinstructies.docx",
+                  "id": "01A3CZCUYDBC2KOUEL3JGJW4IAHF4EPZFJ",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 46526,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "category": "hr_procedures",
+                  "document_name": "download.aspx",
+                  "source_url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 989 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                }
+              },
+              {
+                "content": "Algemene IT informatie Server aanvragen Wil je een... [TRUNCATED from 1000 chars]",
+                "name": "Algemene_IT_informatie.docx",
+                "meta_data": {
+                  "chunk": 1,
+                  "chunk_size": 1000,
+                  "filename": "Algemene_IT_informatie.docx",
+                  "id": "01A3CZCU2B7QE2KAOYEBHK3FSZPHJEN6TP",
+                  "driveId": "b!9qC2NyjgB0utsbpYKbC8kmyMd9hySTBPqoGhnks5YXHIDSV9... [TRUNCATED from 66 chars]",
+                  "size": 47694,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.word... [TRUNCATED from 71 chars]",
+                  "url": "https://outzsoftware.sharepoint.com/sites/OUTZ-sof... [TRUNCATED from 990 chars]",
+                  "chunking_strategy": "RecursiveChunking"
+                }
+              }
+            ],
+            "time": 0.7149
+          }
+        ],
+        "tools": [
+          {
+            "tool_call_id": "call_fkMzsbY72bP5jc2HTczk0P1F",
+            "tool_name": "search_knowledge_base",
+            "tool_args": {
+              "query": "werk-laptop privé gebruik"
+            },
+            "tool_call_error": false,
+            "result": "[\n  {\n    \"content\": \"HR Servicedesk Werkdocument ... [TRUNCATED from 12605 chars]",
+            "metrics": {},
+            "child_run_id": null,
+            "stop_after_tool_call": false,
+            "created_at": 1761732773,
+            "requires_confirmation": null,
+            "confirmed": null,
+            "confirmation_note": null,
+            "requires_user_input": null,
+            "user_input_schema": null,
+            "answered": null,
+            "external_execution_required": null
+          }
+        ],
+        "input": {
+          "input_content": "Vraag of medewerkers hun werk-laptops privé kunnen... [TRUNCATED from 140 chars]"
+        }
+      },
+      {
+        "run_id": "e2997927-7ab5-47c7-8c2b-5ecdcf0abd10",
+        "agent_id": "5da3b685-3f89-417d-9b25-675cacd6b517",
+        "agent_name": "OUTZ Support Ticket Specialist",
+        "session_id": "session-5fc009w95-mhbu78vb",
+        "parent_run_id": "cbd9f0ff-4799-4832-ba07-3b53971d9b02",
+        "user_id": "Dion",
+        "content": "Ik kan geen eerdere tickets vinden over het onderw... [TRUNCATED from 82 chars]",
+        "content_type": "str",
+        "model": "gpt-4o",
+        "model_provider": "OpenAI",
+        "metrics": {
+          "input_tokens": 6018,
+          "output_tokens": 37,
+          "total_tokens": 6055,
+          "time_to_first_token": 1.572998608999999,
+          "duration": 3.579420227
+        },
+        "created_at": 1761732787,
+        "status": "COMPLETED",
+        "messages": [
+          {
+            "id": "d17a7334-7312-4651-b937-04f1bc90fcf3",
+            "content": "<your_role>\nSupport Ticket Specialist\n</your_role>... [TRUNCATED from 2531 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "system",
+            "created_at": 1761732787
+          },
+          {
+            "id": "7e88ba39-a5b6-4512-b23e-2202107a199a",
+            "content": "Zoek naar vergelijkbare gevallen of support ticket... [TRUNCATED from 154 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "user",
+            "created_at": 1761732787
+          },
+          {
+            "id": "2e319a74-1e1f-47a1-a4b9-3979bec4ff73",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "id": "call_ayXmxdqdIQgWopsSntDe7NFy",
+                "type": "function",
+                "function": {
+                  "name": "search_knowledge_base",
+                  "arguments": "{\"query\":\"werk-laptop privé gebruik\"}"
+                }
+              }
+            ],
+            "metrics": {
+              "input_tokens": 829,
+              "output_tokens": 20,
+              "total_tokens": 849
+            },
+            "created_at": 1761732787
+          },
+          {
+            "id": "87732ff2-065e-4aeb-8682-8ad9a05e84c5",
+            "content": "[\n  {\n    \"content\": \"{\\n  \\\"id\\\": \\\"68cfb4b818724... [TRUNCATED from 13861 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "tool",
+            "tool_call_id": "call_ayXmxdqdIQgWopsSntDe7NFy",
+            "tool_name": "search_knowledge_base",
+            "tool_args": {
+              "query": "werk-laptop privé gebruik"
+            },
+            "tool_call_error": false,
+            "created_at": 1761732789
+          },
+          {
+            "id": "462ef6a6-dc40-414d-8000-d6794c5c1d6f",
+            "content": "Ik kan geen eerdere tickets vinden over het onderw... [TRUNCATED from 82 chars]",
+            "from_history": false,
+            "stop_after_tool_call": false,
+            "role": "assistant",
+            "metrics": {
+              "input_tokens": 5189,
+              "output_tokens": 17,
+              "total_tokens": 5206
+            },
+            "created_at": 1761732789
+          }
+        ],
+        "references": [
+          {
+            "query": "werk-laptop privé gebruik",
+            "references": [
+              {
+                "content": "{\n  \"id\": \"68cfb4b818724c9cab7e95fa\",\n  \"ticketId\"... [TRUNCATED from 515 chars]",
+                "name": "json_document_6",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 6,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb4b818724c9cab7e95fa",
+                  "json_ticketId": "202505",
+                  "json_title": "Vraag over reiskostenvergoeding",
+                  "json_description": "Medewerker vraagt of hij recht heeft op reiskosten... [TRUNCATED from 82 chars]",
+                  "json_category": "CAO",
+                  "json_status": "Open",
+                  "json_priority": "Middel",
+                  "json_employee": "Peter Travel",
+                  "json_hrEmployee": "Maarten Osendarp",
+                  "json_notes": "Geef uitleg over het beleid rondom reiskosten bij ... [TRUNCATED from 65 chars]",
+                  "json_submittedDate": "2025-08-30T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:59:17.512Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb4ef18724c9cab7e9606\",\n  \"ticketId\"... [TRUNCATED from 498 chars]",
+                "name": "json_document_4",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 4,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb4ef18724c9cab7e9606",
+                  "json_ticketId": "202510",
+                  "json_title": "Verzoek om sabbatical",
+                  "json_description": "Medewerker wil weten of het mogelijk is om een sab... [TRUNCATED from 70 chars]",
+                  "json_category": "Verlof",
+                  "json_status": "Open",
+                  "json_priority": "Laag",
+                  "json_employee": "Miep Pastoor",
+                  "json_hrEmployee": "Wim Kiebert",
+                  "json_notes": "Check of dit binnen het CAO of bedrijfsbeleid valt... [TRUNCATED from 74 chars]",
+                  "json_submittedDate": "2025-09-06T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:59:47.313Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb4c218724c9cab7e95ff\",\n  \"ticketId\"... [TRUNCATED from 496 chars]",
+                "name": "json_document_5",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 5,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb4c218724c9cab7e95ff",
+                  "json_ticketId": "202506",
+                  "json_title": "Verzoek om extra vakantiedagen",
+                  "json_description": "Medewerker wil weten of het mogelijk is om extra v... [TRUNCATED from 76 chars]",
+                  "json_category": "Verlof",
+                  "json_status": "Open",
+                  "json_priority": "Middel",
+                  "json_employee": "Miep Metselaar",
+                  "json_hrEmployee": "Wim Kiebert",
+                  "json_notes": "Check of dit binnen het CAO of bedrijfsregeling va... [TRUNCATED from 53 chars]",
+                  "json_submittedDate": "2025-08-13T22:00:00.000Z",
+                  "json_lastModified": "2025-10-03T09:35:00.362Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb51818724c9cab7e9619\",\n  \"ticketId\"... [TRUNCATED from 486 chars]",
+                "name": "json_document_1",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 1,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb51818724c9cab7e9619",
+                  "json_ticketId": "202509",
+                  "json_title": "Vraag over thuiswerkvergoeding",
+                  "json_description": "Medewerker vraagt of hij recht heeft op een thuisw... [TRUNCATED from 64 chars]",
+                  "json_category": "Salaris",
+                  "json_status": "Open",
+                  "json_priority": "Laag",
+                  "json_employee": "Joyce Janssen",
+                  "json_hrEmployee": "Maarten Osendarp",
+                  "json_notes": " Informeer over het beleid en eventuele voorwaarde... [TRUNCATED from 52 chars]",
+                  "json_submittedDate": "2025-09-09T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:59:47.309Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb4a718724c9cab7e95f0\",\n  \"ticketId\"... [TRUNCATED from 544 chars]",
+                "name": "json_document_8",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 8,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb4a718724c9cab7e95f0",
+                  "json_ticketId": "202503",
+                  "json_title": "Verzoek om ouderschapsverlof",
+                  "json_description": "Medewerker wil weten hoe hij ouderschapsverlof kan... [TRUNCATED from 87 chars]",
+                  "json_category": "Verlof",
+                  "json_status": "Open",
+                  "json_priority": "Middel",
+                  "json_employee": "Joris Kind",
+                  "json_hrEmployee": "Maarten Osendarp",
+                  "json_notes": " Informeer over het aanvraagproces, duur van het v... [TRUNCATED from 91 chars]",
+                  "json_submittedDate": "2025-08-16T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:59:17.502Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb48a18724c9cab7e95e6\",\n  \"ticketId\"... [TRUNCATED from 558 chars]",
+                "name": "json_document_10",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 10,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb48a18724c9cab7e95e6",
+                  "json_ticketId": "202501",
+                  "json_title": "Wat zijn mijn vakantiedagen?",
+                  "json_description": "Ik wil graag weten hoeveel vakantiedagen ik krijg ... [TRUNCATED from 72 chars]",
+                  "json_category": "Verlof",
+                  "json_status": "Gesloten",
+                  "json_priority": "Middel",
+                  "json_employee": "Piet Jansen",
+                  "json_hrEmployee": "Wim Kiebert",
+                  "json_notes": "Nodige uitgezocht en zie dat er in de procedures n... [TRUNCATED from 120 chars]",
+                  "json_submittedDate": "2025-04-30T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:42:11.575Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb4a018724c9cab7e95eb\",\n  \"ticketId\"... [TRUNCATED from 574 chars]",
+                "name": "json_document_9",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 9,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb4a018724c9cab7e95eb",
+                  "json_ticketId": "202502",
+                  "json_title": "Hoeveel vakantiedagen krijg ik erbij?",
+                  "json_description": "Hoi ik ben vandaag 50 geworden en was benieuwd of ... [TRUNCATED from 193 chars]",
+                  "json_category": "Verlof",
+                  "json_status": "Open",
+                  "json_priority": "Middel",
+                  "json_employee": "Truus Klaassen",
+                  "json_hrEmployee": "Maarten Osendarp",
+                  "json_submittedDate": "2025-08-31T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:38:44.499Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb4b018724c9cab7e95f5\",\n  \"ticketId\"... [TRUNCATED from 499 chars]",
+                "name": "json_document_7",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 7,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb4b018724c9cab7e95f5",
+                  "json_ticketId": "202504",
+                  "json_title": "Salaris klopt niet deze maand",
+                  "json_description": "Medewerker geeft aan dat het ontvangen salaris lag... [TRUNCATED from 69 chars]",
+                  "json_category": "Salaris",
+                  "json_status": "Open",
+                  "json_priority": "Middel",
+                  "json_employee": "Harry Knoop",
+                  "json_hrEmployee": "Wim Kiebert",
+                  "json_notes": "Controleer op inhoudingen, wijzigingen in uren of ... [TRUNCATED from 66 chars]",
+                  "json_submittedDate": "2025-09-07T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:59:17.509Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb51118724c9cab7e9615\",\n  \"ticketId\"... [TRUNCATED from 521 chars]",
+                "name": "json_document_2",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 2,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb51118724c9cab7e9615",
+                  "json_ticketId": "202508",
+                  "json_title": "Correctie functietitel in personeelsdossier",
+                  "json_description": "Medewerker merkt op dat zijn functietitel niet klo... [TRUNCATED from 71 chars]",
+                  "json_category": "CAO",
+                  "json_status": "Gesloten",
+                  "json_priority": "Middel",
+                  "json_employee": "Achmed Bakker",
+                  "json_hrEmployee": "Maarten Osendarp",
+                  "json_notes": "Controleer met leidinggevende en pas indien nodig ... [TRUNCATED from 64 chars]",
+                  "json_submittedDate": "2025-09-08T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:59:47.308Z"
+                }
+              },
+              {
+                "content": "{\n  \"id\": \"68cfb50718724c9cab7e9611\",\n  \"ticketId\"... [TRUNCATED from 531 chars]",
+                "name": "json_document_3",
+                "meta_data": {
+                  "source": "json_data",
+                  "index": 3,
+                  "chunking_strategy": "DocumentChunking",
+                  "json_id": "68cfb50718724c9cab7e9611",
+                  "json_ticketId": "202507",
+                  "json_title": "Vraag over pensioenregeling",
+                  "json_description": "Medewerker wil inzicht in de pensioenregeling en h... [TRUNCATED from 90 chars]",
+                  "json_category": "CAO",
+                  "json_status": "Open",
+                  "json_priority": "Middel",
+                  "json_employee": "Klaas Pensioen",
+                  "json_hrEmployee": "Maarten Osendarp",
+                  "json_notes": "Verwijs eventueel naar het pensioenportaal en geef... [TRUNCATED from 75 chars]",
+                  "json_submittedDate": "2025-08-02T22:00:00.000Z",
+                  "json_lastModified": "2025-09-21T13:59:47.306Z"
+                }
+              }
+            ],
+            "time": 0.3891
+          }
+        ],
+        "tools": [
+          {
+            "tool_call_id": "call_ayXmxdqdIQgWopsSntDe7NFy",
+            "tool_name": "search_knowledge_base",
+            "tool_args": {
+              "query": "werk-laptop privé gebruik"
+            },
+            "tool_call_error": false,
+            "result": "[\n  {\n    \"content\": \"{\\n  \\\"id\\\": \\\"68cfb4b818724... [TRUNCATED from 13861 chars]",
+            "metrics": {},
+            "child_run_id": null,
+            "stop_after_tool_call": false,
+            "created_at": 1761732773,
+            "requires_confirmation": null,
+            "confirmed": null,
+            "confirmation_note": null,
+            "requires_user_input": null,
+            "user_input_schema": null,
+            "answered": null,
+            "external_execution_required": null
+          }
+        ],
+        "input": {
+          "input_content": "Zoek naar vergelijkbare gevallen of support ticket... [TRUNCATED from 154 chars]"
+        }
+      }
+    ],
+    "run_id": "cbd9f0ff-4799-4832-ba07-3b53971d9b02",
+    "team_id": "56f87365-36a6-483f-9628-73bf6496d9dd",
+    "team_name": "HR Support Team",
+    "session_id": "session-5fc009w95-mhbu78vb",
+    "input": {
+      "input_content": "Mag ik mijn laptop prive gebruiken?  "
+    },
+    "created_at": 1761732783,
+    "status": "COMPLETED",
+    "messages": [
+      {
+        "id": "d35afb34-5c26-4673-853e-f2593ac41d12",
+        "content": "You are the leader of a team and sub-teams of AI A... [TRUNCATED from 7539 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "system",
+        "created_at": 1761732783
+      },
+      {
+        "id": "af7a48ac-3fd5-4e94-859a-89cdf95c5daa",
+        "content": "Mag ik mijn laptop prive gebruiken?  ",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "user",
+        "created_at": 1761732783
+      },
+      {
+        "id": "89a3b5e3-c86c-46fe-9e76-bef63f74994e",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_8T0SnhtpbCPkefrWViWlOHfz",
+            "type": "function",
+            "function": {
+              "name": "delegate_task_to_member",
+              "arguments": "{\"member_id\": \"outz-kennis-agent\", \"task\": \"Vraag ... [TRUNCATED from 186 chars]"
+            }
+          },
+          {
+            "id": "call_b41Pv8heXfkk6OzpiSQz05o4",
+            "type": "function",
+            "function": {
+              "name": "delegate_task_to_member",
+              "arguments": "{\"member_id\": \"outz-support-ticket-specialist\", \"t... [TRUNCATED from 213 chars]"
+            }
+          }
+        ],
+        "metrics": {
+          "input_tokens": 2251,
+          "output_tokens": 123,
+          "total_tokens": 2374
+        },
+        "created_at": 1761732783
+      },
+      {
+        "id": "9077974d-1ed8-4d5b-b0bb-55c8018121df",
+        "content": "Ik heb geen specifieke HR-beleid of procedures kun... [TRUNCATED from 177 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "tool",
+        "tool_call_id": "call_8T0SnhtpbCPkefrWViWlOHfz",
+        "tool_name": "delegate_task_to_member",
+        "tool_args": {
+          "member_id": "outz-kennis-agent",
+          "task": "Vraag of medewerkers hun werk-laptops privé kunnen... [TRUNCATED from 140 chars]"
+        },
+        "tool_call_error": false,
+        "created_at": 1761732791
+      },
+      {
+        "id": "b190f36d-1b92-48e2-901e-28d6e4f0e0d2",
+        "content": "Ik kan geen eerdere tickets vinden over het onderw... [TRUNCATED from 82 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "tool",
+        "tool_call_id": "call_b41Pv8heXfkk6OzpiSQz05o4",
+        "tool_name": "delegate_task_to_member",
+        "tool_args": {
+          "member_id": "outz-support-ticket-specialist",
+          "task": "Zoek naar vergelijkbare gevallen of support ticket... [TRUNCATED from 154 chars]"
+        },
+        "tool_call_error": false,
+        "created_at": 1761732791
+      },
+      {
+        "id": "9d87b0fa-634e-429e-b172-7b572348e911",
+        "content": "Er lijkt geen specifiek HR-beleid of procedure te ... [TRUNCATED from 296 chars]",
+        "from_history": false,
+        "stop_after_tool_call": false,
+        "role": "assistant",
+        "metrics": {
+          "input_tokens": 2452,
+          "output_tokens": 61,
+          "total_tokens": 2513,
+          "cache_read_tokens": 2176
+        },
+        "created_at": 1761732791
+      }
+    ],
+    "tools": [
+      {
+        "tool_call_id": "call_8T0SnhtpbCPkefrWViWlOHfz",
+        "tool_name": "delegate_task_to_member",
+        "tool_args": {
+          "member_id": "outz-kennis-agent",
+          "task": "Vraag of medewerkers hun werk-laptops privé kunnen... [TRUNCATED from 140 chars]"
+        },
+        "tool_call_error": false,
+        "result": "Ik heb geen specifieke HR-beleid of procedures kun... [TRUNCATED from 177 chars]",
+        "metrics": {},
+        "child_run_id": "e2997927-7ab5-47c7-8c2b-5ecdcf0abd10",
+        "stop_after_tool_call": false,
+        "created_at": 1761732773,
+        "requires_confirmation": null,
+        "confirmed": null,
+        "confirmation_note": null,
+        "requires_user_input": null,
+        "user_input_schema": null,
+        "answered": null,
+        "external_execution_required": null
+      },
+      {
+        "tool_call_id": "call_b41Pv8heXfkk6OzpiSQz05o4",
+        "tool_name": "delegate_task_to_member",
+        "tool_args": {
+          "member_id": "outz-support-ticket-specialist",
+          "task": "Zoek naar vergelijkbare gevallen of support ticket... [TRUNCATED from 154 chars]"
+        },
+        "tool_call_error": false,
+        "result": "Ik kan geen eerdere tickets vinden over het onderw... [TRUNCATED from 82 chars]",
+        "metrics": {},
+        "child_run_id": "e2997927-7ab5-47c7-8c2b-5ecdcf0abd10",
+        "stop_after_tool_call": false,
+        "created_at": 1761732773,
+        "requires_confirmation": null,
+        "confirmed": null,
+        "confirmation_note": null,
+        "requires_user_input": null,
+        "user_input_schema": null,
+        "answered": null,
+        "external_execution_required": null
+      }
+    ]
+  }
+]
