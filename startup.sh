@@ -32,6 +32,12 @@ if [ -f "$AGNO_POSTGRES_PASSWORD_FILE" ]; then
     echo "✓ Agno PostgreSQL password loaded from secret"
 fi
 
+# Read Sections PostgreSQL password from Docker secret if it exists
+if [ -f "$SECTIONS_POSTGRES_PASSWORD_FILE" ]; then
+    export SECTIONS_POSTGRES_PASSWORD=$(cat "$SECTIONS_POSTGRES_PASSWORD_FILE")
+    echo "✓ Sections PostgreSQL password loaded from secret"
+fi
+
 echo "🌐 Starting uvicorn server..."
 
 # Start uvicorn with reload support
