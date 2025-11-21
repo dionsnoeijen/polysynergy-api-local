@@ -1,8 +1,12 @@
 import asyncio
 import os
+from typing import Optional
 
-from fastapi import WebSocket, APIRouter, WebSocketDisconnect
+from fastapi import WebSocket, APIRouter, WebSocketDisconnect, Query
 import redis.asyncio as redis
+
+from db.session import get_db
+from utils.websocket_auth import validate_websocket_token
 
 router = APIRouter()
 redis_url = os.getenv('REDIS_URL', 'redis://redis:6379')
@@ -13,9 +17,25 @@ redis_client = redis.from_url(
 )
 
 @router.websocket("/execution/{flow_id}")
-async def execution_ws(websocket: WebSocket, flow_id: str):
+async def execution_ws(
+    websocket: WebSocket,
+    flow_id: str,
+    token: Optional[str] = Query(None)
+):
+    # Validate authentication before accepting connection
+    db = next(get_db())
+    try:
+        account = await validate_websocket_token(token, db)
+        print(f'✅ Authenticated WebSocket connection for account: {account.email}')
+    except Exception as e:
+        print(f'❌ WebSocket authentication failed: {e}')
+        await websocket.close(code=1008, reason=str(e))
+        return
+    finally:
+        db.close()
+
     await websocket.accept()
-    print('ACCEPTED CONNECTION')
+    print(f'ACCEPTED CONNECTION for flow_id={flow_id}')
 
     exec_channel = f"execution_updates:{flow_id}"
     chat_channel = f"chat_stream:{flow_id}"
