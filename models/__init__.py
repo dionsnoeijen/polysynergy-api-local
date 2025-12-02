@@ -16,6 +16,7 @@ from models.tenant import Tenant
 from models.project import Project
 from models.account import Account
 from models.membership import Membership
+from models.global_settings import GlobalSettings
 
 # Section Field System
 from models.database_connection import DatabaseConnection

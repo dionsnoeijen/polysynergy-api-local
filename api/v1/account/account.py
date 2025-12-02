@@ -80,12 +80,29 @@ def resend_invite(
     )
     return {"message": "Invitation email successfully resent"}
 
-@router.get("/{cognito_id}/", response_model=AccountOut)
+@router.get("/{account_identifier}/", response_model=AccountOut)
 def get_account(
-    cognito_id: str,
+    account_identifier: str,
     session: Session = Depends(get_db)
 ):
-    account = AccountService.get_by_cognito_id(session, cognito_id)
+    """Get account by external_user_id or UUID (primary key).
+
+    This endpoint supports both identifiers for backwards compatibility:
+    - external_user_id: Auth provider's user ID (most common, from JWT token)
+    - UUID: Account's primary key (legacy support)
+    """
+    # First try external_user_id lookup (most common case - from JWT token)
+    account = AccountService.get_by_external_user_id(session, account_identifier)
+
+    # If not found and identifier is a valid UUID, try primary key lookup
+    if not account:
+        try:
+            UUID(account_identifier)
+            account = AccountService.get_by_id(session, account_identifier)
+        except ValueError:
+            # Not a valid UUID, no other options
+            pass
+
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
     return account

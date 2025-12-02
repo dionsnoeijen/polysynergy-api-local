@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from api.v1.nodes import router as v1_nodes_router
 from api.v1.project import router as v1_project_router
 from api.v1.account import router as v1_account_router
+from api.v1.auth import router as v1_auth_router
 from api.v1.execution import router as v1_execution_router
 from api.v1.documentation.documentation import router as v1_documentation_router
 from api.v1.updates.updates import router as v1_updates_router
@@ -26,6 +27,7 @@ from api.v1.oauth.oauth_callback import router as v1_oauth_router
 from api.v1.feedback import router as v1_feedback_router
 from api.v1.section_field import router as v1_section_field_router
 from api.v1.public import router as v1_public_router
+from api.v1.settings import router as v1_settings_router
 
 from ws.v1.execution import router as websocket_execution_router
 from ws.v1.public_chat import router as websocket_public_chat_router
@@ -250,6 +252,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(v1_nodes_router, prefix="/api/v1")
 app.include_router(v1_project_router, prefix="/api/v1")
 app.include_router(v1_account_router, prefix="/api/v1")
+app.include_router(v1_auth_router, prefix="/api/v1")
 app.include_router(v1_execution_router, prefix="/api/v1")
 app.include_router(v1_documentation_router, prefix="/api/v1/documentation", tags=["documentation"])
 app.include_router(v1_updates_router, prefix="/api/v1/updates", tags=["updates"])
@@ -257,6 +260,7 @@ app.include_router(v1_oauth_router, prefix="/api/v1/oauth")
 app.include_router(v1_feedback_router, prefix="/api/v1")
 app.include_router(v1_section_field_router, prefix="/api/v1/section-field")
 app.include_router(v1_public_router, prefix="/api/v1/public")
+app.include_router(v1_settings_router, prefix="/api/v1/settings")
 app.include_router(websocket_execution_router, prefix="/ws/v1")
 app.include_router(websocket_public_chat_router, prefix="/ws/v1")
 

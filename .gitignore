@@ -8,6 +8,7 @@ __pycache__/
 venv/
 env/
 tmp/
+backups/
 .venv/
 .python-version
 

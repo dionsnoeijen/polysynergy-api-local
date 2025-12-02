@@ -54,9 +54,38 @@ class Settings(BaseSettings):
         # Default to Docker Compose sections_db service
         return "postgresql://sections_user:sections_password@sections_db:5432/sections_db"
 
-    COGNITO_AWS_REGION: str
-    COGNITO_USER_POOL_ID: str
-    COGNITO_APP_CLIENT_ID: str
+    # Authentication mode: True = SAAS (Cognito), False = Standalone (local)
+    SAAS_MODE: bool = True
+
+    # Cognito settings (required when SAAS_MODE=True)
+    COGNITO_AWS_REGION: str | None = None
+    COGNITO_USER_POOL_ID: str | None = None
+    COGNITO_APP_CLIENT_ID: str | None = None
+
+    # Standalone auth settings (required when SAAS_MODE=False)
+    JWT_SECRET_KEY: str | None = None
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # Self-Hosted Configuration
+    # DynamoDB Local endpoint (leave empty for AWS DynamoDB)
+    DYNAMODB_LOCAL_ENDPOINT: str | None = None
+
+    # MinIO S3-compatible storage (leave empty for AWS S3)
+    S3_LOCAL_ENDPOINT: str | None = None
+    S3_ACCESS_KEY: str | None = None
+    S3_SECRET_KEY: str | None = None
+
+    # Routes table name (used by router service)
+    ROUTES_TABLE_NAME: str | None = None
+
+    # Encryption Configuration
+    # Main encryption key for secrets in DynamoDB
+    ENCRYPTION_KEY: str | None = None
+    # Migration keys (for copying data from AWS to self-hosted)
+    AWS_ENCRYPTION_KEY: str | None = None
+    LOCAL_ENCRYPTION_KEY: str | None = None
 
     AWS_REGION: str
     AWS_ACCESS_KEY_ID: str

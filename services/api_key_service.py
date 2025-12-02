@@ -1,5 +1,6 @@
 from datetime import datetime
 import uuid
+import os
 
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -13,12 +14,20 @@ class ApiKeyService:
     GSI_NAME = "gsi_keyid"
 
     def __init__(self):
-        self.dynamodb = boto3.resource(
-            "dynamodb",
-            region_name=settings.AWS_REGION,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        )
+        # Build DynamoDB resource config
+        dynamodb_config = {"region_name": settings.AWS_REGION}
+
+        # Use local endpoint if configured (self-hosted mode)
+        local_endpoint = settings.DYNAMODB_LOCAL_ENDPOINT
+        if local_endpoint:
+            dynamodb_config["endpoint_url"] = local_endpoint
+            dynamodb_config["aws_access_key_id"] = "dummy"
+            dynamodb_config["aws_secret_access_key"] = "dummy"
+        else:
+            dynamodb_config["aws_access_key_id"] = settings.AWS_ACCESS_KEY_ID
+            dynamodb_config["aws_secret_access_key"] = settings.AWS_SECRET_ACCESS_KEY
+
+        self.dynamodb = boto3.resource("dynamodb", **dynamodb_config)
         self.table = self.dynamodb.Table("router_api_keys")
 
     def _pk(self, project: Project) -> str:

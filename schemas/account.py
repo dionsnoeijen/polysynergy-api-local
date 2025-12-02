@@ -11,7 +11,7 @@ class AccountRoleEnum(str, Enum):
 
 
 class AccountCreate(BaseModel):
-    cognito_id: str
+    external_user_id: str
     tenant_name: str
     email: EmailStr
     first_name: str
@@ -39,7 +39,7 @@ class AccountOut(BaseModel):
     email: EmailStr
     first_name: str | None = None
     last_name: str | None = None
-    cognito_id: str
+    external_user_id: str
     role: AccountRoleEnum
     active: bool
     single_user: bool = False

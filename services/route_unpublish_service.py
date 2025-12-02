@@ -7,6 +7,7 @@ from db.session import get_db
 from models import Route, NodeSetup, NodeSetupVersionStage, Stage
 from services.lambda_service import LambdaService, get_lambda_service
 from services.router_service import RouterService, get_router_service
+from core.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +40,12 @@ class RouteUnpublishService:
 
         function_name = f"node_setup_{str(node_setup_version.id)}_{stage}"
 
-        self.lambda_service.delete_lambda(function_name)
-        logger.debug(f"Deleted Lambda function: {function_name}")
+        # Skip Lambda operations when in local execution mode
+        if not settings.EXECUTE_NODE_SETUP_LOCAL:
+            self.lambda_service.delete_lambda(function_name)
+            logger.debug(f"Deleted Lambda function: {function_name}")
+        else:
+            logger.info(f"Local mode: Skipping Lambda deletion for {function_name}")
 
         # Delete the stage link
         deleted = self.db.query(NodeSetupVersionStage).filter(

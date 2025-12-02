@@ -24,6 +24,10 @@ redis = "^6.2.0"
 typer = {extras = ["all"], version = "^0.16.0"}
 sentry-sdk = {extras = ["fastapi"], version = "^2.0.0"}
 apscheduler = "^3.10.4"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+bcrypt = "4.0.1"
+pyotp = "^2.9.0"
+fastapi-mail = "^1.4.1"
 
 [tool.poetry.group.dev.dependencies]
 uvicorn = {extras = ["standard"], version = "^0.35.0"}

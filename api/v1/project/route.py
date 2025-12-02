@@ -97,13 +97,8 @@ def publish_route(
     route = route_repository.get_one_with_versions_by_id(route_id, project)
 
     try:
-        # Skip Lambda operations when in local execution mode
-        if settings.EXECUTE_NODE_SETUP_LOCAL:
-            # Only update the router service for route registration
-            # but skip all Lambda-related operations
-            logger.info(f"Local mode: Skipping Lambda publish for route {route_id}")
-            return {"message": "Route publish skipped in local execution mode"}
-
+        # In local execution mode, the publish service will skip Lambda operations
+        # but still update the router service
         return publish_service.publish(route, body.stage.strip())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -124,11 +119,8 @@ def unpublish_route(
     route = route_repository.get_one_with_versions_by_id(route_id, project)
 
     try:
-        # Skip Lambda operations when in local execution mode
-        if settings.EXECUTE_NODE_SETUP_LOCAL:
-            logger.info(f"Local mode: Skipping Lambda unpublish for route {route_id}")
-            return {"message": "Route unpublish skipped in local execution mode"}
-
+        # In local execution mode, the unpublish service will skip Lambda operations
+        # but still update the router service
         unpublish_service.unpublish(route, body.stage.strip())
         return {"message": "Route successfully unpublished"}
     except Exception as e:

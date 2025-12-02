@@ -7,12 +7,14 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from models import Account, Membership, Project
-from utils.get_current_account import validate_token
+from core.auth import get_auth_provider
 
 
 async def validate_websocket_token(token: Optional[str], db: Session) -> Account:
     """
     Validate JWT token for WebSocket connections and return the account.
+
+    Works with both SAAS (Cognito) and Standalone auth modes.
 
     Args:
         token: JWT token from query parameter
@@ -31,8 +33,9 @@ async def validate_websocket_token(token: Optional[str], db: Session) -> Account
         )
 
     try:
-        # Use existing token validation from get_current_account
-        decoded = validate_token(token)
+        # Use auth provider to validate token
+        provider = get_auth_provider()
+        decoded = provider.validate_token(token)
         sub = decoded.get("sub")
 
         if not sub:
@@ -41,8 +44,8 @@ async def validate_websocket_token(token: Optional[str], db: Session) -> Account
                 reason="Invalid token payload"
             )
 
-        # Get account
-        account = db.query(Account).filter(Account.cognito_id == sub).first()
+        # Get account by external_user_id (works for both Cognito and standalone)
+        account = db.query(Account).filter(Account.external_user_id == sub).first()
 
         if not account:
             raise WebSocketException(

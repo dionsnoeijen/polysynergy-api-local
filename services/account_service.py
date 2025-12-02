@@ -5,7 +5,7 @@ from starlette.background import BackgroundTasks
 
 from models import Account, Membership, Tenant
 from core.settings import settings
-import boto3
+from core.auth import get_auth_provider
 
 from utils.generate_temporary_password import generate_temporary_password
 from services.email.email_service import EmailService
@@ -14,9 +14,38 @@ from services.email.email_service import EmailService
 class AccountService:
 
     @staticmethod
-    def get_by_cognito_id(session: Session, cognito_id: str) -> Account | None:
+    def get_by_external_user_id(session: Session, external_user_id: str) -> Account | None:
+        """Get account by external user ID (works with both Cognito and standalone).
+
+        Args:
+            session: Database session
+            external_user_id: External auth provider user ID
+
+        Returns:
+            Account if found, None otherwise
+        """
         return session.execute(
-            select(Account).where(Account.cognito_id == cognito_id)
+            select(Account).where(Account.external_user_id == external_user_id)
+        ).scalar_one_or_none()
+
+    @staticmethod
+    def get_by_cognito_id(session: Session, cognito_id: str) -> Account | None:
+        """Legacy method for backwards compatibility. Use get_by_external_user_id instead."""
+        return AccountService.get_by_external_user_id(session, cognito_id)
+
+    @staticmethod
+    def get_by_id(session: Session, account_id: str) -> Account | None:
+        """Get account by primary key UUID.
+
+        Args:
+            session: Database session
+            account_id: Account UUID (primary key)
+
+        Returns:
+            Account if found, None otherwise
+        """
+        return session.execute(
+            select(Account).where(Account.id == account_id)
         ).scalar_one_or_none()
 
     @staticmethod
@@ -45,9 +74,15 @@ class AccountService:
         tenant = Tenant(name=data["tenant_name"])
         session.add(tenant)
 
+        # Support both old (cognito_id) and new (external_user_id) data keys
+        external_user_id = data.get("external_user_id") or data.get("cognito_id")
+        if not external_user_id:
+            raise ValueError("Either 'external_user_id' or 'cognito_id' must be provided")
+
         # Account creator is always admin (they're creating their own tenant)
         account = Account(
-            cognito_id=data["cognito_id"],
+            external_user_id=external_user_id,
+            auth_provider=data.get("auth_provider", "cognito" if settings.SAAS_MODE else "standalone"),
             first_name=data["first_name"],
             last_name=data["last_name"],
             email=data["email"],
@@ -61,14 +96,18 @@ class AccountService:
         session.add(membership)
         session.commit()
 
-        AccountService._update_cognito_user(
-            email=account.email,
-            attrs=[
-                {"Name": "given_name", "Value": data["first_name"]},
-                {"Name": "family_name", "Value": data["last_name"]},
-                {"Name": "custom:tenant", "Value": str(tenant.id)},
-            ]
-        )
+        # Update user attributes in auth provider
+        auth_provider = get_auth_provider()
+        try:
+            auth_provider.update_user(
+                external_user_id=account.external_user_id,
+                first_name=data["first_name"],
+                last_name=data["last_name"],
+                **{"custom:tenant": str(tenant.id)}  # Cognito custom attribute
+            )
+        except Exception as e:
+            # Log warning but don't fail - local changes already committed
+            print(f"Warning: Failed to update auth provider: {e}")
 
         # Send welcome email and admin notification
         if background_tasks:
@@ -105,19 +144,25 @@ class AccountService:
 
         temp_password = generate_temporary_password()
 
-        cognito_client = AccountService._cognito_client()
-        user = cognito_client.admin_create_user(
-            UserPoolId=settings.COGNITO_USER_POOL_ID,
-            Username=email,
-            UserAttributes=[
-                {"Name": "email", "Value": email},
-                {"Name": "email_verified", "Value": "true"},
-            ],
-            TemporaryPassword=temp_password,
-            MessageAction="SUPPRESS",
+        # Create user in auth provider
+        auth_provider = get_auth_provider()
+        external_user_id = auth_provider.create_user(
+            email=email,
+            first_name="",
+            last_name="",
+            temporary_password=temp_password
         )
 
-        account = Account(cognito_id=user["User"]["Username"], email=email, first_name="", last_name="", role=role)
+        # Create account in database
+        account = Account(
+            external_user_id=external_user_id,
+            auth_provider="cognito" if settings.SAAS_MODE else "standalone",
+            email=email,
+            first_name="",
+            last_name="",
+            role=role,
+            active=False  # Not active until they set their name/password
+        )
         session.add(account)
         session.flush()
 
@@ -130,9 +175,23 @@ class AccountService:
         return account
 
     @staticmethod
-    def activate_account(session: Session, cognito_id: str, first_name: str, last_name: str) -> Account:
+    def activate_account(session: Session, external_user_id: str, first_name: str, last_name: str) -> Account:
+        """Activate account after user sets their name.
+
+        Args:
+            session: Database session
+            external_user_id: External auth provider user ID
+            first_name: User's first name
+            last_name: User's last name
+
+        Returns:
+            Updated Account
+
+        Raises:
+            ValueError: If account not found or already active
+        """
         account = session.execute(
-            select(Account).where(Account.cognito_id == cognito_id)
+            select(Account).where(Account.external_user_id == external_user_id)
         ).scalar_one_or_none()
 
         if not account:
@@ -145,13 +204,16 @@ class AccountService:
         account.last_name = last_name
         account.active = True
 
-        AccountService._update_cognito_user(
-            email=account.email,
-            attrs=[
-                {"Name": "given_name", "Value": first_name},
-                {"Name": "family_name", "Value": last_name},
-            ]
-        )
+        # Update auth provider
+        auth_provider = get_auth_provider()
+        try:
+            auth_provider.update_user(
+                external_user_id=account.external_user_id,
+                first_name=first_name,
+                last_name=last_name
+            )
+        except Exception as e:
+            print(f"Warning: Failed to update auth provider: {e}")
 
         session.commit()
         return account
@@ -167,11 +229,11 @@ class AccountService:
 
         temp_password = generate_temporary_password()
 
-        AccountService._cognito_client().admin_set_user_password(
-            UserPoolId=settings.COGNITO_USER_POOL_ID,
-            Username=account.email,
-            Password=temp_password,
-            Permanent=False,
+        # Set temporary password via auth provider
+        auth_provider = get_auth_provider()
+        auth_provider.set_temporary_password(
+            external_user_id=account.external_user_id,
+            password=temp_password
         )
 
         EmailService.send_invitation_email(
@@ -190,23 +252,27 @@ class AccountService:
         if not account:
             raise ValueError("Account not found")
 
-        # Build list of cognito attributes to update
-        cognito_attrs = []
+        # Track which fields are updated
+        updated_fields = {}
 
         if "first_name" in updates and updates["first_name"] is not None:
             account.first_name = updates["first_name"]
-            cognito_attrs.append({"Name": "given_name", "Value": updates["first_name"]})
+            updated_fields["first_name"] = updates["first_name"]
 
         if "last_name" in updates and updates["last_name"] is not None:
             account.last_name = updates["last_name"]
-            cognito_attrs.append({"Name": "family_name", "Value": updates["last_name"]})
+            updated_fields["last_name"] = updates["last_name"]
 
-        # Update Cognito if there are changes
-        if cognito_attrs:
-            AccountService._update_cognito_user(
-                email=account.email,
-                attrs=cognito_attrs
-            )
+        # Update auth provider if there are changes
+        if updated_fields:
+            auth_provider = get_auth_provider()
+            try:
+                auth_provider.update_user(
+                    external_user_id=account.external_user_id,
+                    **updated_fields
+                )
+            except Exception as e:
+                print(f"Warning: Failed to update auth provider: {e}")
 
         session.commit()
         session.refresh(account)
@@ -221,27 +287,13 @@ class AccountService:
         if not account:
             raise ValueError("Account not found")
 
-        AccountService._cognito_client().admin_delete_user(
-            UserPoolId=settings.COGNITO_USER_POOL_ID,
-            Username=account.email,
-        )
+        # Delete from auth provider first
+        auth_provider = get_auth_provider()
+        try:
+            auth_provider.delete_user(external_user_id=account.external_user_id)
+        except Exception as e:
+            print(f"Warning: Failed to delete user from auth provider: {e}")
 
+        # Delete from database
         session.delete(account)
         session.commit()
-
-    @staticmethod
-    def _cognito_client():
-        return boto3.client(
-            service_name='cognito-idp',
-            region_name=settings.AWS_REGION,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        )
-
-    @staticmethod
-    def _update_cognito_user(email: str, attrs: list):
-        AccountService._cognito_client().admin_update_user_attributes(
-            UserPoolId=settings.COGNITO_USER_POOL_ID,
-            Username=email,
-            UserAttributes=attrs
-        )
