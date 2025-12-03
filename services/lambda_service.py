@@ -55,7 +55,7 @@ class LambdaService:
             "AGNO_DB_PASSWORD": settings.AGNO_DB_PASSWORD,
             "AGNO_DB_HOST": settings.AGNO_DB_HOST,
             "AGNO_DB_PORT": str(settings.AGNO_DB_PORT),
-            "ENCRYPTION_KEY": settings.encryption_key,
+            "ENCRYPTION_KEY": settings.ENCRYPTION_KEY,
         }
 
         # Add main database URL for section metadata
