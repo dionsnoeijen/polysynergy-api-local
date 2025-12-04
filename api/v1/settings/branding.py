@@ -7,7 +7,7 @@ from models import Account
 from utils.get_current_account import get_current_account_admin
 from repositories.global_settings_repository import GlobalSettingsRepository
 from schemas.global_settings import GlobalSettingsUpdate
-from polysynergy_node_runner.services.s3_service import S3Service, get_s3_service
+from services.s3_service import get_s3_service
 
 router = APIRouter()
 
@@ -93,11 +93,8 @@ async def upload_logo(
     file_content = await file.read()
     file_key = f"branding/{file.filename}"
 
-    s3_service = get_s3_service(tenant_id="global", public=True)
-    file_url = s3_service.upload_file(
-        file_obj=file_content,
-        file_key=file_key
-    )
+    s3_service = get_s3_service(tenant_id="global")
+    file_url = s3_service.upload_file_simple(file_content, file_key)
 
     # Check if upload succeeded
     if not file_url:

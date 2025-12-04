@@ -23,8 +23,7 @@ router = APIRouter()
 
 def get_file_manager_service(
     project_id: str,
-    current_account: Account = Depends(get_current_account),
-    public: bool = False
+    current_account: Account = Depends(get_current_account)
 ) -> FileManagerService:
     """Get file manager service instance"""
     if not current_account.memberships:
@@ -34,8 +33,8 @@ def get_file_manager_service(
         )
     
     tenant_id = current_account.memberships[0].tenant_id
-    s3_service = get_s3_service(tenant_id=str(tenant_id), public=public)
-    
+    s3_service = get_s3_service(tenant_id=str(tenant_id), project_id=str(project_id))
+
     return FileManagerService(s3_service=s3_service, project_id=project_id, tenant_id=tenant_id)
 
 

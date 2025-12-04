@@ -28,8 +28,11 @@ class FileManagerService:
         self.tenant_id = tenant_id
         
         # Create unified S3 client
-        self.s3_client = self._create_s3_client()
+        self.s3_client, self.local_endpoint = self._create_s3_client()
         self.region = os.getenv("AWS_REGION", "eu-central-1")
+
+        # For MinIO: create a separate client for URL signing with localhost endpoint
+        self.url_signing_client = self._create_url_signing_client() if self.local_endpoint else self.s3_client
         
         # Get unified bucket name
         self.bucket_name = self._get_unified_bucket_name()
@@ -38,24 +41,50 @@ class FileManagerService:
         self._ensure_bucket_exists()
     
     def _create_s3_client(self):
-        """Create S3 client with appropriate credentials"""
+        """Create S3 client with appropriate credentials. Returns (client, local_endpoint)."""
+        from core.settings import settings
+
         is_lambda = os.getenv("AWS_EXECUTION_ENV") is not None
-        
+
         if is_lambda:
             # In Lambda, use IAM role
             return boto3.client(
                 's3',
                 region_name=os.getenv("AWS_REGION", "eu-central-1")
-            )
-        else:
-            # Local development
-            return boto3.client(
-                's3',
-                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-                region_name=os.getenv("AWS_REGION", "eu-central-1")
-            )
-    
+            ), None
+
+        # Standalone mode: use MinIO
+        if not settings.SAAS_MODE:
+            local_endpoint = os.getenv("S3_LOCAL_ENDPOINT")
+            if local_endpoint:
+                return boto3.client(
+                    's3',
+                    endpoint_url=local_endpoint,
+                    aws_access_key_id=os.getenv("S3_ACCESS_KEY", "minioadmin"),
+                    aws_secret_access_key=os.getenv("S3_SECRET_KEY", "minioadmin"),
+                    region_name=os.getenv("AWS_REGION", "eu-central-1")
+                ), local_endpoint
+
+        # SAAS mode: use AWS S3
+        return boto3.client(
+            's3',
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            region_name=os.getenv("AWS_REGION", "eu-central-1")
+        ), None
+
+    def _create_url_signing_client(self):
+        """Create S3 client for URL signing with localhost endpoint (for browser access)"""
+        # Replace minio: with localhost: for browser-accessible URLs
+        public_endpoint = self.local_endpoint.replace("minio:", "localhost:")
+        return boto3.client(
+            's3',
+            endpoint_url=public_endpoint,
+            aws_access_key_id=os.getenv("S3_ACCESS_KEY", "minioadmin"),
+            aws_secret_access_key=os.getenv("S3_SECRET_KEY", "minioadmin"),
+            region_name=os.getenv("AWS_REGION", "eu-central-1")
+        )
+
     def _get_unified_bucket_name(self) -> str:
         """Get unified bucket name using same strategy as image nodes"""
         # Use same logic as S3ImageService
@@ -112,6 +141,11 @@ class FileManagerService:
                     
                     # Set bucket configuration
                     self._set_bucket_cors(self.bucket_name)
+
+                    # For MinIO (standalone mode), set public read policy
+                    if self.local_endpoint:
+                        self._set_bucket_public_policy(self.bucket_name)
+
                     return True
                 except ClientError as create_error:
                     logger.error(f"Failed to create bucket {self.bucket_name}: {create_error}")
@@ -139,7 +173,33 @@ class FileManagerService:
             )
         except ClientError as e:
             logger.warning(f"Failed to set CORS for bucket {bucket_name}: {e}")
-    
+
+    def _set_bucket_public_policy(self, bucket_name: str):
+        """Set public read policy for bucket (used for MinIO in standalone mode)"""
+        import json
+
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "PublicReadGetObject",
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": "s3:GetObject",
+                    "Resource": f"arn:aws:s3:::{bucket_name}/*"
+                }
+            ]
+        }
+
+        try:
+            self.s3_client.put_bucket_policy(
+                Bucket=bucket_name,
+                Policy=json.dumps(policy)
+            )
+            logger.info(f"Set public read policy for bucket {bucket_name}")
+        except ClientError as e:
+            logger.warning(f"Failed to set public policy for bucket {bucket_name}: {e}")
+
     def _normalize_path(self, path: Optional[str]) -> str:
         """Normalize and sanitize file paths"""
         if not path:
@@ -175,17 +235,20 @@ class FileManagerService:
         content_type, _ = mimetypes.guess_type(name)
         content_type = content_type or "application/octet-stream"
         
-        # Generate URL (use signed URL for private access)
+        # Generate URL using the appropriate client
         try:
-            # Generate pre-signed URL for private bucket access (24 hours)
-            url = self.s3_client.generate_presigned_url(
+            url = self.url_signing_client.generate_presigned_url(
                 'get_object',
                 Params={'Bucket': self.bucket_name, 'Key': key},
                 ExpiresIn=86400  # 24 hours
             )
         except Exception:
             # Fallback to direct URL if signing fails
-            url = f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com/{key}"
+            if self.local_endpoint:
+                public_endpoint = self.local_endpoint.replace("minio:", "localhost:")
+                url = f"{public_endpoint}/{self.bucket_name}/{key}"
+            else:
+                url = f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com/{key}"
         
         # Extract custom metadata from S3 object metadata (x-amz-meta-* headers)
         custom_metadata = {}

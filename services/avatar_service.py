@@ -23,7 +23,7 @@ class AvatarService:
         image_bytes = AvatarService.generate_image(prompt, settings.OPENAI_API_KEY)
 
         s3_key = f"avatars/{node_id}.png"
-        s3_url = s3_service.upload_file(image_bytes, s3_key)
+        s3_url = s3_service.upload_file_simple(image_bytes, s3_key)
 
         if not s3_url:
             raise RuntimeError("Upload to S3 failed")
