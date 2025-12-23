@@ -198,6 +198,10 @@ async def execute_route_local(
                     headers = {"Content-Type": "application/json"}
                     body = str(node_response) if node_response is not None else ""
 
+                # Ensure body is a string - convert lists/dicts to JSON
+                if isinstance(body, (list, dict)):
+                    body = json.dumps(body)
+
                 log_capture.add_custom_log(f"END RequestId: local-{run_id}, status={status_code}")
 
                 return Response(

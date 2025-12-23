@@ -218,7 +218,8 @@ async def publish_schedule(
                     'name': schedule.name,
                     'project_id': schedule.project_id,
                     'tenant_id': project.tenant_id,
-                    'cron_expression': schedule.cron_expression
+                    'cron_expression': schedule.cron_expression,
+                    'stage': body.stage.strip()
                 }
 
                 local_service = get_local_schedule_service()

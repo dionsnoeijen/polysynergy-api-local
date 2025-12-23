@@ -7,6 +7,7 @@ from db.session import get_db
 from models import Project
 from models.node_setup import NodeSetup
 from models.node_setup_version import NodeSetupVersion
+from models.project_template import ProjectTemplate
 from schemas.node_setup_version import NodeSetupVersionUpdate, NodeSetupVersionOut
 from services.mock_sync_service import MockSyncService, get_mock_sync_service
 from utils.get_current_account import get_project_or_403
@@ -69,7 +70,12 @@ def update_node_setup_version(
                 )
 
         version.content = data.content
-        version.executable = generate_code_from_json(data.content, version.id)
+
+        # Fetch project templates for Jinja extends support
+        project_templates = db.query(ProjectTemplate).filter_by(project_id=project.id).all()
+        templates_dict = {t.name: t.content for t in project_templates}
+
+        version.executable = generate_code_from_json(data.content, version.id, templates=templates_dict)
         db.commit()
         db.refresh(version)
     except Exception as e:

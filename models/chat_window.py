@@ -15,6 +15,7 @@ class ChatWindow(Base):
 
     project: Mapped["Project"] = relationship("Project", back_populates="chat_windows")
     accesses: Mapped[list["ChatWindowAccess"]] = relationship("ChatWindowAccess", back_populates="chat_window", cascade="all, delete-orphan")
+    embed_tokens: Mapped[list["EmbedToken"]] = relationship("EmbedToken", back_populates="chat_window", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<ChatWindow(name={self.name})>"

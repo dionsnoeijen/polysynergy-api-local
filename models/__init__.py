@@ -10,10 +10,12 @@ from models.route_segment import RouteSegment
 from models.schedule import Schedule
 from models.chat_window import ChatWindow
 from models.chat_window_access import ChatWindowAccess
+from models.embed_token import EmbedToken
 from models.service import Service
 from models.stage import Stage
 from models.tenant import Tenant
 from models.project import Project
+from models.project_template import ProjectTemplate
 from models.account import Account
 from models.membership import Membership
 from models.global_settings import GlobalSettings

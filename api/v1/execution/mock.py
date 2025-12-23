@@ -110,7 +110,8 @@ async def execute_local(
     version: NodeSetupVersion,
     mock_node_id: uuid.UUID,
     sub_stage: str,
-    active_listener_service: ActiveListenersService
+    active_listener_service: ActiveListenersService,
+    input_data: dict = None
 ) -> JSONResponse:
     os.environ['PROJECT_ID'] = str(project.id)
     os.environ['TENANT_ID'] = str(project.tenant_id)
@@ -159,10 +160,10 @@ async def execute_local(
             # Execute the function and capture all output
             if inspect.iscoroutinefunction(fn):
                 log_capture.add_custom_log("Executing async function...")
-                result = await fn(mock_node_id, run_id, sub_stage)
+                result = await fn(mock_node_id, run_id, sub_stage, input_data)
             else:
                 log_capture.add_custom_log("Executing sync function...")
-                result = fn(mock_node_id, run_id, sub_stage)
+                result = fn(mock_node_id, run_id, sub_stage, input_data)
                 
             log_capture.add_custom_log(f"Function execution completed successfully. Result keys: {list(result.keys()) if isinstance(result, dict) else 'non-dict result'}")
             
@@ -253,8 +254,11 @@ async def execute_local_background(
         os.environ.setdefault("AWS_SECRET_ACCESS_KEY", settings.AWS_SECRET_ACCESS_KEY)
 
         code = version.executable
-        namespace = {}
-        
+        namespace = {
+            "__name__": "__main__",
+            "__builtins__": __builtins__,
+        }
+
         with LogCapture(str(version.id), "mock") as log_capture:
             log_capture.add_custom_log(f"BACKGROUND START RequestId: {run_id} Version: {version.id}")
             

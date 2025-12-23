@@ -179,6 +179,7 @@ async def log_requests(request: Request, call_next):
         try:
             response = await call_next(request)
             duration = round(time.time() - start_time, 3)
+            print(f"[MIDDLEWARE] Response received: status={response.status_code}, type={type(response)}")
 
             # Log based on status code
             with LogContext(
@@ -199,6 +200,10 @@ async def log_requests(request: Request, call_next):
 
         except Exception as e:
             duration = round(time.time() - start_time, 3)
+            import traceback
+            print(f"[EXCEPTION] {request.method} {request.url.path}")
+            print(f"[EXCEPTION] Error: {type(e).__name__}: {e}")
+            traceback.print_exc()
             with LogContext(
                 request_id=request_id,
                 path=request.url.path,

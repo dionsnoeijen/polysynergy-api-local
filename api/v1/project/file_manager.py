@@ -23,15 +23,22 @@ router = APIRouter()
 
 def get_file_manager_service(
     project_id: str,
-    current_account: Account = Depends(get_current_account)
+    current_account: Account = Depends(get_current_account),
+    public: bool = False
 ) -> FileManagerService:
-    """Get file manager service instance"""
+    """Get file manager service instance
+
+    Args:
+        project_id: The project ID
+        current_account: The authenticated account
+        public: Whether uploaded files should be publicly accessible (currently not implemented)
+    """
     if not current_account.memberships:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tenant access available"
         )
-    
+
     tenant_id = current_account.memberships[0].tenant_id
     s3_service = get_s3_service(tenant_id=str(tenant_id), project_id=str(project_id))
 

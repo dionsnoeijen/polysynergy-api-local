@@ -35,6 +35,8 @@ class Project(Base):
     schedules: Mapped[list["Schedule"]] = relationship("Schedule", back_populates="project", cascade="all, delete-orphan")
     chat_windows: Mapped[list["ChatWindow"]] = relationship("ChatWindow", back_populates="project", cascade="all, delete-orphan")
     stages: Mapped[list["Stage"]] = relationship("Stage", back_populates="project", cascade="all, delete-orphan")
+    templates: Mapped[list["ProjectTemplate"]] = relationship("ProjectTemplate", back_populates="project", cascade="all, delete-orphan")
+    embed_tokens: Mapped[list["EmbedToken"]] = relationship("EmbedToken", back_populates="project", cascade="all, delete-orphan")
 
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

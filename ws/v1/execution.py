@@ -6,7 +6,7 @@ from fastapi import WebSocket, APIRouter, WebSocketDisconnect, Query
 import redis.asyncio as redis
 
 from db.session import get_db
-from utils.websocket_auth import validate_websocket_token
+from utils.websocket_auth import validate_websocket_token, validate_websocket_embed_token
 
 router = APIRouter()
 redis_url = os.getenv('REDIS_URL', 'redis://redis:6379')
@@ -20,13 +20,25 @@ redis_client = redis.from_url(
 async def execution_ws(
     websocket: WebSocket,
     flow_id: str,
-    token: Optional[str] = Query(None)
+    token: Optional[str] = Query(None),
+    embed_token: Optional[str] = Query(None)
 ):
     # Validate authentication before accepting connection
+    # Support both JWT token (Cognito) and embed token (public embedding)
     db = next(get_db())
     try:
-        account = await validate_websocket_token(token, db)
-        print(f'✅ Authenticated WebSocket connection for account: {account.email}')
+        if embed_token:
+            # Embed token authentication for public chat widgets
+            auth_context = await validate_websocket_embed_token(embed_token, db)
+            print(f'✅ Authenticated WebSocket connection via embed token for chat window: {auth_context.chat_window_id}')
+        elif token:
+            # JWT token authentication for authenticated users
+            account = await validate_websocket_token(token, db)
+            print(f'✅ Authenticated WebSocket connection for account: {account.email}')
+        else:
+            print(f'❌ WebSocket authentication failed: No token provided')
+            await websocket.close(code=1008, reason="Missing authentication token")
+            return
     except Exception as e:
         print(f'❌ WebSocket authentication failed: {e}')
         await websocket.close(code=1008, reason=str(e))
