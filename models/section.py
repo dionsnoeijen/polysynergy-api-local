@@ -65,9 +65,6 @@ class Section(Base):
         nullable=False
     )  # pending, migrated, failed
 
-    # Schema fingerprint - MD5 hash of field structure
-    schema_hash: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
-
     # Project relationship
     project_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

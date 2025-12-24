@@ -1,7 +1,5 @@
 """Migration Service - Handles generation and execution of section migrations"""
 
-import hashlib
-import json
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import text, create_engine
@@ -24,25 +22,6 @@ class MigrationService:
     def __init__(self, session: Session):
         self.session = session
         self.generator = MigrationGeneratorService()
-
-    def _calculate_schema_hash(self, field_assignments: list) -> str:
-        """
-        Calculate a hash of the current schema structure.
-
-        This hash includes field handles and their types, so we can detect changes.
-        """
-        schema_data = []
-        for assignment in sorted(field_assignments, key=lambda a: a.field.handle):
-            field = assignment.field
-            schema_data.append({
-                "handle": field.handle,
-                "type": field.field_type_handle,
-                "required": assignment.is_required_override or field.is_required,
-                "unique": field.is_unique
-            })
-
-        schema_json = json.dumps(schema_data, sort_keys=True)
-        return hashlib.md5(schema_json.encode()).hexdigest()
 
     def generate_and_apply_migration(
         self,
