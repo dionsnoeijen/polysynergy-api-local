@@ -15,7 +15,7 @@ from core.settings import settings
 from core.auth import get_auth_provider
 from core.auth.standalone_provider import StandaloneAuthProvider
 from db.session import get_db
-from models import Account
+from models import Account, Tenant, Membership
 from schemas.auth import (
     RegisterRequest,
     LoginRequest,
@@ -108,6 +108,22 @@ async def register(
         single_user=False
     )
     db.add(account)
+    db.flush()  # Get account.id without committing
+
+    # For standalone mode: ensure user has a tenant
+    # Get or create a default tenant
+    default_tenant = db.query(Tenant).filter(Tenant.name == "Default").first()
+    if not default_tenant:
+        default_tenant = Tenant(name="Default")
+        db.add(default_tenant)
+        db.flush()
+
+    # Create membership linking account to tenant
+    membership = Membership(
+        account_id=account.id,
+        tenant_id=default_tenant.id
+    )
+    db.add(membership)
     db.commit()
 
     # Generate verification token
