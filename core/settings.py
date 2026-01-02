@@ -74,6 +74,7 @@ class Settings(BaseSettings):
 
     # MinIO S3-compatible storage (leave empty for AWS S3)
     S3_LOCAL_ENDPOINT: str | None = None
+    S3_PUBLIC_ENDPOINT: str | None = None  # Public URL for browser access
     S3_ACCESS_KEY: str | None = None
     S3_SECRET_KEY: str | None = None
 
