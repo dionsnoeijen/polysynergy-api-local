@@ -107,10 +107,20 @@ class SectionFieldAssignmentRepository:
         Bulk assign multiple fields to sections.
 
         Returns all assignments (both newly created and already existing).
+        Deduplicates input to avoid unique constraint violations.
         """
         assignments = []
 
+        # Deduplicate by (section_id, field_id) - keep first occurrence
+        seen = set()
+        unique_assignments_data = []
         for assignment_data in assignments_data:
+            key = (assignment_data.section_id, assignment_data.field_id)
+            if key not in seen:
+                seen.add(key)
+                unique_assignments_data.append(assignment_data)
+
+        for assignment_data in unique_assignments_data:
             # Verify section belongs to project
             section = self.session.get(Section, assignment_data.section_id)
             if not section or section.project_id != project.id:
