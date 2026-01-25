@@ -1,10 +1,13 @@
 import base64
+import logging
 import random
 from openai import OpenAI
 from core.settings import settings
 from polysynergy_node_runner.services.s3_service import S3Service
 
 from models import Account
+
+logger = logging.getLogger(__name__)
 
 class AvatarService:
     @staticmethod
@@ -20,10 +23,14 @@ class AvatarService:
             raise ValueError("No tenants available for this user")
 
         prompt = AvatarService.build_prompt(name or "Alex", instructions or "No specific instructions")
+        logger.info(f"Generating avatar image with OpenAI for node: {node_id}")
         image_bytes = AvatarService.generate_image(prompt, settings.OPENAI_API_KEY)
+        logger.info(f"OpenAI image generated, size: {len(image_bytes)} bytes")
 
         s3_key = f"avatars/{node_id}.png"
+        logger.info(f"Uploading avatar to S3, key: {s3_key}")
         s3_url = s3_service.upload_file_simple(image_bytes, s3_key)
+        logger.info(f"Avatar upload result: {s3_url} for key: {s3_key}")
 
         if not s3_url:
             raise RuntimeError("Upload to S3 failed")

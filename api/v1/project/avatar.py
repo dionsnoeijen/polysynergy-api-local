@@ -15,7 +15,7 @@ async def generate_avatar(
     data: AvatarRequest,
     current_account: Account = Depends(get_current_account),
 ):
-    tenant_id: str = current_account.memberships[0].tenant_id
+    tenant_id: str = str(current_account.memberships[0].tenant_id)
     s3_service = get_s3_service(tenant_id=tenant_id)
 
     try:

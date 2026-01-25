@@ -23,12 +23,18 @@ async def execution_ws(
     token: Optional[str] = Query(None),
     embed_token: Optional[str] = Query(None)
 ):
+    print(f'🔌 WebSocket connection attempt for flow_id={flow_id}')
+    print(f'🔌 Token provided: {bool(token)}, Embed token provided: {bool(embed_token)}')
+    if embed_token:
+        print(f'🔌 Embed token value: {embed_token[:20]}...')
+
     # Validate authentication before accepting connection
     # Support both JWT token (Cognito) and embed token (public embedding)
     db = next(get_db())
     try:
         if embed_token:
             # Embed token authentication for public chat widgets
+            print(f'🔌 Validating embed token...')
             auth_context = await validate_websocket_embed_token(embed_token, db)
             print(f'✅ Authenticated WebSocket connection via embed token for chat window: {auth_context.chat_window_id}')
         elif token:
@@ -41,6 +47,8 @@ async def execution_ws(
             return
     except Exception as e:
         print(f'❌ WebSocket authentication failed: {e}')
+        import traceback
+        traceback.print_exc()
         await websocket.close(code=1008, reason=str(e))
         return
     finally:
