@@ -34,8 +34,14 @@ fi
 
 # Read Sections PostgreSQL password from Docker secret if it exists
 if [ -f "$SECTIONS_POSTGRES_PASSWORD_FILE" ]; then
-    export SECTIONS_POSTGRES_PASSWORD=$(cat "$SECTIONS_POSTGRES_PASSWORD_FILE")
+    export SECTIONS_DB_PASSWORD=$(cat "$SECTIONS_POSTGRES_PASSWORD_FILE")
     echo "✓ Sections PostgreSQL password loaded from secret"
+
+    # Set other SECTIONS_DB_* variables if not already set (for Settings class)
+    export SECTIONS_DB_NAME="${SECTIONS_DB_NAME:-sections_db}"
+    export SECTIONS_DB_USER="${SECTIONS_DB_USER:-sections_user}"
+    export SECTIONS_DB_HOST="${SECTIONS_DB_HOST:-sections_db}"
+    export SECTIONS_DB_PORT="${SECTIONS_DB_PORT:-5432}"
 fi
 
 echo "🌐 Starting uvicorn server..."
