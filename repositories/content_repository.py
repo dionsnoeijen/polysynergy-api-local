@@ -134,7 +134,7 @@ class ContentRepository:
         serialized_data = data.copy()
 
         # Get JSONB field handles from section field assignments
-        jsonb_field_types = ['json', 'list', 'key_value']  # Field types that use JSONB storage
+        jsonb_field_types = ['json', 'list', 'key_value', 'multi_select']  # Field types that use JSONB storage
         jsonb_fields = set()
 
         for assignment in self.section.field_assignments:

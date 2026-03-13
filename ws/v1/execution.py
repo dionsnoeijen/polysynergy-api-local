@@ -21,7 +21,8 @@ async def execution_ws(
     websocket: WebSocket,
     flow_id: str,
     token: Optional[str] = Query(None),
-    embed_token: Optional[str] = Query(None)
+    embed_token: Optional[str] = Query(None),
+    session_id: Optional[str] = Query(None)
 ):
     print(f'🔌 WebSocket connection attempt for flow_id={flow_id}')
     print(f'🔌 Token provided: {bool(token)}, Embed token provided: {bool(embed_token)}')
@@ -57,9 +58,14 @@ async def execution_ws(
     await websocket.accept()
     print(f'ACCEPTED CONNECTION for flow_id={flow_id}')
 
-    exec_channel = f"execution_updates:{flow_id}"
-    chat_channel = f"chat_stream:{flow_id}"
-    interaction_channel = f"interaction_events:{flow_id}"
+    if session_id:
+        exec_channel = f"execution_updates:{flow_id}:{session_id}"
+        chat_channel = f"chat_stream:{flow_id}:{session_id}"
+        interaction_channel = f"interaction_events:{flow_id}:{session_id}"
+    else:
+        exec_channel = f"execution_updates:{flow_id}"
+        chat_channel = f"chat_stream:{flow_id}"
+        interaction_channel = f"interaction_events:{flow_id}"
 
     pubsub = redis_client.pubsub()
     await pubsub.subscribe(exec_channel, chat_channel, interaction_channel)

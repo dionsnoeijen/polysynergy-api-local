@@ -78,6 +78,9 @@ async def register(
 
     Creates a new user with email verification required.
     """
+    if not settings.ALLOW_REGISTRATION:
+        raise HTTPException(status_code=403, detail="Registration is disabled")
+
     provider = get_standalone_provider()
 
     # Check if email already exists

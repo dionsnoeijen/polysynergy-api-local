@@ -8,6 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
 from starlette.responses import JSONResponse
 from polysynergy_node_runner.execution_context.send_flow_event import send_flow_event
+from polysynergy_node_runner.execution_context.context import current_session_id
 from polysynergy_node_runner.services.active_listeners_service import (
     ActiveListenersService
 )
@@ -152,24 +153,43 @@ async def execute_local(
         try:
             run_id = str(uuid.uuid4())
             log_capture.add_custom_log(f"Starting execution with run_id: {run_id}, mock_node_id: {mock_node_id}, sub_stage: {sub_stage}")
-            
-            if active_listener_service.has_listener(str(version.id), first_run=True):
+
+            import sys as _sys
+            _real_print = lambda *a, **k: _sys.__stdout__.write(' '.join(str(x) for x in a) + '\n')
+
+            # Set contextvar before run_start event
+            if input_data and input_data.get('session_id'):
+                current_session_id.set(input_data['session_id'])
+                _real_print(f"[EXEC_LOCAL] Set current_session_id to: {input_data['session_id']}")
+
+            _real_print(f"[EXEC_LOCAL] Checking has_listener for version_id={version.id}")
+            has_listener = active_listener_service.has_listener(str(version.id), first_run=True)
+            print(f"[EXEC_LOCAL] has_listener result: {has_listener}")
+            if has_listener:
+                print(f"[EXEC_LOCAL] Sending run_start event for flow_id={version.id}, run_id={run_id}")
                 send_flow_event(str(version.id), run_id, None, "run_start")
                 log_capture.add_custom_log("Sent run_start event via WebSocket")
-            
+                print(f"[EXEC_LOCAL] run_start event sent")
+
             # Execute the function and capture all output
             if inspect.iscoroutinefunction(fn):
                 log_capture.add_custom_log("Executing async function...")
+                print(f"[EXEC_LOCAL] Calling async fn with input_data keys: {list(input_data.keys()) if input_data else 'None'}")
                 result = await fn(mock_node_id, run_id, sub_stage, input_data)
             else:
                 log_capture.add_custom_log("Executing sync function...")
+                print(f"[EXEC_LOCAL] Calling sync fn with input_data keys: {list(input_data.keys()) if input_data else 'None'}")
                 result = fn(mock_node_id, run_id, sub_stage, input_data)
                 
             log_capture.add_custom_log(f"Function execution completed successfully. Result keys: {list(result.keys()) if isinstance(result, dict) else 'non-dict result'}")
             
-            if active_listener_service.has_listener(str(version.id)):
+            has_listener_end = active_listener_service.has_listener(str(version.id))
+            print(f"[EXEC_LOCAL] has_listener for run_end: {has_listener_end}")
+            if has_listener_end:
+                print(f"[EXEC_LOCAL] Sending run_end event")
                 send_flow_event(str(version.id), run_id, None, "run_end")
                 log_capture.add_custom_log("Sent run_end event via WebSocket")
+                print(f"[EXEC_LOCAL] run_end event sent")
 
             log_capture.add_custom_log(f"END RequestId: local-{run_id}")
             return JSONResponse({"status": "mock executed", "result": result})

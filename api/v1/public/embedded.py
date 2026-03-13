@@ -24,6 +24,7 @@ from schemas.embed_token import (
 from services.active_listeners_service import get_active_listeners_service
 from services.lambda_service import get_lambda_service, LambdaService
 from services.mock_sync_service import MockSyncService, get_mock_sync_service
+from services.agno_chat_history_service import AgnoChatHistoryService, get_agno_chat_history_service
 from utils.embed_token_auth import EmbedTokenContext, get_embed_token_context
 from core.settings import settings
 from core.logging_config import get_logger
@@ -182,7 +183,9 @@ async def execute_embedded_chat(
                 input_data={
                     "message": data.message,
                     "session_id": str(data.session_id) if data.session_id else None,
-                    "prompt_node_id": str(data.prompt_node_id) if data.prompt_node_id else None
+                    "prompt_node_id": str(data.prompt_node_id) if data.prompt_node_id else None,
+                    "user_id": data.user_id,
+                    "data": data.data or {},
                 }
             )
             print(f"[EMBEDDED] Execution completed successfully, result type: {type(result)}")
@@ -207,7 +210,9 @@ async def execute_embedded_chat(
         "input_data": {
             "message": data.message,
             "session_id": str(data.session_id) if data.session_id else None,
-            "prompt_node_id": str(data.prompt_node_id) if data.prompt_node_id else None
+            "prompt_node_id": str(data.prompt_node_id) if data.prompt_node_id else None,
+            "user_id": data.user_id,
+            "data": data.data or {},
         }
     }
 
@@ -238,6 +243,62 @@ async def resume_embedded_chat(
     # TODO: Implement HITL resume logic
     # This will need to signal the paused execution to continue
     return {"status": "resumed", "execution_id": str(data.execution_id)}
+
+
+@router.get("/sessions/")
+async def list_embedded_sessions(
+    user_id: str = Query(..., description="User ID to list sessions for"),
+    limit: int = Query(50, ge=1, le=200),
+    context: EmbedTokenContext = Depends(get_embed_token_context),
+    service: AgnoChatHistoryService = Depends(get_agno_chat_history_service),
+):
+    """
+    List chat sessions for a user.
+
+    **Authentication:** Requires valid embed token in `X-Embed-Token` header.
+
+    Returns sessions for the given user_id, ordered by last activity.
+    """
+    try:
+        sessions = await service.list_sessions(
+            storage_config={},
+            user_id=user_id,
+            limit=limit,
+            project=context.project,
+        )
+        return {"sessions": sessions}
+    except Exception as e:
+        logger.error_ctx("Failed to list embedded sessions", error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to list sessions")
+
+
+@router.get("/session-history/")
+async def get_embedded_session_history(
+    session_id: str = Query(..., description="Session ID to get history for"),
+    user_id: str = Query(..., description="User ID for validation"),
+    limit: int = Query(100, ge=1, le=500),
+    context: EmbedTokenContext = Depends(get_embed_token_context),
+    service: AgnoChatHistoryService = Depends(get_agno_chat_history_service),
+):
+    """
+    Get chat history for a session.
+
+    **Authentication:** Requires valid embed token in `X-Embed-Token` header.
+
+    Returns messages for the given session, ordered chronologically.
+    """
+    try:
+        history = await service.get_session_history(
+            storage_config={},
+            session_id=session_id,
+            user_id=user_id,
+            limit=limit,
+            project=context.project,
+        )
+        return history
+    except Exception as e:
+        logger.error_ctx("Failed to get embedded session history", error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to get session history")
 
 
 @router.get("/version-id/")

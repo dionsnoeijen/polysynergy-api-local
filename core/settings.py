@@ -108,6 +108,8 @@ class Settings(BaseSettings):
     PORTAL_URL: str
     ROUTER_URL: str
 
+    ALLOW_REGISTRATION: bool = False
+
     DEBUG: bool = False
 
     EXECUTE_NODE_SETUP_LOCAL: bool = False
@@ -116,7 +118,7 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str
 
-    NODE_PACKAGES: str = "polysynergy_nodes,polysynergy_nodes_agno"
+    NODE_PACKAGES: str = "polysynergy_nodes,polysynergy_nodes_agno,polysynergy_nodes_privacy"
 
     # Sentry error tracking
     SENTRY_DSN: str | None = None

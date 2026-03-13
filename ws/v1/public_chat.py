@@ -50,7 +50,8 @@ async def get_flow_id_from_chat_window(chat_window_id: UUID, db: Session) -> Opt
 async def public_chat_ws(
     websocket: WebSocket,
     chat_window_id: UUID,
-    api_key: Optional[str] = Query(None, description="API key for future authentication")
+    api_key: Optional[str] = Query(None, description="API key for future authentication"),
+    session_id: Optional[str] = Query(None)
 ):
     """
     Public WebSocket endpoint for chat streams.
@@ -100,7 +101,7 @@ async def public_chat_ws(
     print(f'ACCEPTED PUBLIC CHAT CONNECTION for chat_window={chat_window_id}')
 
     # Subscribe only to chat stream channel (no execution or interaction events)
-    chat_channel = f"chat_stream:{flow_id}"
+    chat_channel = f"chat_stream:{flow_id}:{session_id}" if session_id else f"chat_stream:{flow_id}"
 
     pubsub = redis_client.pubsub()
     await pubsub.subscribe(chat_channel)

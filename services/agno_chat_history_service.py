@@ -397,6 +397,24 @@ class AgnoChatHistoryService:
 
         return False
 
+    def _extract_first_user_message(self, runs_data) -> str | None:
+        """Extract the first user message from runs to use as session name."""
+        if not isinstance(runs_data, list):
+            return None
+        for run in runs_data:
+            if not isinstance(run, dict):
+                continue
+            input_data = run.get('input')
+            if isinstance(input_data, dict) and 'messages' in input_data:
+                for msg in input_data['messages']:
+                    if isinstance(msg, dict) and msg.get('role') == 'user':
+                        content = msg.get('content', '')
+                        if content and not self._is_system_instruction(content):
+                            return content[:80]
+            elif isinstance(input_data, str) and input_data.strip():
+                return input_data.strip()[:80]
+        return None
+
     def _to_iso_timestamp(self, timestamp) -> str:
         """Convert timestamp to ISO string."""
         try:
@@ -426,19 +444,33 @@ class AgnoChatHistoryService:
             with self.get_agno_db_session() as db:
                 # Get sessions with metadata
                 table_name = self._get_table_name(project)
-                query = text(f"""
-                    SELECT 
-                        session_id,
-                        user_id,
-                        created_at,
-                        updated_at,
-                        runs
-                    FROM {table_name}
-                    ORDER BY updated_at DESC
-                    LIMIT :limit
-                """)
-                
-                result = db.execute(query, {"limit": limit})
+                if user_id:
+                    query = text(f"""
+                        SELECT
+                            session_id,
+                            user_id,
+                            created_at,
+                            updated_at,
+                            runs
+                        FROM {table_name}
+                        WHERE user_id = :user_id
+                        ORDER BY updated_at DESC
+                        LIMIT :limit
+                    """)
+                    result = db.execute(query, {"user_id": user_id, "limit": limit})
+                else:
+                    query = text(f"""
+                        SELECT
+                            session_id,
+                            user_id,
+                            created_at,
+                            updated_at,
+                            runs
+                        FROM {table_name}
+                        ORDER BY updated_at DESC
+                        LIMIT :limit
+                    """)
+                    result = db.execute(query, {"limit": limit})
                 rows = result.fetchall()
                 
                 sessions = []
@@ -446,14 +478,17 @@ class AgnoChatHistoryService:
                     # Count runs in JSON
                     runs_data = row[4] or []  # runs column
                     run_count = len(runs_data) if isinstance(runs_data, list) else (1 if runs_data else 0)
-                    
+
+                    # Extract first user message as session name
+                    session_name = self._extract_first_user_message(runs_data)
+
                     sessions.append({
                         "session_id": row[0],  # session_id
                         "user_id": row[1] or user_id,  # user_id
                         "created_at": self._to_iso_timestamp(row[2]),  # created_at
                         "last_activity": self._to_iso_timestamp(row[3]),  # updated_at
                         "message_count": run_count,
-                        "session_name": None  # Could be extracted from first message if needed
+                        "session_name": session_name,
                     })
                 
                 return sessions

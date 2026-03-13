@@ -41,6 +41,8 @@ class ProjectRepository:
         else:
             stmt = stmt.where(Project.deleted_at.is_(None))
 
+        stmt = stmt.order_by(Project.created_at.desc())
+
         return list(self.session.scalars(stmt).all())
 
     def create(self, project_data: ProjectCreate, account: Account) -> Project:

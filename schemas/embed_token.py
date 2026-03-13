@@ -58,6 +58,8 @@ class EmbeddedExecuteIn(BaseModel):
     message: str
     session_id: UUID | None = None
     prompt_node_id: UUID | None = None  # Which prompt node to target (for multi-prompt flows)
+    user_id: str | None = None
+    data: dict | None = None
 
 
 # Schema for embedded HITL resume
