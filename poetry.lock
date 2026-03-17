@@ -3495,6 +3495,7 @@ pycountry = "^24.6.1"
 pypdf = "^5.8.0"
 python-docx = "^1.2.0"
 qdrant-client = "^1.15.1"
+tantivy = "^0.22.0"
 tweepy = "^4.16.0"
 yfinance = "^0.2.0"
 
@@ -5451,6 +5452,40 @@ tinycss2 = ">=0.6.0"
 
 [package.extras]
 dev = ["mypy (>=1.18.1)", "pre-commit (>=4.3.0)", "pytest (>=8.3.5)", "pytest-cov (>=7.0.0)", "pytest-runner (>=6.0.1)", "ruff (>=0.13.0)", "tox (>=4.30.2)"]
+
+[[package]]
+name = "tantivy"
+version = "0.22.2"
+description = "Official Python bindings for the Tantivy search engine"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "tantivy-0.22.2-cp310-cp310-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:25d1ce4d2d45b93f60fbb8f58cc2d263459e9d8229dc1e15966eae8fc2f68ff4"},
+    {file = "tantivy-0.22.2-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:bb610851df83d1053a685517ef89f92beb8cef14da2c9ecb7c21516e67e6ca12"},
+    {file = "tantivy-0.22.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3c07e6f21444a9d97768816b9170a99ca7a94420514bdf6461d1d84bbc7cc184"},
+    {file = "tantivy-0.22.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c7e039bfa22aa064b16fb6f988148f0aa22d7552a024b012140f43d18863f873"},
+    {file = "tantivy-0.22.2-cp310-none-win_amd64.whl", hash = "sha256:ca056404d8fd3194e84cfc903a1507139a52a78026cda5ae2d0c41749fd14e41"},
+    {file = "tantivy-0.22.2-cp311-cp311-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:e2f4706df74a23e0ee1a33190dd60330ed071ea2d1488024b0a8ce16be439d65"},
+    {file = "tantivy-0.22.2-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:ff01a95ea391e747493ebea058f1f74ba7116f05a6bff6d35d5d5c0832b51195"},
+    {file = "tantivy-0.22.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a263039084534099f4d506463aa0765fbcdfe0791e8019170f0d376c08e15c49"},
+    {file = "tantivy-0.22.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0aba594be4e6d7f7343b03b4506bbf23ec5491519e9d82f6f835a32e615587d6"},
+    {file = "tantivy-0.22.2-cp311-none-win_amd64.whl", hash = "sha256:e3e07d6353421fcb7894759e6185075498cf47b3f841b2e9994b59d4dc0aa3f2"},
+    {file = "tantivy-0.22.2-cp312-cp312-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:90b8601a8860f9a12229dda022920685becf49bbd807e9f6fce82bfe20fb494a"},
+    {file = "tantivy-0.22.2-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:b4f2805a83873b53af20fd7b04d30d9a2a640ee105930baae4e1c6260d346915"},
+    {file = "tantivy-0.22.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d5da1b7905c1e884d3214979eb7a20349a9951225b317dfc0cfb2d5fdff365c3"},
+    {file = "tantivy-0.22.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a7841ed6b38fcadf7bab40b748a511044ce0c7b9f92b350d09d23251751932f1"},
+    {file = "tantivy-0.22.2-cp312-none-win_amd64.whl", hash = "sha256:61942263b54e71f3f99c566f6a630d4fd2408b0bfbe201e6757dd8bea57732c9"},
+    {file = "tantivy-0.22.2-cp39-cp39-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:47db5ccb1e0d95560609b9f2b8a949d27230cbf3f0380c5cb06c524b5da5932e"},
+    {file = "tantivy-0.22.2-cp39-cp39-macosx_10_12_x86_64.whl", hash = "sha256:82c9a5917133acd3046f2f04e418b3389e8d463a659a9d821b8fbc05f035075b"},
+    {file = "tantivy-0.22.2-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:25603e9d429219e0d162ecb1fac85fe1c6e1abfba2e7131932f6cffa79a4395c"},
+    {file = "tantivy-0.22.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:564e23d363e75f99b874405c0a396edadce4c4c04aa7c130f71f2d4f152a73e2"},
+    {file = "tantivy-0.22.2-cp39-none-win_amd64.whl", hash = "sha256:e60bb81a07dda98139a93951d31004f1e5fc3557df82593d9621b37c84491edd"},
+    {file = "tantivy-0.22.2.tar.gz", hash = "sha256:b3d0f19271365ccf6e69f0318ea0c3c3438515fee453618977787d6b41da833a"},
+]
+
+[package.extras]
+dev = ["nox"]
 
 [[package]]
 name = "tenacity"
