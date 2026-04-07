@@ -118,7 +118,7 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str
 
-    NODE_PACKAGES: str = "polysynergy_nodes,polysynergy_nodes_agno,polysynergy_nodes_privacy"
+    NODE_PACKAGES: str = "polysynergy_nodes,polysynergy_nodes_agno"
 
     # Sentry error tracking
     SENTRY_DSN: str | None = None
