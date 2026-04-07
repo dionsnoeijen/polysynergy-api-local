@@ -44,6 +44,21 @@ if [ -f "$SECTIONS_POSTGRES_PASSWORD_FILE" ]; then
     export SECTIONS_DB_PORT="${SECTIONS_DB_PORT:-5432}"
 fi
 
+# Auto-install node packages that are mounted but not yet installed
+# Scans NODE_PACKAGES for packages with a pyproject.toml at their mount point
+if [ -n "$NODE_PACKAGES" ]; then
+    echo "📦 Checking for additional node packages..."
+    IFS=',' read -ra PACKAGES <<< "$NODE_PACKAGES"
+    for pkg in "${PACKAGES[@]}"; do
+        pkg=$(echo "$pkg" | xargs)  # trim whitespace
+        mount_path="/$pkg"
+        if [ -f "$mount_path/pyproject.toml" ] && ! pip show "$pkg" > /dev/null 2>&1; then
+            echo "📦 Installing $pkg from $mount_path..."
+            pip install "$mount_path" || echo "⚠ Failed to install $pkg"
+        fi
+    done
+fi
+
 echo "🌐 Starting uvicorn server..."
 
 # Start uvicorn with reload support
