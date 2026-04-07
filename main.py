@@ -28,6 +28,7 @@ from api.v1.feedback import router as v1_feedback_router
 from api.v1.section_field import router as v1_section_field_router
 from api.v1.public import router as v1_public_router
 from api.v1.settings import router as v1_settings_router
+from api.v1.utility import router as v1_utility_router
 
 from ws.v1.execution import router as websocket_execution_router
 from ws.v1.public_chat import router as websocket_public_chat_router
@@ -266,6 +267,7 @@ app.include_router(v1_feedback_router, prefix="/api/v1")
 app.include_router(v1_section_field_router, prefix="/api/v1/section-field")
 app.include_router(v1_public_router, prefix="/api/v1/public")
 app.include_router(v1_settings_router, prefix="/api/v1/settings")
+app.include_router(v1_utility_router, prefix="/api/v1")
 app.include_router(websocket_execution_router, prefix="/ws/v1")
 app.include_router(websocket_public_chat_router, prefix="/ws/v1")
 
