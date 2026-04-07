@@ -81,13 +81,9 @@ def get_mock_nodes(
     storage: DynamoDbExecutionStorageService = Depends(get_execution_storage_service),
 ):
     try:
-        # Get stage info from run metadata first
-        runs = storage.get_available_runs(flow_id)
-        run_info = next((r for r in runs if r["run_id"] == run_id), None)
-
-        # Use stage from run metadata, default to "mock" if not found
-        stage = run_info.get("stage", "mock") if run_info else "mock"
-        sub_stage = run_info.get("sub_stage", "mock") if run_info else "mock"
+        # Get stage info by querying the first node result for this run
+        # instead of loading ALL runs for the entire flow
+        stage, sub_stage = storage.get_run_stage(flow_id, run_id)
 
         # Use the existing get_all_nodes_for_run method to get the execution data
         nodes = storage.get_all_nodes_for_run(flow_id, run_id, stage, sub_stage)
