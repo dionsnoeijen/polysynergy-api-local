@@ -18,7 +18,6 @@ COPY ./nodes /nodes
 COPY ./node_runner /node_runner
 COPY ./nodes_agno /nodes_agno
 COPY ./nodes_dev /nodes_dev
-# COPY ./nodes_privacy /nodes_privacy
 COPY ./section_field /section_field
 COPY ./api-local/pyproject.toml ./
 COPY ./api-local/poetry.lock ./
