@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 echo "🚀 Starting PolySynergy API..."
@@ -48,8 +48,10 @@ fi
 # Scans NODE_PACKAGES for packages with a pyproject.toml at their mount point
 if [ -n "$NODE_PACKAGES" ]; then
     echo "📦 Checking for additional node packages..."
-    IFS=',' read -ra PACKAGES <<< "$NODE_PACKAGES"
-    for pkg in "${PACKAGES[@]}"; do
+    OLD_IFS="$IFS"
+    IFS=','
+    for pkg in $NODE_PACKAGES; do
+        IFS="$OLD_IFS"
         pkg=$(echo "$pkg" | xargs)  # trim whitespace
         mount_path="/$pkg"
         if [ -f "$mount_path/pyproject.toml" ] && ! pip show "$pkg" > /dev/null 2>&1; then
