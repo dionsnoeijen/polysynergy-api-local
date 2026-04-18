@@ -32,7 +32,12 @@ from api.v1.utility import router as v1_utility_router
 
 from ws.v1.execution import router as websocket_execution_router
 from ws.v1.public_chat import router as websocket_public_chat_router
-from ws.v1.possession_chat import router as websocket_possession_chat_router
+
+from core.settings import settings as _feature_settings
+if _feature_settings.POSSESSION_ENABLED:
+    from ws.v1.possession_chat import router as websocket_possession_chat_router
+else:
+    websocket_possession_chat_router = None
 
 # Setup logging
 from core.logging_config import setup_logging, get_logger, LogContext
@@ -271,7 +276,8 @@ app.include_router(v1_settings_router, prefix="/api/v1/settings")
 app.include_router(v1_utility_router, prefix="/api/v1")
 app.include_router(websocket_execution_router, prefix="/ws/v1")
 app.include_router(websocket_public_chat_router, prefix="/ws/v1")
-app.include_router(websocket_possession_chat_router, prefix="/ws/v1/possession")
+if websocket_possession_chat_router is not None:
+    app.include_router(websocket_possession_chat_router, prefix="/ws/v1/possession")
 
 @app.get("/health")
 async def health():

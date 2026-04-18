@@ -13,7 +13,6 @@ polysynergy_nodes = { path = "../nodes", develop = true }
 polysynergy_node_runner = { path = "../node_runner", develop = true }
 polysynergy_nodes_agno = { path = "../nodes_agno", develop = true }
 polysynergy_section_field = { path = "../section_field", develop = true }
-possession = { path = "../../possession", develop = true }
 alembic = "^1.16.2"
 boto3 = "^1.39.4"
 jinja2 = "^3.1.6"

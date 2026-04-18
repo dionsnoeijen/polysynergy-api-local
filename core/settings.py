@@ -124,9 +124,13 @@ class Settings(BaseSettings):
     SENTRY_DSN: str | None = None
     SENTRY_ENVIRONMENT: str = "development"
 
+    # Possession chat integration (AI agent websocket)
+    POSSESSION_ENABLED: bool = False
+
     model_config = {
         "env_file": ".env",
-        "env_file_encoding": "utf-8"
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
     }
 
 

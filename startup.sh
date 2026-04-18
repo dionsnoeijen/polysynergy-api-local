@@ -61,6 +61,16 @@ if [ -n "$NODE_PACKAGES" ]; then
     done
 fi
 
+if [ -f "/possession/pyproject.toml" ] && ! pip show possession > /dev/null 2>&1; then
+    echo "📦 Installing possession library from /possession..."
+    pip install -e /possession || echo "⚠ Failed to install possession"
+fi
+
+if ! pip show claude-agent-sdk > /dev/null 2>&1; then
+    echo "📦 Installing claude-agent-sdk..."
+    pip install claude-agent-sdk || echo "⚠ Failed to install claude-agent-sdk"
+fi
+
 echo "🌐 Starting uvicorn server..."
 
 # Start uvicorn with reload support

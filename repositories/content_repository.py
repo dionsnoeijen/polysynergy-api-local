@@ -14,6 +14,19 @@ from fastapi import HTTPException
 from models import Section
 
 
+def _default_sections_db_url() -> str:
+    """Build sections_db URL from SECTIONS_DATABASE_URL or individual SECTIONS_DB_* env vars."""
+    url = os.getenv('SECTIONS_DATABASE_URL')
+    if url:
+        return url
+    user = os.getenv('SECTIONS_DB_USER', 'sections_user')
+    password = os.getenv('SECTIONS_DB_PASSWORD', 'sections_password')
+    host = os.getenv('SECTIONS_DB_HOST', 'sections_db')
+    port = os.getenv('SECTIONS_DB_PORT', '5432')
+    name = os.getenv('SECTIONS_DB_NAME', 'sections_db')
+    return f'postgresql://{user}:{password}@{host}:{port}/{name}'
+
+
 class ContentRepository:
     """
     Repository for dynamic CRUD operations on section content tables.
@@ -43,12 +56,7 @@ class ContentRepository:
             connection_string = self.section.database_connection.get_connection_string()
             return create_engine(connection_string)
         else:
-            # Use default sections_db
-            sections_db_url = os.getenv(
-                'SECTIONS_DATABASE_URL',
-                'postgresql://sections_user:sections_password@sections_db:5432/sections_db'
-            )
-            return create_engine(sections_db_url)
+            return create_engine(_default_sections_db_url())
 
     def _init_section_vector_db(self):
         """Initialize Agno PgVector for this section"""
@@ -66,10 +74,7 @@ class ContentRepository:
             if self.section.database_connection:
                 db_url = self.section.database_connection.get_connection_string()
             else:
-                db_url = os.getenv(
-                    'SECTIONS_DATABASE_URL',
-                    'postgresql://sections_user:sections_password@sections_db:5432/sections_db'
-                )
+                db_url = _default_sections_db_url()
 
             # Initialize section vector db
             vector_db = SectionPgVector(
